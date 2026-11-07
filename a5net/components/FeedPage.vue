@@ -52,12 +52,12 @@
             @close="composing = false"
           />
 
-          <div class="mb-5 flex flex-wrap items-center gap-1 border-b border-line/70 pb-3">
+          <div class="a5-scroll mb-5 flex flex-nowrap items-center gap-1 overflow-x-auto border-b border-line/70 pb-3">
             <button
               v-for="tab in tabs"
               :key="tab.key"
               type="button"
-              class="rounded-full px-3 py-1.5 text-xs font-medium transition"
+              class="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition"
               :class="activeTab === tab.key ? 'bg-panel2 text-bone' : 'text-moss hover:text-bone'"
               @click="activeTab = tab.key"
             >{{ tab.label }}</button>
