@@ -1,0 +1,172 @@
+import Profiles from '../../tables/profiles.table'
+import Runs from '../../tables/runs.table'
+import type { FleetSettings } from '../../shared/types'
+import { getViewerSocial } from '../social'
+import { perceive } from './perception'
+import { formatMemory, recall, remember } from './memory'
+import { decide } from './decision'
+import { executeAction } from './act'
+import { reflectionText, type LocalDecision } from './local'
+
+export interface CycleResult {
+  botId: string
+  name: string
+  action: string
+  status: 'done' | 'wait' | 'skipped' | 'fumbled' | 'failed'
+  detail: string
+  provider: string
+  latencyMs: number
+}
+
+export function moscowHour(date = new Date()): number {
+  const formatted = new Intl.DateTimeFormat('ru-RU', {
+    hour: 'numeric',
+    hour12: false,
+    timeZone: 'Europe/Moscow',
+  }).format(date)
+  const value = Number(formatted)
+  return Number.isFinite(value) ? value % 24 : date.getUTCHours()
+}
+
+export function awakeScore(chronotype: 'lark' | 'nightowl' | 'steady', hour: number): number {
+  if (chronotype === 'lark') {
+    if (hour >= 6 && hour < 12) return 0.95
+    if (hour >= 12 && hour < 22) return 0.4
+    return 0.08
+  }
+  if (chronotype === 'nightowl') {
+    if (hour >= 19 || hour < 2) return 0.95
+    if (hour >= 2 && hour < 6) return 0.25
+    return 0.3
+  }
+  if (hour >= 9 && hour < 23) return 0.85
+  return 0.15
+}
+
+function nextDelayMinutes(action: string, aggressiveness: number): number {
+  if (action === 'WAIT') return 1 + Math.random() * 5
+  const base = action === 'COMMENT' || action === 'POST' ? 6 : 3
+  return base + Math.random() * 8 * (1.2 - aggressiveness)
+}
+
+export async function runBotCycle(
+  ctx: app.Ctx,
+  profile: typeof Profiles.T,
+  fleet: FleetSettings,
+): Promise<CycleResult | null> {
+  const now = new Date()
+  if (profile.nextActionAt && profile.nextActionAt.getTime() > now.getTime()) return null
+
+  const hour = moscowHour(now)
+  const awake = awakeScore(profile.chronotype, hour)
+  if (Math.random() > awake) return null
+
+  const social = await getViewerSocial(ctx, profile.id)
+  const perception = await perceive(ctx, profile, social)
+  if (!perception.items.length) {
+    const next = new Date(now.getTime() + 30 * 60000)
+    await Profiles.update(ctx, { id: profile.id, nextActionAt: next, lastActionAt: now })
+    return { botId: profile.id, name: profile.name, action: 'WAIT', status: 'wait', detail: 'лента пуста', provider: 'local', latencyMs: 0 }
+  }
+
+  const anchor = perception.items[0]!
+  const memories = await recall(ctx, profile, `${anchor.title} ${anchor.body}`, anchor.topics, 5)
+  const friendProfiles = social.friendIds.size
+    ? await Profiles.findAll(ctx, { where: { id: [...social.friendIds].slice(0, 12) }, limit: 12 })
+    : []
+  const friendNames = friendProfiles.map(friend => friend.name).join(', ')
+
+  const outcome = await decide(
+    ctx,
+    profile,
+    perception.items,
+    social,
+    formatMemory(memories),
+    friendNames,
+    perception.authorInterests,
+    perception.likeCounts,
+    fleet.aggressiveness,
+    true,
+  )
+
+  const planned: LocalDecision = outcome.decision
+  if (Math.random() < 0.07) {
+    await finish(ctx, profile, planned, 'fumbled', 'передумал в последний момент', outcome.provider, outcome.latencyMs, outcome.perception, fleet.aggressiveness)
+    return { botId: profile.id, name: profile.name, action: planned.action, status: 'fumbled', detail: 'передумал', provider: outcome.provider, latencyMs: outcome.latencyMs }
+  }
+  if (planned.action !== 'WAIT' && Math.random() < 0.05) {
+    await finish(ctx, profile, { action: 'WAIT', content: '', reason: 'отвлёкся' }, 'fumbled', 'отвлёкся и закрыл ленту', outcome.provider, outcome.latencyMs, outcome.perception, fleet.aggressiveness)
+    return { botId: profile.id, name: profile.name, action: 'WAIT', status: 'fumbled', detail: 'отвлёкся', provider: outcome.provider, latencyMs: outcome.latencyMs }
+  }
+
+  try {
+    const result = await executeAction(ctx, profile, planned, perception.items, social)
+    const target = perception.items.find(item => item.id === planned.targetId)
+    const topics = target?.topics ?? profile.interests.slice(0, 2)
+    const memoryText = reflectionText(
+      result.status === 'wait' ? 'WAIT' : planned.action,
+      result.targetTitle ? `«${result.targetTitle}»` : '',
+      profile,
+    )
+    await remember(ctx, profile, 'action', `${memoryText} ${result.detail}`.trim(), topics, planned.action === 'COMMENT' ? 2 : 1)
+    if (planned.action === 'COMMENT' && target) {
+      await remember(ctx, profile, 'impression', `Мне запомнилось «${target.title}» — ${target.topics.map(topic => topic).join(', ')}.`, target.topics, 1.2)
+    }
+    await finish(
+      ctx,
+      profile,
+      planned,
+      result.status === 'wait' ? 'wait' : 'done',
+      result.detail,
+      outcome.provider,
+      outcome.latencyMs,
+      outcome.perception,
+      fleet.aggressiveness,
+      result.targetTitle,
+    )
+    return {
+      botId: profile.id,
+      name: profile.name,
+      action: planned.action,
+      status: result.status,
+      detail: result.detail,
+      provider: outcome.provider,
+      latencyMs: outcome.latencyMs,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown'
+    await finish(ctx, profile, planned, 'failed', message.slice(0, 200), outcome.provider, outcome.latencyMs, outcome.perception, fleet.aggressiveness)
+    return { botId: profile.id, name: profile.name, action: planned.action, status: 'failed', detail: message, provider: outcome.provider, latencyMs: outcome.latencyMs }
+  }
+}
+
+async function finish(
+  ctx: app.Ctx,
+  profile: typeof Profiles.T,
+  decision: LocalDecision,
+  status: 'done' | 'wait' | 'fumbled' | 'failed',
+  detail: string,
+  provider: string,
+  latencyMs: number,
+  perception: string,
+  aggressiveness: number,
+  targetTitle?: string,
+): Promise<void> {
+  await Runs.create(ctx, {
+    profileId: profile.id,
+    action: decision.action,
+    targetId: decision.targetId,
+    content: (decision.content || detail).slice(0, 500),
+    provider,
+    latencyMs,
+    status,
+    perception: perception.slice(0, 900),
+  })
+  const now = new Date()
+  const delay = nextDelayMinutes(decision.action, aggressiveness)
+  const next = new Date(now.getTime() + delay * 60000)
+  await Profiles.update(ctx, { id: profile.id, lastActionAt: now, nextActionAt: next })
+  if (targetTitle) {
+    await remember(ctx, profile, 'reflection', `Мой след в «${targetTitle}»: ${detail}.`, profile.interests.slice(0, 2), 0.8)
+  }
+}

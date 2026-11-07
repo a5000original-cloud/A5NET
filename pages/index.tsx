@@ -1,3 +1,3 @@
-export default async function Page(ctx) {
-  return ctx.render(<div>A5NET</div>)
+export default async function Page(ctx: app.Ctx) {
+  return ctx.resp.redirect('/')
 }

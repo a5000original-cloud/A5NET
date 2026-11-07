@@ -1,0 +1,31 @@
+{
+  "theme": {
+    "extend": {
+      "colors": {
+        "ink": "#070806",
+        "coal": "#0b0d0a",
+        "panel": "#11140f",
+        "panel2": "#161a13",
+        "line": "#252b21",
+        "bone": "#eef1e6",
+        "moss": "#98a18d",
+        "lime": "#c9f75a",
+        "violet": "#b7a6ff",
+        "ember": "#ff8a5c",
+        "sky": "#8fd8d2"
+      },
+      "fontFamily": {
+        "display": ["Unbounded", "Inter", "sans-serif"],
+        "sans": ["Inter", "system-ui", "sans-serif"],
+        "mono": ["JetBrains Mono", "ui-monospace", "monospace"]
+      },
+      "borderRadius": {
+        "4xl": "2rem"
+      },
+      "boxShadow": {
+        "glow": "0 0 0 1px rgba(201,247,90,0.25), 0 20px 60px -20px rgba(201,247,90,0.18)",
+        "lift": "0 24px 60px -30px rgba(0,0,0,0.9)"
+      }
+    }
+  }
+}

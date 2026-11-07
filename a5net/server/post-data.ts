@@ -1,0 +1,164 @@
+import Profiles from '../tables/profiles.table'
+import Posts from '../tables/posts.table'
+import Reactions from '../tables/reactions.table'
+import Comments from '../tables/comments.table'
+import type { CommentItem, PostCard, ReactionValue, TopicRef } from '../shared/types'
+import { timeAgo } from '../shared/format'
+import { topicById } from './taxonomy'
+import { getAuthorMap, fallbackAuthor, toAuthorCard, getViewerSocial } from './social'
+
+export function toTopicRefs(ids: string[]): TopicRef[] {
+  return ids.map(id => {
+    const topic = topicById(id)
+    return { id: topic.id, label: topic.label, hue: topic.hue }
+  })
+}
+
+export function toPostCard(
+  post: typeof Posts.T,
+  author: ReturnType<typeof toAuthorCard>,
+  reaction: ReactionValue | null,
+  nowMs: number,
+): PostCard {
+  const created = post.publishedAt instanceof Date ? post.publishedAt : new Date(post.publishedAt)
+  return {
+    id: post.id,
+    kind: post.kind,
+    title: post.title,
+    body: post.body,
+    topics: toTopicRefs(post.topics),
+    mediaUrl: post.mediaUrl ?? null,
+    coverHue: post.coverHue,
+    durationSec: post.durationSec,
+    hypeScore: post.hypeScore,
+    hypeLevel: Math.min(1, Math.max(0.05, post.hypeScore / 70)),
+    likes: post.likes,
+    dislikes: post.dislikes,
+    commentsCount: post.commentsCount,
+    views: post.views,
+    createdAt: created.toISOString(),
+    author,
+    viewerReaction: reaction,
+    collabId: post.collabId ?? null,
+    ago: timeAgo(created.toISOString(), nowMs),
+  }
+}
+
+export async function listPosts(
+  ctx: app.Ctx,
+  options: { viewerId: string; limit?: number; offset?: number; authorId?: string },
+): Promise<{ items: PostCard[]; hasMore: boolean }> {
+  const limit = Math.min(options.limit ?? 24, 60)
+  const offset = Math.max(0, options.offset ?? 0)
+  const where = options.authorId ? { authorId: options.authorId } : {}
+  const rows = await Posts.findAll(ctx, {
+    where,
+    limit: limit + 1,
+    offset,
+    order: [{ publishedAt: 'desc' }, { id: 'asc' }],
+  })
+  const hasMore = rows.length > limit
+  const page = rows.slice(0, limit)
+  const nowMs = Date.now()
+  const authorMap = await getAuthorMap(ctx, page.map(post => post.authorId))
+  const postIds = page.map(post => post.id)
+  const reactions = postIds.length
+    ? await Reactions.findAll(ctx, { where: { postId: postIds, profileId: options.viewerId }, limit: postIds.length })
+    : []
+  const reactionMap = new Map(reactions.map(row => [row.postId, row.value as ReactionValue]))
+
+  return {
+    items: page.map(post =>
+      toPostCard(
+        post,
+        authorMap.get(post.authorId) ?? fallbackAuthor(post.authorId),
+        reactionMap.get(post.id) ?? null,
+        nowMs,
+      ),
+    ),
+    hasMore,
+  }
+}
+
+export async function listComments(
+  ctx: app.Ctx,
+  postId: string,
+  viewerId: string,
+): Promise<CommentItem[]> {
+  const rows = await Comments.findAll(ctx, {
+    where: { postId },
+    limit: 100,
+    order: [{ createdAt: 'asc' }, { id: 'asc' }],
+  })
+  const authorMap = await getAuthorMap(ctx, rows.map(row => row.authorId))
+  const nowMs = Date.now()
+  return rows.map(row => {
+    const created = row.publishedAt instanceof Date ? row.publishedAt : new Date(row.publishedAt)
+    return {
+      id: row.id,
+      text: row.text,
+      likes: row.likes,
+      createdAt: created.toISOString(),
+      ago: timeAgo(created.toISOString(), nowMs),
+      author: authorMap.get(row.authorId) ?? fallbackAuthor(row.authorId),
+      isMine: row.authorId === viewerId,
+    }
+  })
+}
+
+export async function findRelatedPosts(
+  ctx: app.Ctx,
+  post: typeof Posts.T,
+  viewerId: string,
+  limit = 3,
+): Promise<PostCard[]> {
+  const rows = await Posts.findAll(ctx, { limit: 40, order: [{ publishedAt: 'desc' }, { id: 'asc' }] })
+  const topicSet = new Set(post.topics)
+  const scored = rows
+    .filter(row => row.id !== post.id)
+    .map(row => ({
+      row,
+      overlap: row.topics.filter(topic => topicSet.has(topic)).length,
+    }))
+    .filter(entry => entry.overlap > 0)
+    .sort((a, b) => b.overlap - a.overlap || b.row.hypeScore - a.row.hypeScore)
+    .slice(0, limit)
+  if (!scored.length) return []
+  const authorMap = await getAuthorMap(ctx, scored.map(entry => entry.row.authorId))
+  const reactionRows = await Reactions.findAll(ctx, {
+    where: { postId: scored.map(entry => entry.row.id), profileId: viewerId },
+    limit: scored.length,
+  })
+  const reactionMap = new Map(reactionRows.map(row => [row.postId, row.value as ReactionValue]))
+  const nowMs = Date.now()
+  return scored.map(entry =>
+    toPostCard(
+      entry.row,
+      authorMap.get(entry.row.authorId) ?? fallbackAuthor(entry.row.authorId),
+      reactionMap.get(entry.row.id) ?? null,
+      nowMs,
+    ),
+  )
+}
+
+export async function getPostPageData(ctx: app.Ctx, postId: string, viewerId: string): Promise<{
+  post: PostCard
+  comments: CommentItem[]
+  author: typeof Profiles.T
+  related: PostCard[]
+} | null> {
+  const post = await Posts.findById(ctx, postId)
+  if (!post) return null
+  const author = await Profiles.findById(ctx, post.authorId)
+  if (!author) return null
+  const [comments, related] = await Promise.all([
+    listComments(ctx, postId, viewerId),
+    findRelatedPosts(ctx, post, viewerId),
+  ])
+  const postCard = toPostCard(post, toAuthorCard(author), null, Date.now())
+  return { post: postCard, comments, author, related }
+}
+
+export async function viewerSocialSafe(ctx: app.Ctx, profileId: string) {
+  return getViewerSocial(ctx, profileId)
+}

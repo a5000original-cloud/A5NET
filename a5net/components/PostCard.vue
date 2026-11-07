@@ -1,0 +1,142 @@
+<template>
+  <article class="a5-card a5-card-hover a5-grain overflow-hidden">
+    <div class="flex items-start justify-between gap-3 p-4 pb-0 sm:p-5 sm:pb-0">
+      <a :href="profilePageRoute.query({ id: post.author.id }).url()" class="flex min-w-0 items-center gap-3">
+        <Avatar :name="post.author.name" :hue="post.author.avatarHue" :accent="post.author.avatarAccent" size="sm" />
+        <span class="min-w-0">
+          <span class="block truncate text-sm font-medium text-bone">{{ post.author.name }}</span>
+          <span class="block truncate text-[11px] text-moss">@{{ post.author.handle }} · {{ post.ago }}</span>
+        </span>
+      </a>
+      <span class="a5-pill shrink-0 !py-1 !text-[9px]">{{ kindLabel }}</span>
+    </div>
+
+    <div class="p-4 sm:p-5">
+      <a :href="postPageRoute.query({ id: post.id }).url()" class="group block">
+        <h3 class="a5-display text-lg font-medium leading-snug text-bone transition group-hover:text-lime sm:text-xl">
+          {{ post.title }}
+        </h3>
+        <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-moss">{{ post.body }}</p>
+      </a>
+
+      <div v-if="post.kind === 'video'" class="mt-4">
+        <a :href="postPageRoute.query({ id: post.id }).url()" class="group/cover relative block overflow-hidden rounded-xl border border-line/80">
+          <div class="aspect-video w-full" :style="{ background: coverBackground(post.coverHue) }">
+            <div class="absolute inset-0 opacity-60" style="background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 40%), radial-gradient(circle at 70% 70%, rgba(255,255,255,0.08), transparent 45%)"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="flex h-14 w-14 items-center justify-center rounded-full border border-lime/40 bg-ink/60 text-lime backdrop-blur transition group-hover/cover:scale-105 group-hover/cover:border-lime">
+                <svg width="18" height="20" viewBox="0 0 14 16" fill="currentColor"><path d="M1 1.2v13.6c0 .8.9 1.3 1.6.9l10.2-6.8c.6-.4.6-1.3 0-1.7L2.6.3C1.9-.1 1 .4 1 1.2z" /></svg>
+              </span>
+            </div>
+            <span class="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-1 font-mono text-[10px] text-white/80">{{ formatDuration(post.durationSec) }}</span>
+            <span class="absolute left-4 top-4 a5-mono text-[9px] text-white/60">видеоэтюд</span>
+          </div>
+        </a>
+      </div>
+
+      <div v-else-if="post.kind === 'music' && post.mediaUrl" class="mt-4">
+        <AudioPlayer
+          :src="post.mediaUrl"
+          :title="post.title"
+          :artist="artist"
+          :post-id="post.id"
+        />
+      </div>
+
+      <div v-else-if="post.kind === 'collab'" class="mt-4 rounded-xl border border-violet/25 bg-violet/5 p-4">
+        <p class="a5-mono text-[9px] text-violet/80">коллаборация · открыта</p>
+        <p class="mt-1 text-sm text-bone/90">{{ post.body }}</p>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-1.5">
+        <span v-for="topic in post.topics" :key="topic.id" class="a5-chip" :style="{ borderColor: `hsla(${topic.hue}, 60%, 60%, 0.35)` }">
+          {{ topic.label }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-2 border-t border-line/70 px-4 py-3 text-moss sm:px-5">
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs transition hover:bg-panel2"
+          :class="reaction === 'like' ? 'text-lime' : 'hover:text-bone'"
+          :aria-pressed="reaction === 'like'"
+          aria-label="Нравится"
+          @click="react('like')"
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 13.5s-5.5-3.2-5.5-7A3.2 3.2 0 018 4.2a3.2 3.2 0 015.5 2.3c0 3.8-5.5 7-5.5 7z" /></svg>
+          {{ formatCount(likes) }}
+        </button>
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs transition hover:bg-panel2"
+          :class="reaction === 'dislike' ? 'text-ember' : 'hover:text-bone'"
+          :aria-pressed="reaction === 'dislike'"
+          aria-label="Не нравится"
+          @click="react('dislike')"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2.5s5.5 3.2 5.5 7A3.2 3.2 0 018 11.8a3.2 3.2 0 01-5.5-2.3c0-3.8 5.5-7 5.5-7z" /></svg>
+          {{ formatCount(dislikes) }}
+        </button>
+        <a :href="postPageRoute.query({ id: post.id }).url() + '#comments'" class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs transition hover:bg-panel2 hover:text-bone">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 3.5h10v7H8l-3 2.5v-2.5H3v-7z" /></svg>
+          {{ formatCount(post.commentsCount) }}
+        </a>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden font-mono text-[10px] text-moss/60 sm:inline">{{ formatCount(post.views) }} просм.</span>
+        <HypeMeter :score="post.hypeScore" :level="post.hypeLevel" />
+      </div>
+    </div>
+
+    <p v-if="error" class="px-4 pb-3 text-[11px] text-ember sm:px-5">{{ error }}</p>
+  </article>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import type { PostCard as PostCardData, ReactionValue } from '../shared/types'
+import Avatar from './Avatar.vue'
+import HypeMeter from './HypeMeter.vue'
+import AudioPlayer from './AudioPlayer.vue'
+import { coverBackground, formatCount, formatDuration } from '../shared/format'
+import { postPageRoute } from '../post'
+import { profilePageRoute } from '../profile'
+import { postReactRoute } from '../api/post/react'
+
+const props = defineProps<{ post: PostCardData }>()
+
+const likes = ref(props.post.likes)
+const dislikes = ref(props.post.dislikes)
+const reaction = ref<ReactionValue | null>(props.post.viewerReaction)
+const error = ref('')
+
+const kindLabel = computed(() => {
+  if (props.post.kind === 'video') return 'видео'
+  if (props.post.kind === 'music') return 'музыка'
+  if (props.post.kind === 'collab') return 'коллаб'
+  return 'текст'
+})
+
+const artist = computed(() => {
+  const first = props.post.body.split('.')[0]
+  return first && first.length < 48 ? first : ''
+})
+
+async function react(value: 'like' | 'dislike') {
+  error.value = ''
+  try {
+    const result = await postReactRoute.run(ctx, { id: props.post.id, value })
+    if (!result.ok) {
+      error.value = result.error
+      return
+    }
+    likes.value = result.likes
+    dislikes.value = result.dislikes
+    reaction.value = result.viewerReaction
+  } catch {
+    error.value = 'Не удалось поставить реакцию.'
+  }
+}
+</script>

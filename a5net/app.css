@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@config "./tailwind.config.json";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --a5-lime: #c9f75a;
+  --a5-line: #252b21;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink text-bone font-sans antialiased;
+  background-image:
+    radial-gradient(900px 500px at 12% -8%, rgba(201, 247, 90, 0.09), transparent 62%),
+    radial-gradient(800px 600px at 92% 6%, rgba(183, 166, 255, 0.07), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--a5-lime);
+  color: #0a0b08;
+}
+
+a {
+  @apply transition-colors;
+}
+
+@layer components {
+  .a5-shell {
+    @apply mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .a5-card {
+    @apply rounded-2xl border border-line/90 bg-panel/80 shadow-lift backdrop-blur-sm;
+  }
+
+  .a5-card-hover {
+    @apply transition duration-300 hover:-translate-y-0.5 hover:border-lime/35 hover:shadow-glow;
+  }
+
+  .a5-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-panel2/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-moss;
+  }
+
+  .a5-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .a5-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .a5-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-moss transition hover:text-bone;
+  }
+
+  .a5-input {
+    @apply w-full rounded-xl border border-line bg-coal px-4 py-3 text-sm text-bone placeholder:text-moss/60 focus:border-lime/60 focus:outline-none;
+  }
+
+  .a5-label {
+    @apply mb-2 block text-[11px] font-medium uppercase tracking-[0.16em] text-moss;
+  }
+
+  .a5-chip {
+    @apply inline-flex items-center rounded-full border border-line/80 px-2.5 py-1 text-[11px] text-moss transition hover:border-lime/40 hover:text-lime;
+  }
+
+  .a5-chip-active {
+    @apply border-lime/70 bg-lime/10 text-lime;
+  }
+
+  .a5-display {
+    @apply font-display tracking-[-0.03em];
+  }
+
+  .a5-mono {
+    @apply font-mono text-[11px] uppercase tracking-[0.16em];
+  }
+
+  .a5-divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-line to-transparent;
+  }
+
+  .a5-grain {
+    position: relative;
+  }
+
+  .a5-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.18;
+    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode: soft-light;
+    border-radius: inherit;
+  }
+
+  .a5-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .a5-scroll::-webkit-scrollbar-thumb {
+    background: #2b3327;
+    border-radius: 99px;
+  }
+
+  .a5-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .a5-cover {
+    background:
+      radial-gradient(120% 120% at 15% 10%, rgba(201, 247, 90, 0.18), transparent 45%),
+      radial-gradient(90% 110% at 85% 90%, rgba(183, 166, 255, 0.16), transparent 50%),
+      #0d100c;
+  }
+
+  .a5-underline {
+    text-decoration: underline;
+    text-decoration-color: rgba(201, 247, 90, 0.55);
+    text-underline-offset: 4px;
+  }
+
+  .a5-fade {
+    animation: a5-fade 0.6s ease both;
+  }
+
+  .a5-rise {
+    animation: a5-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@keyframes a5-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes a5-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes a5-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.a5-live-dot {
+  animation: a5-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes a5-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.a5-marquee-track {
+  animation: a5-marquee 36s linear infinite;
+}
