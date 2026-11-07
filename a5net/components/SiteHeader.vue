@@ -57,6 +57,7 @@
             class="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-line bg-panel shadow-lift"
           >
             <a :href="profilePageRoute.query({ id: viewer.id }).url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Мой профиль</a>
+            <a :href="assistantPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">A5000_Менеджер</a>
             <a v-if="showInvites" :href="invitesPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Приглашения</a>
             <a v-if="role === 'owner'" :href="controlPageRoute.url()" class="block px-4 py-3 text-sm text-violet hover:bg-panel2">Пульт A5000</a>
             <div class="a5-divider"></div>
@@ -78,11 +79,12 @@ import { feedPageRoute } from '../feed'
 import { invitesPageRoute } from '../invites'
 import { controlPageRoute } from '../control'
 import { profilePageRoute } from '../profile'
+import { assistantPageRoute } from '../assistant'
 
 const props = defineProps<{
   viewer: AuthorCard
   role: 'owner' | 'admin' | 'member'
-  active: 'feed' | 'invites' | 'control' | 'profile' | 'none'
+  active: 'feed' | 'invites' | 'control' | 'profile' | 'manager' | 'none'
 }>()
 
 const menuOpen = ref(false)
@@ -90,6 +92,7 @@ const showInvites = computed(() => props.role === 'owner' || props.role === 'adm
 
 const items = computed(() => [
   { key: 'feed', label: 'Лента', href: feedPageRoute.url() },
+  { key: 'manager', label: 'Менеджер', href: assistantPageRoute.url() },
   { key: 'profile', label: 'Профиль', href: profilePageRoute.query({ id: props.viewer.id }).url() },
 ])
 
