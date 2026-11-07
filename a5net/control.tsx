@@ -4,7 +4,7 @@ import ControlPage from './components/ControlPage.vue'
 import { getControlData } from './server/control-data'
 import { resolveMembership } from './server/page-helpers'
 
-export const controlPageRoute = app.get('/control', async ctx => {
+export const controlPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
   if (!ctx.user?.is('Owner')) return ctx.resp.redirect('/')

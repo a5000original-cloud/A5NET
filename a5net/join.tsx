@@ -3,7 +3,7 @@ import { Styles } from './styles'
 import JoinPage from './components/JoinPage.vue'
 import { queryString, resolveMembership } from './server/page-helpers'
 
-export const joinPageRoute = app.get('/join', async ctx => {
+export const joinPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (membership) return ctx.resp.redirect('/')
 

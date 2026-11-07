@@ -4,7 +4,7 @@ import InvitesPage from './components/InvitesPage.vue'
 import { getInvitesData } from './server/invite-data'
 import { resolveMembership } from './server/page-helpers'
 
-export const invitesPageRoute = app.get('/invites', async ctx => {
+export const invitesPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
   const canOpen = membership.role === 'owner' || membership.role === 'admin' || Boolean(ctx.user?.is('Staff'))

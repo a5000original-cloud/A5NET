@@ -4,7 +4,7 @@ import PostPage from './components/PostPage.vue'
 import { loadPostPage } from './server/post-page'
 import { queryString, resolveMembership } from './server/page-helpers'
 
-export const postPageRoute = app.get('/post', async ctx => {
+export const postPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
 

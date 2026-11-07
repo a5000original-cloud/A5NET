@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen overflow-hidden">
     <section class="relative min-h-[92vh] w-full overflow-hidden border-b border-line/70">
-      <video class="absolute inset-0 h-full w-full object-cover opacity-45" :src="data.heroUrl" autoplay muted loop playsinline></video>
+      <video class="absolute inset-0 h-full w-full scale-105 object-cover opacity-40 blur-sm" :src="data.heroUrl" autoplay muted loop playsinline></video>
       <div class="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/55 to-ink"></div>
       <div class="absolute inset-0" style="background: radial-gradient(60% 50% at 50% 40%, rgba(201,247,90,0.12), transparent 65%)"></div>
 

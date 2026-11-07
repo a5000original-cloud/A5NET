@@ -5,7 +5,7 @@ import { getProfilePageData } from './server/feed'
 import { toAuthorCard } from './server/social'
 import { queryString, resolveMembership } from './server/page-helpers'
 
-export const profilePageRoute = app.get('/profile', async ctx => {
+export const profilePageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
 

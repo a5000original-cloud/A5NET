@@ -4,7 +4,7 @@ import FeedPage from './components/FeedPage.vue'
 import { getFeedData } from './server/feed'
 import { resolveMembership } from './server/page-helpers'
 
-export const feedPageRoute = app.get('/feed', async ctx => {
+export const feedPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
 
