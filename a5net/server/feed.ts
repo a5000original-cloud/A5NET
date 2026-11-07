@@ -56,8 +56,9 @@ export async function getFeedData(
     }
   })
   scored.sort((a, b) => b.score - a.score)
+  const diversified = diversify(scored, byIdOf(raw))
 
-  const pageIds = scored.slice(offset, offset + 24).map(entry => entry.postId)
+  const pageIds = diversified.slice(offset, offset + 24).map(entry => entry.postId)
   const byId = new Map(raw.map(post => [post.id, post]))
   const pagePosts = pageIds.map(id => byId.get(id)).filter((post): post is typeof raw[number] => Boolean(post))
 
@@ -92,7 +93,7 @@ export async function getFeedData(
     viewer: toAuthorCard(viewer),
     viewerRole: role,
     now: new Date(nowMs).toISOString(),
-    hasMore: scored.length > offset + 24,
+    hasMore: diversified.length > offset + 24,
     collabs,
     fleetEnabled: fleet.enabled,
     topicOptions: LEAF_TOPICS.slice(0, 28).map(topic => ({ id: topic.id, label: topic.label, hue: topic.hue })),
@@ -212,4 +213,28 @@ export async function getProfilePageData(
     incomingRequest: viewerSocial.pendingIn.has(profile.id),
     now: new Date().toISOString(),
   }
+}
+
+function byIdOf(posts: Array<{ id: string; authorId: string }>): Map<string, string> {
+  return new Map(posts.map(post => [post.id, post.authorId]))
+}
+
+function diversify(entries: Array<{ postId: string; score: number }>, authorOf: Map<string, string>): Array<{ postId: string; score: number }> {
+  const pool = [...entries]
+  const ordered: Array<{ postId: string; score: number }> = []
+  while (pool.length) {
+    let chosenIndex = 0
+    for (let index = 0; index < pool.length; index += 1) {
+      const candidate = pool[index]!
+      const author = authorOf.get(candidate.postId)
+      const lastAuthors = ordered.slice(-3).map(entry => authorOf.get(entry.postId))
+      if (!author || !lastAuthors.includes(author)) {
+        chosenIndex = index
+        break
+      }
+    }
+    const [next] = pool.splice(chosenIndex, 1)
+    if (next) ordered.push(next)
+  }
+  return ordered
 }

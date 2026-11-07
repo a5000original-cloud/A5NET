@@ -21,7 +21,8 @@
 
       <div v-if="post.kind === 'video'" class="mt-4">
         <a :href="postPageRoute.query({ id: post.id }).url()" class="group/cover relative block overflow-hidden rounded-xl border border-line/80">
-          <div class="aspect-video w-full" :style="{ background: coverBackground(post.coverHue) }">
+          <div class="relative aspect-video w-full" :style="{ background: coverBackground(post.coverHue) }">
+            <img v-if="poster" :src="poster" alt="" class="absolute inset-0 h-full w-full object-cover opacity-60" />
             <div class="absolute inset-0 opacity-60" style="background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 40%), radial-gradient(circle at 70% 70%, rgba(255,255,255,0.08), transparent 45%)"></div>
             <div class="absolute inset-0 flex items-center justify-center">
               <span class="flex h-14 w-14 items-center justify-center rounded-full border border-lime/40 bg-ink/60 text-lime backdrop-blur transition group-hover/cover:scale-105 group-hover/cover:border-lime">
@@ -122,6 +123,12 @@ const kindLabel = computed(() => {
 const artist = computed(() => {
   const first = props.post.body.split('.')[0]
   return first && first.length < 48 ? first : ''
+})
+
+const poster = computed(() => {
+  const url = props.post.mediaUrl
+  if (!url || props.post.kind !== 'video' || !url.includes('/get/')) return ''
+  return `${url.replace('/get/', '/thumbnail/')}/s/800x`
 })
 
 async function react(value: 'like' | 'dislike') {

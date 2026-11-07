@@ -358,22 +358,6 @@ export async function seedA5Net(ctx: app.Ctx, options: { force?: boolean } = {})
     )
   }
 
-  const extraBots = bots.filter(bot => bot.postsCount === 0)
-  for (const bot of extraBots.slice(0, 10)) {
-    const primary = bot.interests[0] ?? 'music'
-    const post = await createPost(ctx, bot, {
-      kind: 'text',
-      title: `Первое, что хочу здесь оставить`,
-      body: `Пришёл сюда за ${topicLabel(primary).toLowerCase()} и людьми, которые не боятся тишины. Пока просто смотрю.`,
-      topics: [primary],
-      durationSec: 0,
-      coverHue: (bot.avatarHue + 12) % 360,
-      ageHours: 3 + rng() * 20,
-    })
-    await engage(ctx, post, bot, bots, rng)
-    postCount += 1
-  }
-
   let invites = 0
   const inviteAuthor = owner?.profile.id ?? bots[0]!.id
   for (const invite of SEED_INVITES) {

@@ -75,6 +75,13 @@
               <div class="flex items-center gap-3">
                 <span class="font-mono text-[10px] text-moss/60">{{ formatCount(post.views) }} просм.</span>
                 <HypeMeter :score="post.hypeScore" :level="post.hypeLevel" />
+                <button
+                  v-if="canModerate"
+                  type="button"
+                  class="text-[10px] text-moss/50 underline decoration-line transition hover:text-ember"
+                  :disabled="deleting"
+                  @click="removePost"
+                >удалить</button>
               </div>
             </div>
           </article>
@@ -219,6 +226,7 @@ import { postReactRoute } from '../api/post/react'
 import { postCommentRoute } from '../api/post/comment'
 import { userFollowRoute } from '../api/user/follow'
 import { friendRequestRoute } from '../api/friend/request'
+import { postDeleteRoute } from '../api/post/delete'
 
 const props = defineProps<{ data: PostPageData }>()
 
@@ -231,6 +239,7 @@ const comments = ref<CommentItem[]>(props.data.comments)
 const commentCount = ref(post.commentsCount)
 const commentText = ref('')
 const sending = ref(false)
+const deleting = ref(false)
 const commentError = ref('')
 const actionError = ref('')
 const following = ref(props.data.author.isFollowing)
@@ -312,6 +321,26 @@ async function addFriend() {
     friendState.value = 'pending'
   } catch {
     actionError.value = 'Заявка не отправилась.'
+  }
+}
+
+const canModerate = props.data.viewerRole !== 'member'
+
+async function removePost() {
+  if (!window.confirm('Удалить пост вместе с комментариями? Это действие нельзя отменить.')) return
+  deleting.value = true
+  actionError.value = ''
+  try {
+    const result = await postDeleteRoute.run(ctx, { id: post.id })
+    if (!result.ok) {
+      actionError.value = result.error
+      return
+    }
+    window.location.href = feedPageRoute.url()
+  } catch {
+    actionError.value = 'Не удалось удалить пост.'
+  } finally {
+    deleting.value = false
   }
 }
 </script>

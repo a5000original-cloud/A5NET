@@ -3,6 +3,7 @@
     <video
       ref="video"
       :src="src"
+      :poster="poster"
       class="aspect-video w-full cursor-pointer object-cover"
       preload="metadata"
       playsinline
@@ -64,6 +65,8 @@ const position = ref(0)
 const total = ref(0)
 let listened = 0
 let reported = false
+
+const poster = computed(() => props.src.includes('/get/') ? `${props.src.replace('/get/', '/thumbnail/')}/s/800x` : undefined)
 
 const progress = computed(() => (total.value ? Math.min(1, position.value / total.value) : 0))
 
