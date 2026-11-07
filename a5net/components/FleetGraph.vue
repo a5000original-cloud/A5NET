@@ -139,6 +139,13 @@ function buildLayout(): Record<string, Position> {
     }
   }
 
+  for (const id of idList) {
+    const point = map[id]
+    if (!point) continue
+    point.x = Math.round(point.x * 10) / 10
+    point.y = Math.round(point.y * 10) / 10
+  }
+
   return map
 }
 
@@ -147,6 +154,6 @@ function pos(id: string): Position {
 }
 
 function radius(node: GraphNode): number {
-  return 3.4 + Math.min(7, node.degree) * 0.75
+  return Math.round((3.4 + Math.min(7, node.degree) * 0.75) * 10) / 10
 }
 </script>
