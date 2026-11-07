@@ -41,7 +41,7 @@ export function toPostCard(
     likes: post.likes,
     dislikes: post.dislikes,
     commentsCount: post.commentsCount,
-    views: post.views,
+    views: Math.max(post.views, post.likes + post.dislikes),
     createdAt: created.toISOString(),
     author,
     viewerReaction: reaction,

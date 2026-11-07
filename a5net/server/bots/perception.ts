@@ -25,6 +25,7 @@ export async function perceive(
     ? await Profiles.findAll(ctx, { where: { id: authorIdsAll }, limit: authorIdsAll.length })
     : []
   const kindById = new Map(authorRows.map(author => [author.id, author.kind]))
+  const followersById = new Map(authorRows.map(author => [author.id, author.followersCount]))
   const scored = rows
     .filter(post => post.authorId !== profile.id && post.visibility === 'visible')
     .map(post => {
@@ -39,7 +40,7 @@ export async function perceive(
       return {
         post,
         affinity,
-        score: recency * 0.8 + affinity * 1.6 + friend + hype * 0.35 + discovery * 0.55 + (kindById.get(post.authorId) === 'human' ? 1.2 : 0),
+        score: recency * 0.8 + affinity * 1.6 + friend + hype * 0.35 + discovery * 0.55 + (kindById.get(post.authorId) === 'human' ? 1.2 : 0) + Math.log10(1 + (followersById.get(post.authorId) ?? 0)) * 0.18,
       }
     }).filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
     .sort((a, b) => b.score - a.score)

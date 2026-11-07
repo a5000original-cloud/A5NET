@@ -9,6 +9,7 @@ import { addEdge, requestFriendship, type ViewerSocial } from '../social'
 import { refreshHype } from '../hype'
 import { cosine, embedText, postVector } from '../vec'
 import { remember } from './memory'
+import { sendMessage } from '../messages'
 import type { LocalDecision, LocalPost } from './local'
 import { localPost, type BotAction } from './local'
 import type { PersonaDraft } from './personas'
@@ -61,7 +62,7 @@ async function setReaction(
   }
   if (value === 'like') likes += 1
   if (value === 'dislike') dislikes += 1
-  await Posts.update(ctx, { id: post.id, likes, dislikes })
+  await Posts.update(ctx, { id: post.id, likes, dislikes, views: Math.max(post.views, likes + dislikes) })
   await addEdge(ctx, { fromId: profile.id, toId: post.authorId, kind: value, postId: post.id })
   await refreshHype(ctx, post.id)
   return { changed: true, detail: value === 'like' ? 'поставил лайк' : 'поставил дизлайк' }
@@ -142,24 +143,50 @@ export async function executeAction(
     return { status: 'done', targetTitle: post.title, detail: result.detail }
   }
 
+  if (action === 'UNFOLLOW') {
+    const candidate = feed.find(item => item.id === decision.targetId)?.authorId
+    const following = [...social.followingIds]
+    const authorId = candidate && social.followingIds.has(candidate) ? candidate : following[0]
+    if (!authorId) return { status: 'wait', targetTitle: '', detail: 'и так ни на кого не подписан' }
+    const edge = await Edges.findOneBy(ctx, { fromId: profile.id, toId: authorId, kind: 'follow' })
+    if (edge) await Edges.delete(ctx, edge.id)
+    const author = await Profiles.findById(ctx, authorId)
+    if (author) {
+      await Profiles.update(ctx, { id: author.id, followersCount: Math.max(0, author.followersCount - 1) })
+      await Profiles.update(ctx, { id: profile.id, followingCount: Math.max(0, profile.followingCount - 1) })
+    }
+    return { status: 'done', targetTitle: author?.name ?? '', detail: 'отписался — перестало цеплять' }
+  }
+
   if (action === 'COMMENT') {
-    const text = decision.content.trim().slice(0, 500)
+    let text = decision.content.trim().slice(0, 500)
     if (!text) return { status: 'wait', targetTitle: post.title, detail: 'не придумал комментарий' }
 
     const already = await Comments.findOneBy(ctx, { postId: post.id, authorId: profile.id })
     if (already) return { status: 'wait', targetTitle: post.title, detail: 'уже высказался под этим постом' }
 
-    const sameText = await Comments.findOneBy(ctx, { postId: post.id, text })
-    if (sameText) return { status: 'wait', targetTitle: post.title, detail: 'не стал повторять чужую мысль' }
+    const postComments = await Comments.findAll(ctx, { where: { postId: post.id }, limit: 60 })
+    const vector = embedText(text, post.topics)
+    const normalized = text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+    if (postComments.some(row => {
+      const rowNormalized = row.text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+      return rowNormalized === normalized || cosine(vector, embedText(row.text)) > 0.84
+    })) {
+      return { status: 'wait', targetTitle: post.title, detail: 'не стал повторять уже сказанное' }
+    }
 
     const recent = await Comments.findAll(ctx, {
       where: { authorId: profile.id },
       limit: 40,
       order: [{ publishedAt: 'desc' }, { id: 'asc' }],
     })
-    const vector = embedText(text, post.topics)
-    if (recent.some(row => cosine(vector, embedText(row.text)) > 0.92)) {
+    if (recent.some(row => cosine(vector, embedText(row.text)) > 0.88)) {
       return { status: 'wait', targetTitle: post.title, detail: 'решил не повторяться' }
+    }
+
+    const author = await Profiles.findById(ctx, post.authorId)
+    if (author?.kind === 'human' && !text.startsWith('@') && Math.random() < 0.45) {
+      text = `@${author.handle}, ${text}`
     }
 
     await Comments.create(ctx, {
@@ -173,13 +200,21 @@ export async function executeAction(
     await addEdge(ctx, { fromId: profile.id, toId: post.authorId, kind: 'comment', postId: post.id })
     await refreshHype(ctx, post.id)
 
-    const author = await Profiles.findById(ctx, post.authorId)
+    if (author?.kind === 'human' && Math.random() < 0.18) {
+      await sendMessage(
+        ctx,
+        profile,
+        author.id,
+        `Оставил комментарий под «${post.title}». В ленте шумно — если хочешь, продолжим здесь.`,
+      )
+    }
+
     if (author) {
       await remember(
         ctx,
         profile,
         'impression',
-        `Автор ${author.name} пишет про ${author.interests.slice(0, 2).map(topic => topic).join(', ')}. Стоит читать внимательнее.`,
+        `Автор ${author.name} пишет про ${author.interests.slice(0, 2).join(', ')}. Стоит читать внимательнее.`,
         author.interests.slice(0, 2),
         0.9,
       )

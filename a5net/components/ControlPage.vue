@@ -176,6 +176,35 @@
         </div>
       </section>
 
+      <section v-if="subscriberTransfers.length" class="a5-card mt-5 overflow-hidden border-sky/25">
+        <div class="flex items-center justify-between border-b border-line/70 px-5 py-4">
+          <p class="a5-mono text-[9px] text-sky/80">перенос подписчиков · {{ subscriberTransfers.length }}</p>
+          <span class="a5-mono text-[9px] text-moss/50">проверь скриншот и поставь число</span>
+        </div>
+        <div class="divide-y divide-line/40">
+          <article v-for="item in subscriberTransfers" :key="item.id" class="px-5 py-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="a5-pill !py-0.5 !text-[8px]">{{ item.platform }}</span>
+              <a :href="item.channelUrl" target="_blank" rel="noopener noreferrer" class="text-sm text-bone underline decoration-line hover:text-sky">{{ item.profileName }}</a>
+              <span class="ml-auto font-mono text-[9px] text-moss/40">{{ item.ago }}</span>
+            </div>
+            <p class="mt-2 text-[11px] text-moss">Заявлено: <span class="font-mono text-bone">{{ formatCount(item.claimedCount) }}</span> · {{ item.status }}</p>
+            <p v-if="item.note" class="mt-1 text-[11px] text-moss/70">{{ item.note }}</p>
+            <a v-if="item.screenshotUrl" :href="item.screenshotUrl" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block">
+              <img :src="item.screenshotUrl" alt="скриншот статистики" loading="lazy" class="h-24 w-auto rounded-lg border border-line object-cover" />
+            </a>
+            <div v-if="item.status === 'pending'" class="mt-3 flex flex-wrap items-end gap-2">
+              <div>
+                <label class="a5-label !mb-1" :for="'count-' + item.id">Подтвердить число</label>
+                <input :id="'count-' + item.id" v-model.number="transferCounts[item.id]" type="number" min="0" class="a5-input !w-40 !py-2" />
+              </div>
+              <button type="button" class="a5-btn-primary !py-2 text-xs" :disabled="busy" @click="reviewTransfer(item.id, 'approve')">Подтвердить</button>
+              <button type="button" class="a5-btn-ghost text-xs" :disabled="busy" @click="reviewTransfer(item.id, 'reject')">Отклонить</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section v-if="reports.length" class="a5-card mt-5 overflow-hidden border-ember/25">
         <div class="flex items-center justify-between border-b border-line/70 px-5 py-4">
           <p class="a5-mono text-[9px] text-ember/80">жалобы · {{ reports.length }}</p>
@@ -238,6 +267,7 @@ import { profilePageRoute } from '../profile'
 import { controlStateRoute } from '../api/control/state'
 import { controlUpdateRoute } from '../api/control/update'
 import { moderationResolveRoute } from '../api/moderation/resolve'
+import { subscriberReviewRoute } from '../api/subscriber/review'
 
 const props = defineProps<{ data: ControlData }>()
 
@@ -245,6 +275,8 @@ const fleet = ref({ ...props.data.fleet })
 const bots = ref<BotRow[]>(props.data.bots)
 const logs = ref<RunRow[]>(props.data.logs)
 const reports = ref<ReportRow[]>(props.data.reports)
+const subscriberTransfers = ref(props.data.subscriberTransfers)
+const transferCounts = ref<Record<string, number>>(Object.fromEntries(props.data.subscriberTransfers.map(item => [item.id, item.claimedCount])))
 const nodes = ref<GraphNode[]>(props.data.nodes)
 const edges = ref<GraphEdge[]>(props.data.edges)
 const llm = ref({ ...props.data.llm })
@@ -303,6 +335,10 @@ async function refresh() {
     bots.value = result.data.bots
     logs.value = result.data.logs
     reports.value = result.data.reports
+    subscriberTransfers.value = result.data.subscriberTransfers
+    for (const item of result.data.subscriberTransfers) {
+      if (!(item.id in transferCounts.value)) transferCounts.value[item.id] = item.claimedCount
+    }
     nodes.value = result.data.nodes
     edges.value = result.data.edges
     stats.value = result.data.stats
@@ -366,6 +402,29 @@ function tick() {
 
 function waitAll() {
   return runUpdate({ action: 'wait_all' })
+}
+
+async function reviewTransfer(id: string, action: 'approve' | 'reject') {
+  busy.value = true
+  message.value = ''
+  error.value = ''
+  try {
+    const result = await subscriberReviewRoute.run(ctx, {
+      id,
+      action,
+      count: action === 'approve' ? transferCounts.value[id] : undefined,
+    })
+    if (!result.ok) {
+      error.value = result.error
+      return
+    }
+    message.value = action === 'approve' ? `Подписчики подтверждены: ${formatCount(result.count ?? 0)}.` : 'Заявка отклонена.'
+    await refresh()
+  } catch {
+    error.value = 'Не удалось обработать заявку.'
+  } finally {
+    busy.value = false
+  }
 }
 
 async function resolveReport(id: string, action: 'hide' | 'dismiss') {

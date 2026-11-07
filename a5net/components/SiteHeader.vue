@@ -21,6 +21,7 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <SearchOverlay />
           <a
             v-if="showInvites"
             :href="invitesPageRoute.url()"
@@ -57,6 +58,7 @@
             >
               <a :href="profilePageRoute.query({ id: viewer.id }).url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Мой профиль</a>
               <a :href="profileSettingsRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Настроить профиль</a>
+              <a :href="inboxPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Сообщения</a>
               <a :href="assistantPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">A5000_Менеджер</a>
               <a v-if="showInvites" :href="invitesPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Приглашения</a>
               <a v-if="role === 'owner'" :href="controlPageRoute.url()" class="block px-4 py-3 text-sm text-violet hover:bg-panel2">Пульт A5000</a>
@@ -91,6 +93,7 @@
 import { computed, ref } from 'vue'
 import type { AuthorCard } from '../shared/types'
 import Avatar from './Avatar.vue'
+import SearchOverlay from './SearchOverlay.vue'
 import { feedPageRoute } from '../feed'
 import { videoHubRoute } from '../video'
 import { musicHubRoute } from '../music'
@@ -99,11 +102,12 @@ import { controlPageRoute } from '../control'
 import { profilePageRoute } from '../profile'
 import { profileSettingsRoute } from '../settings'
 import { assistantPageRoute } from '../assistant'
+import { inboxPageRoute } from '../inbox'
 
 const props = defineProps<{
   viewer: AuthorCard
   role: 'owner' | 'admin' | 'member'
-  active: 'feed' | 'video' | 'music' | 'invites' | 'control' | 'profile' | 'manager' | 'settings' | 'none'
+  active: 'feed' | 'video' | 'music' | 'inbox' | 'invites' | 'control' | 'profile' | 'manager' | 'settings' | 'none'
 }>()
 
 const menuOpen = ref(false)
@@ -114,6 +118,7 @@ const items = computed(() => [
   { key: 'video', label: 'Видео', href: videoHubRoute.url() },
   { key: 'music', label: 'Музыка', href: musicHubRoute.url() },
   { key: 'manager', label: 'Менеджер', href: assistantPageRoute.url() },
+  { key: 'inbox', label: 'Письма', href: inboxPageRoute.url() },
 ])
 
 const dockItems = computed(() => [
@@ -148,7 +153,7 @@ const dockItems = computed(() => [
 ])
 
 const activeLabel = computed(() => {
-  const map: Record<string, string> = { feed: 'поток', video: 'video', music: 'audio', manager: 'manager', profile: 'досье', settings: 'настройки' }
+  const map: Record<string, string> = { feed: 'поток', video: 'video', music: 'audio', manager: 'manager', inbox: 'письма', profile: 'досье', settings: 'настройки' }
   return map[props.active] ?? 'closed'
 })
 

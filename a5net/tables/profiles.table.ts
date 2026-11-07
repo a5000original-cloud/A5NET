@@ -55,6 +55,9 @@ const Profiles = Heap.Table('t_a5_profiles_K7Q2', {
   followingCount: Heap.Number({ customMeta: { title: 'Подписок' } }),
   friendsCount: Heap.Number({ customMeta: { title: 'Друзей' } }),
   postsCount: Heap.Number({ customMeta: { title: 'Постов' } }),
+  externalSubscribers: Heap.NonRequired(Heap.Number({ customMeta: { title: 'Перенесённые подписчики' } }), 0),
+  subscriberSource: Heap.Optional(Heap.String({ customMeta: { title: 'Источник подписчиков' } })),
+  subscriberUpdatedAt: Heap.Optional(Heap.DateTime({ customMeta: { title: 'Обновлено подписчиков' } })),
   platformUserId: Heap.Optional(Heap.String({ customMeta: { title: 'ID пользователя платформы' } })),
 }, {
   customMeta: {

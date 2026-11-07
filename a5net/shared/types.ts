@@ -66,6 +66,8 @@ export interface ProfileCard extends AuthorCard {
   bio: string
   interests: TopicRef[]
   followersCount: number
+  externalSubscribers: number
+  subscriberSource: string | null
   followingCount: number
   friendsCount: number
   postsCount: number
@@ -196,6 +198,7 @@ export interface ControlData {
   actions24h: number
   avgLatency: number
   reports: ReportRow[]
+  subscriberTransfers: SubscriberTransferRow[]
   jobsLagSec: number
   fallbackRate: number
   now: string
@@ -339,11 +342,80 @@ export interface MusicHubData {
   now: string
 }
 
+export interface SubscriberTransferRow {
+  id: string
+  profileId: string
+  profileName: string
+  platform: string
+  channelUrl: string
+  screenshotUrl: string | null
+  claimedCount: number
+  approvedCount: number
+  status: 'pending' | 'approved' | 'rejected'
+  note: string
+  ago: string
+}
+
 export interface ProfileSettingsData {
   viewer: AuthorCard
   viewerRole: 'owner' | 'admin' | 'member'
   profile: ProfileCard
   posts: Array<{ id: string; title: string; kind: PostKind; coverUrl: string | null }>
+  transfers: SubscriberTransferRow[]
   reserved: string[]
+  now: string
+}
+
+export interface AnalyticsPostRow {
+  id: string
+  title: string
+  kind: PostKind
+  views: number
+  likes: number
+  comments: number
+  watchHours: number
+  hype: number
+  coverUrl: string | null
+  ago: string
+  trend: 'hit' | 'steady' | 'miss'
+}
+
+export interface AnalyticsDaily {
+  label: string
+  views: number
+}
+
+export interface ProfileAnalyticsData {
+  profile: AuthorCard
+  totals: { views: number; likes: number; comments: number; watchHours: number; followers: number; posts: number }
+  posts: AnalyticsPostRow[]
+  audience: Array<{ author: AuthorCard; views: number }>
+  daily: AnalyticsDaily[]
+  topTopics: TopicRef[]
+  hitRate: number
+  now: string
+}
+
+export interface MessageItem {
+  id: string
+  text: string
+  isMine: boolean
+  ago: string
+  author: AuthorCard
+}
+
+export interface ConversationSummary {
+  peer: AuthorCard
+  lastText: string
+  ago: string
+  unread: number
+}
+
+export interface InboxData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  conversations: ConversationSummary[]
+  activePeer: AuthorCard | null
+  messages: MessageItem[]
   now: string
 }

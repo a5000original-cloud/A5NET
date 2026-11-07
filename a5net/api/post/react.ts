@@ -41,7 +41,7 @@ export const postReactRoute = app.post('/')
         else dislikes += 1
       }
 
-      await Posts.update(ctx, { id: post.id, likes, dislikes })
+      await Posts.update(ctx, { id: post.id, likes, dislikes, views: Math.max(post.views, likes + dislikes) })
       if (next) {
         await addEdge(ctx, {
           fromId: viewer.id,

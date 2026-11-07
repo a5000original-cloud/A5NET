@@ -2,11 +2,13 @@ import Profiles from '../../tables/profiles.table'
 import Runs from '../../tables/runs.table'
 import type { FleetSettings } from '../../shared/types'
 import { acceptFriendship, getViewerSocial } from '../social'
+import Messages from '../../tables/messages.table'
+import { sendMessage } from '../messages'
 import { perceive } from './perception'
 import { formatMemory, recall, remember } from './memory'
 import { decide } from './decision'
 import { executeAction } from './act'
-import { reflectionText, type LocalDecision } from './local'
+import { localReply, reflectionText, type LocalDecision } from './local'
 
 export interface CycleResult {
   botId: string
@@ -62,6 +64,24 @@ export async function runBotCycle(
   if (Math.random() > awake) return null
 
   const social = await getViewerSocial(ctx, profile.id)
+
+  const incoming = await Messages.findAll(ctx, {
+    where: { toId: profile.id, read: false },
+    limit: 4,
+    order: [{ createdAt: 'asc' }],
+  })
+  for (const message of incoming) {
+    if (message.fromId === profile.id) continue
+    const sender = await Profiles.findById(ctx, message.fromId)
+    if (!sender) {
+      await Messages.update(ctx, { id: message.id, read: true })
+      continue
+    }
+    if (sender.kind === 'human') {
+      await sendMessage(ctx, profile, sender.id, localReply(profile, message.text))
+    }
+    await Messages.update(ctx, { id: message.id, read: true })
+  }
 
   if (social.pendingIn.size && Math.random() < 0.3) {
     const candidate = [...social.pendingIn][0]

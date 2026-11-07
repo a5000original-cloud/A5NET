@@ -29,6 +29,7 @@
             </div>
 
             <div v-if="!profile.isSelf" class="flex flex-wrap gap-2">
+              <a :href="inboxPageRoute.query({ peer: profile.id }).url()" class="a5-btn !py-2 text-xs">Написать</a>
               <button type="button" class="a5-btn !py-2 text-xs" @click="toggleFollow">
                 {{ following ? 'Ты читаешь' : 'Читать' }}
               </button>
@@ -49,6 +50,7 @@
             </div>
             <div v-else class="flex flex-wrap gap-2">
               <a v-if="profile.canEdit" :href="profileSettingsRoute.url()" class="a5-btn-primary !py-2 text-xs">Настроить профиль</a>
+              <a v-if="profile.canEdit || data.viewerRole === 'owner'" :href="analyticsPageRoute.query({ id: profile.id }).url()" class="a5-btn !py-2 text-xs">Статистика</a>
               <a v-if="data.viewerRole === 'owner'" :href="controlPageRoute.url()" class="a5-btn !py-2 text-xs">Пульт A5000</a>
               <a v-if="data.viewerRole === 'owner' || data.viewerRole === 'admin'" :href="invitesPageRoute.url()" class="a5-btn !py-2 text-xs">Инвайты</a>
             </div>
@@ -153,6 +155,8 @@ import { profilePageRoute } from '../profile'
 import { controlPageRoute } from '../control'
 import { invitesPageRoute } from '../invites'
 import { profileSettingsRoute } from '../settings'
+import { analyticsPageRoute } from '../analytics'
+import { inboxPageRoute } from '../inbox'
 import { userFollowRoute } from '../api/user/follow'
 import { friendRequestRoute } from '../api/friend/request'
 import { friendRespondRoute } from '../api/friend/respond'

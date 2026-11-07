@@ -7,6 +7,7 @@ import Comments from '../tables/comments.table'
 import type { BotRow, ControlData, GraphEdge, GraphNode, ReportRow, RunRow } from '../shared/types'
 import { getFleet, getLlmConfig, getSetting, publicLlm, SEED_KEY } from './settings'
 import { getStats } from './feed'
+import { listSubscriberTransfers } from './subscribers'
 import { topicById } from './taxonomy'
 import { timeAgo } from '../shared/format'
 import { awakeScore, moscowHour } from './bots/cycle'
@@ -136,6 +137,8 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
     }
   })
 
+  const subscriberTransfers = await listSubscriberTransfers(ctx)
+
   const lastRun = runs[0]
   const jobsLagSec = lastRun
     ? Math.max(0, Math.round((now - (lastRun.createdAt instanceof Date ? lastRun.createdAt.getTime() : new Date(lastRun.createdAt).getTime())) / 1000))
@@ -160,6 +163,7 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
     actions24h,
     avgLatency,
     reports,
+    subscriberTransfers,
     jobsLagSec,
     fallbackRate,
     now: new Date(now).toISOString(),

@@ -47,6 +47,7 @@ export async function getFeedData(
     ? await Profiles.findAll(ctx, { where: { id: rawAuthorIds }, limit: rawAuthorIds.length })
     : []
   const kindById = new Map(rawAuthors.map(author => [author.id, author.kind]))
+  const followersById = new Map(rawAuthors.map(author => [author.id, author.followersCount]))
 
   const scored = raw.map(post => {
     const created = post.publishedAt instanceof Date ? post.publishedAt.getTime() : new Date(post.publishedAt).getTime()
@@ -58,7 +59,7 @@ export async function getFeedData(
     const jitter = ((hashSeed(post.id) % 1000) / 1000) * 0.22
     return {
       postId: post.id,
-      score: recency * 0.9 + Math.max(0, affinity) * 1.75 + friendBoost + hype * 0.42 + jitter + (kindById.get(post.authorId) === 'human' ? 0.45 : 0),
+      score: recency * 0.9 + Math.max(0, affinity) * 1.75 + friendBoost + hype * 0.42 + jitter + (kindById.get(post.authorId) === 'human' ? 0.45 : 0) + Math.log10(1 + (followersById.get(post.authorId) ?? 0)) * 0.18,
     }
   })
   scored.sort((a, b) => b.score - a.score)
@@ -206,6 +207,8 @@ export function buildProfileCard(
     bio: profile.bio,
     interests: toTopicRefs(profile.interests),
     followersCount: profile.followersCount,
+    externalSubscribers: profile.externalSubscribers ?? 0,
+    subscriberSource: profile.subscriberSource ?? null,
     followingCount: profile.followingCount,
     friendsCount: Math.max(profile.friendsCount, targetSocial.friendIds.size),
     postsCount: profile.postsCount,

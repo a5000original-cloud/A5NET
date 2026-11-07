@@ -1,11 +1,49 @@
 import { getOriginalUrl } from '@app/storage'
 import Profiles from '../tables/profiles.table'
-import type { ProfileCard, ProfileSettingsData } from '../shared/types'
+import type { ProfileSettingsData } from '../shared/types'
 import { buildProfileCard } from './feed'
 import { getViewerSocial } from './social'
 import { listPosts } from './post-data'
+import { listSubscriberTransfers } from './subscribers'
 
-export const RESERVED_HANDLES = ['a5net', 'a5000net', 'admin', 'administrator', 'support', 'owner', 'manager', 'moderator', 'system', 'root']
+const CONFUSABLES: Record<string, string> = {
+  '0': 'o',
+  '1': 'l',
+  '3': 'e',
+  '4': 'a',
+  '5': 's',
+  '7': 't',
+  '8': 'b',
+  '@': 'a',
+  '$': 's',
+}
+
+export function canonicalHandle(input: string): string {
+  return input
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .split('')
+    .map(char => CONFUSABLES[char] ?? char)
+    .join('')
+}
+
+const OWNER_ALIASES = ['a5000', 'a5000_original', 'a5000original', 'a5ooo', 'a500o', 'a5o00', 'a5000net']
+const OWNER_ALIAS_KEYS = new Set(OWNER_ALIASES.map(canonicalHandle))
+export const RESERVED_HANDLES = [
+  'a5net',
+  'a5000net',
+  'admin',
+  'administrator',
+  'support',
+  'owner',
+  'manager',
+  'moderator',
+  'system',
+  'root',
+  ...OWNER_ALIASES,
+]
+const RESERVED_KEYS = new Set(RESERVED_HANDLES.map(canonicalHandle))
 const USERNAME_COOLDOWN_MS = 14 * 24 * 3600 * 1000
 const THEMES = ['graphite', 'lime', 'violet', 'ember', 'ice'] as const
 
@@ -36,10 +74,12 @@ export async function getProfileSettingsData(
   const social = await getViewerSocial(ctx, viewer.id)
   const profile = buildProfileCard(viewer, viewer, social, social)
   const posts = await listPosts(ctx, { viewerId: viewer.id, authorId: viewer.id, limit: 50 })
+  const transfers = await listSubscriberTransfers(ctx, viewer.id)
   return {
     viewer: profile,
-    viewerRole: (ctx.user?.is('Owner') ? 'owner' : 'member') as 'owner' | 'admin' | 'member',
+    viewerRole: ctx.user?.is('Owner') ? 'owner' : 'member',
     profile,
+    transfers,
     posts: posts.items.map(post => ({
       id: post.id,
       title: post.title,
@@ -52,7 +92,7 @@ export async function getProfileSettingsData(
 }
 
 export function normalizeHandle(input: string): string {
-  return input.trim().toLowerCase().replace(/^@+/, '').replace(/[^a-z0-9._]/g, '')
+  return input.trim().normalize('NFKC').toLowerCase().replace(/^@+/, '')
 }
 
 export async function checkHandle(
@@ -62,15 +102,28 @@ export async function checkHandle(
   isOwner: boolean,
 ): Promise<{ ok: boolean; handle: string; error?: string }> {
   const handle = normalizeHandle(handleInput)
-  if (handle.length < 3 || handle.length > 24) return { ok: false, handle, error: '3–24 символа: латиница, цифры, точка, подчёркивание.' }
-  if (!/^[a-z0-9._]+$/.test(handle)) return { ok: false, handle, error: 'Только латиница, цифры, точка и подчёркивание.' }
-  if (handle === 'a5000' && !isOwner) return { ok: false, handle, error: 'A5000 — только для владельца сети.' }
-  if (RESERVED_HANDLES.includes(handle) && handle !== profile.handle) {
+  if (/[^\x00-\x7F]/.test(handle)) {
+    return { ok: false, handle, error: 'Только латиница: кириллица и похожие символы запрещены.' }
+  }
+  if (handle.length < 3 || handle.length > 24) {
+    return { ok: false, handle, error: '3–24 символа: латиница, цифры, точка, подчёркивание.' }
+  }
+  if (!/^[a-z0-9._]+$/.test(handle)) {
+    return { ok: false, handle, error: 'Только латиница, цифры, точка и подчёркивание.' }
+  }
+
+  const key = canonicalHandle(handle)
+  const ownKey = canonicalHandle(profile.handle)
+  if (OWNER_ALIAS_KEYS.has(key) && key !== ownKey) {
+    return { ok: false, handle, error: 'Этот ник закреплён за A5000. Выбери другой.' }
+  }
+  if (!OWNER_ALIAS_KEYS.has(key) && RESERVED_KEYS.has(key) && key !== ownKey) {
     return { ok: false, handle, error: 'Этот ник зарезервирован.' }
   }
-  if (handle !== profile.handle) {
-    const taken = await Profiles.findOneBy(ctx, { handle })
-    if (taken) return { ok: false, handle, error: 'Ник уже занят.' }
+  if (key !== ownKey) {
+    const all = await Profiles.findAll(ctx, { limit: 500 })
+    const taken = all.find(other => other.id !== profile.id && canonicalHandle(other.handle) === key)
+    if (taken) return { ok: false, handle, error: 'Ник уже занят (включая похожие написания).' }
   }
   return { ok: true, handle }
 }
@@ -94,7 +147,7 @@ export async function updateProfileSettings(
   input: ProfileSettingsInput,
   isOwner: boolean,
 ): Promise<{ ok: true; profile: typeof Profiles.T } | { ok: false; error: string }> {
-  const patch: Partial<typeof Profiles.T> = {}
+  const patch: Record<string, unknown> = {}
 
   if (input.name !== undefined) {
     const name = input.name.trim().slice(0, 40)
@@ -127,11 +180,13 @@ export async function updateProfileSettings(
   }
 
   if (input.handle !== undefined) {
-    const result = await checkHandle(ctx, input.handle ?? '', viewer, isOwner)
+    const result = await checkHandle(ctx, input.handle, viewer, isOwner)
     if (!result.ok) return { ok: false, error: result.error ?? 'Ник не подошёл.' }
     if (result.handle !== viewer.handle) {
       if (!isOwner && viewer.usernameChangedAt) {
-        const changed = viewer.usernameChangedAt instanceof Date ? viewer.usernameChangedAt.getTime() : new Date(viewer.usernameChangedAt).getTime()
+        const changed = viewer.usernameChangedAt instanceof Date
+          ? viewer.usernameChangedAt.getTime()
+          : new Date(viewer.usernameChangedAt).getTime()
         if (Date.now() - changed < USERNAME_COOLDOWN_MS) {
           return { ok: false, error: 'Ник можно менять раз в 14 дней.' }
         }
@@ -141,6 +196,6 @@ export async function updateProfileSettings(
     }
   }
 
-  const updated = await Profiles.update(ctx, { id: viewer.id, ...patch })
+  const updated = await Profiles.update(ctx, { id: viewer.id, ...patch } as Parameters<typeof Profiles.update>[1])
   return { ok: true, profile: updated }
 }

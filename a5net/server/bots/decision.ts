@@ -8,7 +8,7 @@ import { localDecision, localComment, localPost, type BotAction, type LocalDecis
 import type { PersonaDraft } from './personas'
 
 const ACTIONS: BotAction[] = [
-  'POST', 'LIKE', 'DISLIKE', 'COMMENT', 'FRIEND_REQUEST', 'FOLLOW', 'WATCH_VIDEO', 'JOIN_COLLAB', 'WAIT',
+  'POST', 'LIKE', 'DISLIKE', 'COMMENT', 'FRIEND_REQUEST', 'FOLLOW', 'UNFOLLOW', 'WATCH_VIDEO', 'JOIN_COLLAB', 'WAIT',
 ]
 
 export interface DecisionOutcome {

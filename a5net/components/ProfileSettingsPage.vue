@@ -145,6 +145,63 @@
             </div>
           </section>
 
+          <section class="a5-card p-5 sm:p-6">
+            <div class="flex items-center justify-between">
+              <p class="a5-mono text-[9px] text-moss">05 · аудитория</p>
+              <span class="a5-mono text-[9px] text-moss/50">перенос с другой площадки</span>
+            </div>
+            <p class="mt-2 text-[11px] leading-relaxed text-moss/70">Пришли скриншот канала и статистики. A5000 проверит и вручную подтвердит число — боты начнут следить за профилем.</p>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label class="a5-label" for="t-platform">Площадка</label>
+                <select id="t-platform" v-model="platform" class="a5-input">
+                  <option value="telegram">Telegram</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="vk">VK</option>
+                  <option value="other">Другое</option>
+                </select>
+              </div>
+              <div>
+                <label class="a5-label" for="t-count">Подписчиков</label>
+                <input id="t-count" v-model.number="claimedCount" type="number" min="0" class="a5-input" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="a5-label" for="t-url">Ссылка на канал</label>
+                <input id="t-url" v-model="channelUrl" class="a5-input font-mono text-[11px]" placeholder="https://t.me/…" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="a5-label">Скриншот статистики</label>
+                <div class="flex items-center gap-3">
+                  <label class="a5-btn cursor-pointer !px-3 !py-1.5 text-[10px]">
+                    {{ screenshotUploading ? 'Загружаю…' : screenshotPreview ? 'Заменить' : 'Выбрать скриншот' }}
+                    <input type="file" class="hidden" accept="image/*" @change="uploadScreenshot" />
+                  </label>
+                  <img v-if="screenshotPreview" :src="screenshotPreview" alt="" class="h-16 w-auto rounded-lg border border-line object-cover" />
+                </div>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="a5-label" for="t-note">Комментарий</label>
+                <input id="t-note" v-model="transferNote" class="a5-input" maxlength="300" placeholder="Например: основной канал, аудитория живая" />
+              </div>
+            </div>
+            <p v-if="transferError" class="mt-2 text-[11px] text-ember">{{ transferError }}</p>
+            <button type="button" class="a5-btn mt-3" :disabled="transferBusy || screenshotUploading" @click="submitTransfer">
+              {{ transferBusy ? 'Отправляю…' : 'Отправить на проверку' }}
+            </button>
+
+            <div v-if="transfers.length" class="mt-5 border-t border-line/60 pt-4">
+              <p class="a5-label">Мои заявки</p>
+              <div v-for="item in transfers" :key="item.id" class="mt-2 flex flex-wrap items-center gap-3 rounded-xl border border-line/60 px-3 py-2">
+                <span class="a5-pill !py-0.5 !text-[8px]">{{ item.platform }}</span>
+                <span class="text-[11px] text-moss">{{ formatCount(item.claimedCount) }}</span>
+                <span class="ml-auto text-[10px]" :class="item.status === 'approved' ? 'text-lime' : item.status === 'rejected' ? 'text-ember' : 'text-moss/60'">
+                  {{ item.status === 'approved' ? 'подтверждено' : item.status === 'rejected' ? 'отклонено' : 'на проверке' }}
+                </span>
+              </div>
+            </div>
+          </section>
+
           <div class="flex flex-wrap items-center justify-between gap-3">
             <p v-if="error" class="text-xs text-ember">{{ error }}</p>
             <p v-else-if="saved" class="text-xs text-lime">Сохранено. Профиль обновлён.</p>
@@ -199,10 +256,11 @@ import { computed, ref } from 'vue'
 import type { ProfileSettingsData } from '../shared/types'
 import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
-import { coverBackground } from '../shared/format'
+import { coverBackground, formatCount } from '../shared/format'
 import { uploadBlob } from '../shared/upload'
 import { profileUpdateRoute } from '../api/profile/update'
 import { profileCheckHandleRoute } from '../api/profile/check-handle'
+import { subscriberSubmitRoute } from '../api/subscriber/submit'
 import { profilePageRoute } from '../profile'
 
 const props = defineProps<{ data: ProfileSettingsData }>()
@@ -234,6 +292,16 @@ const checking = ref(false)
 const saved = ref(false)
 const error = ref('')
 const handleStatus = ref<{ ok: boolean; error?: string } | null>(null)
+const transfers = ref([...props.data.transfers])
+const platform = ref<'telegram' | 'youtube' | 'tiktok' | 'vk' | 'other'>('telegram')
+const channelUrl = ref('')
+const claimedCount = ref(0)
+const transferNote = ref('')
+const screenshotHash = ref('')
+const screenshotPreview = ref('')
+const screenshotUploading = ref(false)
+const transferBusy = ref(false)
+const transferError = ref('')
 
 const themes = [
   { id: 'graphite' as const, label: 'графит', color: '#252b21' },
@@ -304,6 +372,71 @@ async function checkName() {
     handleStatus.value = { ok: false, error: 'Не удалось проверить ник.' }
   } finally {
     checking.value = false
+  }
+}
+
+async function uploadScreenshot(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  screenshotUploading.value = true
+  transferError.value = ''
+  screenshotPreview.value = URL.createObjectURL(file)
+  try {
+    const result = await uploadBlob(ctx, file, file.name)
+    screenshotHash.value = result.hash
+  } catch {
+    transferError.value = 'Скриншот не загрузился.'
+    screenshotPreview.value = ''
+  } finally {
+    screenshotUploading.value = false
+  }
+}
+
+async function submitTransfer() {
+  transferError.value = ''
+  if (!/^https?:\/\/\S+/i.test(channelUrl.value.trim())) {
+    transferError.value = 'Нужна полная ссылка на канал.'
+    return
+  }
+  if (claimedCount.value <= 0) {
+    transferError.value = 'Укажи число подписчиков.'
+    return
+  }
+  transferBusy.value = true
+  try {
+    const result = await subscriberSubmitRoute.run(ctx, {
+      platform: platform.value,
+      channelUrl: channelUrl.value.trim(),
+      claimedCount: claimedCount.value,
+      note: transferNote.value.trim() || undefined,
+      screenshotHash: screenshotHash.value || undefined,
+    })
+    if (!result.ok) {
+      transferError.value = result.error
+      return
+    }
+    transfers.value = [{
+      id: result.id,
+      profileId: props.data.viewer.id,
+      profileName: props.data.profile.name,
+      platform: platform.value,
+      channelUrl: channelUrl.value.trim(),
+      screenshotUrl: screenshotPreview.value || null,
+      claimedCount: claimedCount.value,
+      approvedCount: 0,
+      status: 'pending',
+      note: transferNote.value.trim(),
+      ago: 'только что',
+    }, ...transfers.value]
+    channelUrl.value = ''
+    claimedCount.value = 0
+    transferNote.value = ''
+    screenshotHash.value = ''
+    screenshotPreview.value = ''
+  } catch {
+    transferError.value = 'Заявка не отправилась.'
+  } finally {
+    transferBusy.value = false
   }
 }
 

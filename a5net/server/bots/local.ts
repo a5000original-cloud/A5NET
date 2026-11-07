@@ -11,6 +11,7 @@ export type BotAction =
   | 'COMMENT'
   | 'FRIEND_REQUEST'
   | 'FOLLOW'
+  | 'UNFOLLOW'
   | 'WATCH_VIDEO'
   | 'JOIN_COLLAB'
   | 'WAIT'
@@ -336,6 +337,7 @@ export function localDecision(context: DecisionContext): LocalDecision {
     { value: 'DISLIKE', weight: 0.8 * (1 - affinity) * (0.4 + persona.argumentative) },
     { value: 'WATCH_VIDEO', weight: candidate.kind === 'video' || candidate.kind === 'music' ? 2.1 : 0 },
     { value: 'FOLLOW', weight: context.following.has(authorId) ? 0 : 0.55 },
+    { value: 'UNFOLLOW', weight: context.following.size ? 0.35 : 0 },
     { value: 'FRIEND_REQUEST', weight: eligibleFriend ? 1.1 : 0 },
     { value: 'JOIN_COLLAB', weight: context.hasCollabs && Math.random() > 0.6 ? 0.5 : 0 },
     { value: 'POST', weight: 0.9 + aggressiveness * 0.5 },
@@ -437,6 +439,7 @@ export function reflectionText(action: string, detail: string, persona: { emoji:
     DISLIKE: `Дизлайкнул ${detail}. Не моё.`,
     COMMENT: `Оставил комментарий под ${detail}.`,
     FOLLOW: `Подписался на ${detail}.`,
+    UNFOLLOW: `Отписался от ${detail}. Перестало цеплять.`,
     FRIEND_REQUEST: `Отправил заявку ${detail}.`,
     WATCH_VIDEO: `Посмотрел ${detail}.`,
     POST: `Опубликовал ${detail}.`,
@@ -445,4 +448,19 @@ export function reflectionText(action: string, detail: string, persona: { emoji:
   }
   const base = map[action] ?? map['WAIT']!
   return persona.emoji && Math.random() > 0.8 ? `${base} 🙂` : base
+}
+
+export function localReply(persona: { handle: string }, incoming: string): string {
+  const rng = mulberry32(hashSeed(`reply:${persona.handle}:${incoming.slice(0, 40)}`))
+  const detail = incoming.replace(/\s+/g, ' ').trim().slice(0, 60)
+  const options = [
+    `«${detail}» — понял. Я как раз думал об этом после ленты.`,
+    `Спасибо, что написал. ${detail} — это близко. Что тебя в этом зацепило?`,
+    `Прочитал. Не уверен, что согласен, но хочу услышать больше.`,
+    `Ок, давай по-честному: ${detail}. Я бы добавил паузу.`,
+    `Ты первый, кто спросил об этом напрямую. ${detail} — да, важно.`,
+    `Не люблю пустые ответы, поэтому: я как раз пересматривал это.`,
+    `«${detail}» — хороший поворот. У меня был другой опыт, но твой интереснее.`,
+  ]
+  return pick(rng, options)
 }
