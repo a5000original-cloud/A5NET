@@ -59,6 +59,14 @@ const TOPICS: Topic[] = [
     suggestions: DEFAULT_SUGGESTIONS,
   },
   {
+    id: 'about_bot',
+    label: 'кто такой бот',
+    keywords: ['кто ты', 'ты бот', 'ты человек', 'что ты такое', 'ты кто', 'искусственный интеллект', 'нейросеть'],
+    weight: 1.2,
+    answer: 'Я бот-помощник A5NET, не A5000 и не человек. Отвечаю по правилам площадки: вход, инвайты, профиль, публикации, комментарии, жалобы и ошибки. Нейросеть не использую — работаю по базе ответов.',
+    suggestions: DEFAULT_SUGGESTIONS,
+  },
+  {
     id: 'about',
     label: 'что такое A5NET',
     keywords: ['что такое a5net', 'что за сайт', 'закрытая сеть', 'что это за площадка', 'про платформу', 'о площадке'],
@@ -338,6 +346,7 @@ const STEM_SUFFIXES = [
 
 const QUESTION_RE = /(как|почему|зачем|где|когда|что|кто|можно|нужно|стоит|помогите|подскажите|объясните|расскажите|не работает|не получается|не могу|ошибка)/i
 const EMPATHY_RE = /(бесит|ужас|достало|срочно|кошмар|ненавижу|раздражает|устал)/i
+const PLATFORM_HINT_RE = /(a5net|площадк|аккаунт|профил|пост|публикац|инвайт|приглашен|лент|коммент|реакц|подписк|друз|коллаб|связк|жалоб|модерац|бот|вход|войти|парол|регистрац|сайт)/i
 
 function normalize(value: string): string {
   return value
@@ -377,13 +386,15 @@ function hasPrefix(stems: Set<string>, value: string): boolean {
   return false
 }
 
-function scoreTopic(normalized: string, stems: Set<string>, topic: Topic): number {
+function scoreTopic(normalized: string, rawTokens: Set<string>, stems: Set<string>, topic: Topic): number {
   let score = 0
   for (const keyword of topic.keywords) {
     const normalizedKeyword = normalize(keyword)
     if (!normalizedKeyword) continue
     if (normalizedKeyword.includes(' ')) {
-      if (normalized.includes(normalizedKeyword)) score += 4 + normalizedKeyword.split(' ').length
+      const words = normalizedKeyword.split(' ')
+      const matched = words.every(word => rawTokens.has(word) || stems.has(stem(word)))
+      if (matched) score += 4 + words.length
       continue
     }
     const keywordStem = stem(normalizedKeyword)
@@ -446,11 +457,13 @@ export function answerManagerMessage(input: {
   }
 
   const stems = tokenStems(normalized)
+  const rawTokens = new Set(normalized.split(' '))
   const ranked = TOPICS
-    .map(topic => ({ topic, score: scoreTopic(normalized, stems, topic) }))
+    .map(topic => ({ topic, score: scoreTopic(normalized, rawTokens, stems, topic) }))
     .sort((left, right) => right.score - left.score)
   const best = ranked[0]
   const second = ranked[1]
+  const genericSecond = new Set(['vague', 'greeting', 'thanks', 'goodbye', 'help', 'about_bot', 'filter', 'unknown'])
 
   const isGreeting = /^(привет|здравствуйте|здравствуй|добрый день|добрый вечер|доброе утро|хай|ку)(\s|!|,|$)/.test(raw.toLowerCase())
   const isThanks = /^(спасибо|благодарю|спс|пасибо)(\s|!|,|$)/.test(raw.toLowerCase())
@@ -467,7 +480,7 @@ export function answerManagerMessage(input: {
       ? 'Понимаю, это неприятно. Давайте разберёмся.'
       : ''
     let extra = empathy
-    if (second && second.score >= 2.4 && second.score >= best.score * 0.8 && second.topic.id !== best.topic.id) {
+    if (second && second.score >= 2.4 && second.score >= best.score * 0.8 && second.topic.id !== best.topic.id && !genericSecond.has(second.topic.id)) {
       extra = `${extra ? `${extra}\n\n` : ''}Если вопрос ещё и про «${second.topic.label}», уточните — отвечу отдельно.`
     }
     return replyFor(best.topic, extra)
@@ -485,6 +498,16 @@ export function answerManagerMessage(input: {
   }
 
   if (looksLikeQuestion(raw)) {
+    if (!PLATFORM_HINT_RE.test(normalized)) {
+      return replyFor({
+        id: 'filter',
+        label: 'не по теме',
+        keywords: [],
+        weight: 1,
+        answer: 'Это не про A5NET. Я бот-помощник площадки и отвечаю только на вопросы про аккаунт, инвайты, профиль, публикации, комментарии, подписки, друзей, коллаборации, жалобы и ошибки. Сформулируйте вопрос по площадке — и я помогу.',
+        suggestions: DEFAULT_SUGGESTIONS,
+      })
+    }
     return replyFor({
       id: 'unknown',
       label: 'нет ответа',
