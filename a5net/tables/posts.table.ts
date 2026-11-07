@@ -20,6 +20,14 @@ const Posts = Heap.Table('t_a5_posts_M3V8', {
   views: Heap.Number({ customMeta: { title: 'Просмотры' } }),
   watchSeconds: Heap.Number({ customMeta: { title: 'Секунды просмотра' } }),
   collabId: Heap.Optional(Heap.String({ customMeta: { title: 'ID коллаборации' } })),
+  mediaHash: Heap.Optional(Heap.String({ customMeta: { title: 'Хэш медиа' } })),
+  coverUrl: Heap.Optional(Heap.String({ customMeta: { title: 'Обложка (URL)' } })),
+  mimeType: Heap.Optional(Heap.String({ customMeta: { title: 'MIME-тип' } })),
+  sizeBytes: Heap.NonRequired(Heap.Number({ customMeta: { title: 'Размер, байт' } }), 0),
+  mediaStatus: Heap.NonRequired(Heap.Enum({ ready: 'ready', processing: 'processing', failed: 'failed' } as const, { customMeta: { title: 'Статус медиа' } }), 'ready'),
+  source: Heap.NonRequired(Heap.Enum({ upload: 'upload', seed: 'seed', link: 'link' } as const, { customMeta: { title: 'Источник' } }), 'seed'),
+  aspectRatio: Heap.Optional(Heap.Number({ customMeta: { title: 'Соотношение сторон' } })),
+  album: Heap.Optional(Heap.String({ customMeta: { title: 'Альбом / серия' } })),
 }, {
   customMeta: {
     title: 'A5NET · Посты',

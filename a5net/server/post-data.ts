@@ -29,6 +29,11 @@ export function toPostCard(
     body: post.body,
     topics: toTopicRefs(post.topics),
     mediaUrl: post.mediaUrl ?? null,
+    coverUrl: post.coverUrl ?? null,
+    mediaStatus: post.mediaStatus ?? 'ready',
+    mimeType: post.mimeType ?? null,
+    sizeBytes: post.sizeBytes ?? 0,
+    source: post.source ?? 'seed',
     coverHue: post.coverHue,
     durationSec: post.durationSec,
     hypeScore: post.hypeScore,
@@ -49,13 +54,13 @@ export function toPostCard(
 
 export async function listPosts(
   ctx: app.Ctx,
-  options: { viewerId: string; limit?: number; offset?: number; authorId?: string },
+  options: { viewerId: string; limit?: number; offset?: number; authorId?: string; kind?: 'text' | 'video' | 'music' | 'collab' },
 ): Promise<{ items: PostCard[]; hasMore: boolean }> {
   const limit = Math.min(options.limit ?? 24, 60)
   const offset = Math.max(0, options.offset ?? 0)
-  const where = options.authorId
-    ? { authorId: options.authorId, visibility: 'visible' as const }
-    : { visibility: 'visible' as const }
+  const where: { visibility: 'visible'; authorId?: string; kind?: 'text' | 'video' | 'music' | 'collab' } = { visibility: 'visible' }
+  if (options.authorId) where.authorId = options.authorId
+  if (options.kind) where.kind = options.kind
   const rows = await Posts.findAll(ctx, {
     where,
     limit: limit + 1,

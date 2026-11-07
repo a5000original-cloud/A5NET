@@ -16,7 +16,7 @@
           :key="person.id"
           :name="person.name"
           :hue="person.avatarHue"
-          :accent="person.avatarAccent"
+          :accent="person.avatarAccent" :src="person.avatarUrl"
           size="xs"
           class="-ml-1.5 border border-ink first:ml-0"
         />

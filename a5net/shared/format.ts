@@ -69,3 +69,14 @@ export function hypeLabel(level: number): string {
 export function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n))
 }
+
+export function mediaCover(coverUrl: string | null | undefined, mediaUrl: string | null | undefined): string {
+  if (coverUrl) return coverUrl
+  if (mediaUrl && mediaUrl.includes('/get/')) return `${mediaUrl.replace('/get/', '/thumbnail/')}/s/800x`
+  return ''
+}
+
+export function trackArtist(body: string, fallback: string): string {
+  const first = body.split('.')[0]?.trim() ?? ''
+  return first && first.length <= 48 ? first : fallback
+}

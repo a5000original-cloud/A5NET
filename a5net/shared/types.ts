@@ -17,6 +17,7 @@ export interface AuthorCard {
   city: string
   avatarHue: number
   avatarAccent: number
+  avatarUrl: string | null
   initials: string
   voiceTone: VoiceTone
 }
@@ -28,6 +29,11 @@ export interface PostCard {
   body: string
   topics: TopicRef[]
   mediaUrl: string | null
+  coverUrl: string | null
+  mediaStatus: 'ready' | 'processing' | 'failed'
+  mimeType: string | null
+  sizeBytes: number
+  source: 'upload' | 'seed' | 'link'
   coverHue: number
   durationSec: number
   hypeScore: number
@@ -64,6 +70,15 @@ export interface ProfileCard extends AuthorCard {
   friendsCount: number
   postsCount: number
   chronotype: 'lark' | 'nightowl' | 'steady'
+  coverUrl: string | null
+  coverPosition: number
+  tagline: string
+  stickers: string[]
+  links: string[]
+  profileTheme: 'graphite' | 'lime' | 'violet' | 'ember' | 'ice'
+  accentHue: number
+  pinnedPostId: string | null
+  canEdit: boolean
   isFollowing: boolean
   isFriend: boolean
   requestPending: boolean
@@ -274,4 +289,61 @@ export interface ManagerReply {
   suggestions: string[]
   escalate: boolean
   createdAt: string
+}
+
+export interface VideoHubData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  videos: PostCard[]
+  featured: PostCard | null
+  continueWatching: Array<{ post: PostCard; progress: number }>
+  subscriptions: PostCard[]
+  topics: TopicRef[]
+  stats: { videos: number; hoursWatched: number; creators: number }
+  now: string
+}
+
+export interface WatchData extends PostPageData {
+  relatedVideos: PostCard[]
+}
+
+export interface MusicTrack {
+  id: string
+  title: string
+  artist: string
+  url: string
+  coverUrl: string | null
+  duration: number
+  hue: number
+  author: AuthorCard
+  likes: number
+  views: number
+  ago: string
+  topics: TopicRef[]
+}
+
+export interface MusicShelf {
+  id: string
+  title: string
+  subtitle: string
+  ids: string[]
+}
+
+export interface MusicHubData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  tracks: MusicTrack[]
+  shelves: MusicShelf[]
+  featuredId: string | null
+  stats: { tracks: number; artists: number; hours: number }
+  now: string
+}
+
+export interface ProfileSettingsData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  profile: ProfileCard
+  posts: Array<{ id: string; title: string; kind: PostKind; coverUrl: string | null }>
+  reserved: string[]
+  now: string
 }

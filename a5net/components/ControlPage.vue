@@ -148,7 +148,7 @@
               <tr v-for="bot in filteredBots" :key="bot.id" class="border-t border-line/50 hover:bg-panel2/50">
                 <td class="px-5 py-3">
                   <a :href="profilePageRoute.query({ id: bot.id }).url()" class="flex items-center gap-2.5">
-                    <Avatar :name="bot.name" :hue="bot.avatarHue" :accent="bot.avatarAccent" size="xs" />
+                    <Avatar :name="bot.name" :hue="bot.avatarHue" :accent="bot.avatarAccent" :src="bot.avatarUrl" size="xs" />
                     <span>
                       <span class="block text-[12px] text-bone">{{ bot.name }}</span>
                       <span class="block text-[10px] text-moss/60">{{ bot.city }}<span v-if="bot.isSynthetic" class="ml-1 text-violet/50">· а</span></span>

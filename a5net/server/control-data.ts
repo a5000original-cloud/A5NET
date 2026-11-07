@@ -44,6 +44,7 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
       isSynthetic: bot.isSynthetic,
       avatarHue: bot.avatarHue,
       avatarAccent: bot.avatarAccent,
+      avatarUrl: bot.avatarUrl ?? null,
       initials: bot.name.split(/\s+/).map(part => part[0] ?? '').join('').slice(0, 2).toUpperCase(),
       voiceTone: bot.voiceTone,
       enabled: bot.enabled,

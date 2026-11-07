@@ -3,18 +3,28 @@
     <SiteHeader :viewer="data.viewer" :role="data.viewerRole" active="profile" />
 
     <main class="a5-shell pb-24">
-      <section class="relative mt-6 overflow-hidden rounded-3xl border border-line/80">
-        <div class="h-40 w-full sm:h-52" :style="{ background: coverBackground(profile.avatarHue) }">
-          <div class="h-full w-full opacity-70" style="background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.12), transparent 42%), radial-gradient(circle at 80% 80%, rgba(201,247,90,0.12), transparent 45%)"></div>
+      <section class="relative mt-6 overflow-hidden rounded-3xl border" :style="{ borderColor: `hsla(${profile.accentHue}, 55%, 55%, 0.35)` }">
+        <div class="relative h-44 w-full sm:h-60">
+          <img v-if="profile.coverUrl" :src="profile.coverUrl" alt="" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${profile.coverPosition}%` }" />
+          <div v-else class="h-full w-full" :style="{ background: coverBackground(profile.avatarHue) }"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-transparent"></div>
+          <span
+            v-for="(sticker, index) in profile.stickers"
+            :key="sticker + index"
+            class="absolute select-none text-2xl drop-shadow-lg sm:text-3xl"
+            :style="{ left: `${8 + index * 12}%`, top: `${12 + (index % 3) * 18}%`, transform: `rotate(${(index % 2 ? 1 : -1) * (6 + index * 2)}deg)` }"
+          >{{ sticker }}</span>
+          <span class="absolute right-4 top-4 a5-mono text-[8px] text-white/50">{{ profile.profileTheme }} · A5NET</span>
         </div>
 
         <div class="relative px-5 pb-6 sm:px-8">
           <div class="-mt-12 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
             <div class="flex items-end gap-4">
-              <Avatar :name="profile.name" :hue="profile.avatarHue" :accent="profile.avatarAccent" size="xl" class="ring-4 ring-ink" />
+              <Avatar :name="profile.name" :hue="profile.avatarHue" :accent="profile.accentHue" :src="profile.avatarUrl" size="xl" class="ring-4 ring-ink" />
               <div class="pb-1">
                 <h1 class="a5-display text-2xl font-medium sm:text-3xl">{{ profile.name }}</h1>
                 <p class="text-[11px] text-moss">@{{ profile.handle }} · {{ profile.city }}<span v-if="profile.age"> · {{ profile.age }}</span></p>
+                <p v-if="profile.tagline" class="mt-1 text-[12px] text-bone/70">{{ profile.tagline }}</p>
               </div>
             </div>
 
@@ -38,12 +48,19 @@
               >{{ friendLabel }}</button>
             </div>
             <div v-else class="flex flex-wrap gap-2">
+              <a v-if="profile.canEdit" :href="profileSettingsRoute.url()" class="a5-btn-primary !py-2 text-xs">Настроить профиль</a>
               <a v-if="data.viewerRole === 'owner'" :href="controlPageRoute.url()" class="a5-btn !py-2 text-xs">Пульт A5000</a>
               <a v-if="data.viewerRole === 'owner' || data.viewerRole === 'admin'" :href="invitesPageRoute.url()" class="a5-btn !py-2 text-xs">Инвайты</a>
             </div>
           </div>
 
           <p class="mt-5 max-w-2xl text-sm leading-relaxed text-bone/85">{{ profile.bio }}</p>
+
+          <div v-if="profile.links.length" class="mt-3 flex flex-wrap gap-3">
+            <a v-for="link in profile.links" :key="link" :href="link" target="_blank" rel="noopener noreferrer" class="a5-mono text-[9px] text-moss/60 underline decoration-line hover:text-lime">
+              {{ linkHost(link) }}
+            </a>
+          </div>
 
           <div class="mt-4 flex flex-wrap items-center gap-1.5">
             <span v-for="interest in profile.interests" :key="interest.id" class="a5-chip" :style="{ borderColor: `hsla(${interest.hue}, 55%, 55%, 0.35)` }">
@@ -76,7 +93,10 @@
             <span class="a5-mono text-[9px] text-moss/60">{{ data.posts.length }}</span>
           </div>
           <div v-if="data.posts.length" class="space-y-4">
-            <PostCard v-for="post in data.posts" :key="post.id" :post="post" />
+            <div v-for="post in orderedPosts" :key="post.id">
+              <p v-if="post.id === profile.pinnedPostId" class="a5-mono mb-2 text-[9px] text-lime/70">закреплено</p>
+              <PostCard :post="post" />
+            </div>
           </div>
           <p v-else class="rounded-2xl border border-dashed border-line p-10 text-center text-sm text-moss">
             Досье открыто. Артефактов пока нет.
@@ -89,7 +109,7 @@
             <ul v-if="data.friends.length" class="mt-4 grid grid-cols-2 gap-3">
               <li v-for="friend in data.friends" :key="friend.id">
                 <a :href="profilePageRoute.query({ id: friend.id }).url()" class="flex items-center gap-2">
-                  <Avatar :name="friend.name" :hue="friend.avatarHue" :accent="friend.avatarAccent" size="xs" />
+                  <Avatar :name="friend.name" :hue="friend.avatarHue" :accent="friend.avatarAccent" :src="friend.avatarUrl" size="xs" />
                   <span class="min-w-0 truncate text-[11px] text-bone/80 hover:text-lime">{{ friend.name }}</span>
                 </a>
               </li>
@@ -132,6 +152,7 @@ import { coverBackground, plural } from '../shared/format'
 import { profilePageRoute } from '../profile'
 import { controlPageRoute } from '../control'
 import { invitesPageRoute } from '../invites'
+import { profileSettingsRoute } from '../settings'
 import { userFollowRoute } from '../api/user/follow'
 import { friendRequestRoute } from '../api/friend/request'
 import { friendRespondRoute } from '../api/friend/respond'
@@ -145,6 +166,25 @@ const friendState = ref<'none' | 'pending' | 'friend' | 'incoming'>(
 )
 const busy = ref(false)
 const error = ref('')
+
+const orderedPosts = computed(() => {
+  const list = [...props.data.posts]
+  if (!profile.pinnedPostId) return list
+  const index = list.findIndex(post => post.id === profile.pinnedPostId)
+  if (index > 0) {
+    const [pinned] = list.splice(index, 1)
+    if (pinned) list.unshift(pinned)
+  }
+  return list
+})
+
+function linkHost(url: string): string {
+  try {
+    return new URL(url).host.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
 
 const chronotypeLabel = computed(() => {
   if (profile.chronotype === 'lark') return 'жаворонок'

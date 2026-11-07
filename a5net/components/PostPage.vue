@@ -14,7 +14,7 @@
             <div class="p-5 sm:p-7">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <a :href="profilePageRoute.query({ id: post.author.id }).url()" class="flex items-center gap-3">
-                  <Avatar :name="post.author.name" :hue="post.author.avatarHue" :accent="post.author.avatarAccent" size="md" />
+                  <Avatar :name="post.author.name" :hue="post.author.avatarHue" :accent="post.author.avatarAccent" :src="post.author.avatarUrl" size="md" />
                   <span>
                     <span class="block text-sm font-medium text-bone">{{ post.author.name }}</span>
                     <span class="block text-[11px] text-moss">@{{ post.author.handle }} · {{ post.author.city }}</span>
@@ -32,7 +32,7 @@
               </p>
 
               <div v-if="post.kind === 'video' && post.mediaUrl" class="mt-6">
-                <VideoPlayer :src="post.mediaUrl" :title="post.title" :duration="post.durationSec" :post-id="post.id" />
+                <VideoPlayer :src="post.mediaUrl" :title="post.title" :duration="post.durationSec" :post-id="post.id" :cover-url="post.coverUrl" />
               </div>
               <div v-else-if="post.kind === 'music' && post.mediaUrl" class="mt-6">
                 <AudioPlayer :src="post.mediaUrl" :title="post.title" :artist="artist" :post-id="post.id" />
@@ -123,7 +123,7 @@
 
             <form class="a5-card mb-5 p-4" @submit.prevent="sendComment">
               <div class="flex gap-3">
-                <Avatar :name="data.viewer.name" :hue="data.viewer.avatarHue" :accent="data.viewer.avatarAccent" size="sm" />
+                <Avatar :name="data.viewer.name" :hue="data.viewer.avatarHue" :accent="data.viewer.avatarAccent" :src="data.viewer.avatarUrl" size="sm" />
                 <div class="flex-1">
                   <textarea
                     v-model="commentText"
@@ -146,7 +146,7 @@
               <article v-for="comment in comments" :key="comment.id" class="a5-card p-4">
                 <div class="flex items-start gap-3">
                   <a :href="profilePageRoute.query({ id: comment.author.id }).url()">
-                    <Avatar :name="comment.author.name" :hue="comment.author.avatarHue" :accent="comment.author.avatarAccent" size="sm" />
+                    <Avatar :name="comment.author.name" :hue="comment.author.avatarHue" :accent="comment.author.avatarAccent" :src="comment.author.avatarUrl" size="sm" />
                   </a>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-baseline gap-2">
@@ -172,7 +172,7 @@
           <section class="a5-card p-5">
             <div class="flex items-center gap-3">
               <a :href="profilePageRoute.query({ id: author.id }).url()">
-                <Avatar :name="author.name" :hue="author.avatarHue" :accent="author.avatarAccent" size="lg" />
+                <Avatar :name="author.name" :hue="author.avatarHue" :accent="author.avatarAccent" :src="author.avatarUrl" size="lg" />
               </a>
               <div class="min-w-0">
                 <a :href="profilePageRoute.query({ id: author.id }).url()" class="block truncate text-base font-medium text-bone hover:text-lime">{{ author.name }}</a>

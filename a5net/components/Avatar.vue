@@ -2,10 +2,11 @@
   <span
     class="relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 text-white/90"
     :class="sizeClass"
-    :style="{ background: avatarBackground(hue, accent) }"
+    :style="src ? undefined : { background: avatarBackground(hue, accent) }"
     :aria-label="name"
   >
-    <span class="font-medium tracking-wide" :class="textClass">{{ initials(name) }}</span>
+    <img v-if="src" :src="src" :alt="name" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+    <span v-else class="font-medium tracking-wide" :class="textClass">{{ initials(name) }}</span>
     <span class="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10"></span>
   </span>
 </template>
@@ -15,8 +16,8 @@ import { computed } from 'vue'
 import { avatarBackground, initials } from '../shared/format'
 
 const props = withDefaults(
-  defineProps<{ name: string; hue: number; accent: number; size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' }>(),
-  { size: 'sm' },
+  defineProps<{ name: string; hue: number; accent: number; size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'; src?: string | null }>(),
+  { size: 'sm', src: null },
 )
 
 const sizeClass = computed(() => {

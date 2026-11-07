@@ -19,6 +19,7 @@ export function toAuthorCard(profile: typeof Profiles.T): AuthorCard {
     city: profile.city,
     avatarHue: profile.avatarHue,
     avatarAccent: profile.avatarAccent,
+    avatarUrl: profile.avatarUrl ?? null,
     initials: initials(profile.name),
     voiceTone: profile.voiceTone,
   }
@@ -39,6 +40,7 @@ export function fallbackAuthor(id: string): AuthorCard {
     city: '',
     avatarHue: 120,
     avatarAccent: 160,
+    avatarUrl: null,
     initials: 'A5',
     voiceTone: 'deadpan',
   }

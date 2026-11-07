@@ -2,7 +2,7 @@
   <article class="a5-card a5-card-hover a5-grain a5-post overflow-hidden">
     <div class="flex items-start justify-between gap-3 p-4 pb-0 sm:p-5 sm:pb-0">
       <a :href="profilePageRoute.query({ id: post.author.id }).url()" class="flex min-w-0 items-center gap-3">
-        <Avatar :name="post.author.name" :hue="post.author.avatarHue" :accent="post.author.avatarAccent" size="sm" />
+        <Avatar :name="post.author.name" :hue="post.author.avatarHue" :accent="post.author.avatarAccent" :src="post.author.avatarUrl" size="sm" />
         <span class="min-w-0">
           <span class="block truncate text-sm font-medium text-bone">{{ post.author.name }}</span>
           <span class="block truncate text-[11px] text-moss">@{{ post.author.handle }} · {{ post.ago }}</span>
@@ -12,7 +12,7 @@
     </div>
 
     <div class="p-4 sm:p-5">
-      <a :href="postPageRoute.query({ id: post.id }).url()" class="group block">
+      <a :href="targetHref" class="group block">
         <h3 class="a5-display text-lg font-medium leading-snug text-bone transition group-hover:text-lime sm:text-xl">
           {{ post.title }}
         </h3>
@@ -20,7 +20,7 @@
       </a>
 
       <div v-if="post.kind === 'video'" class="mt-4">
-        <a :href="postPageRoute.query({ id: post.id }).url()" class="group/cover relative block overflow-hidden rounded-xl border border-line/80">
+        <a :href="targetHref" class="group/cover relative block overflow-hidden rounded-xl border border-line/80">
           <div class="relative aspect-video w-full" :style="{ background: coverBackground(post.coverHue) }">
             <img v-if="poster" :src="poster" alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover opacity-75" />
             <div class="absolute inset-0" :style="{ background: `linear-gradient(135deg, hsla(${post.coverHue}, 55%, 42%, 0.32), transparent 65%)` }"></div>
@@ -105,8 +105,9 @@ import Avatar from './Avatar.vue'
 import HypeMeter from './HypeMeter.vue'
 import AudioPlayer from './AudioPlayer.vue'
 import A5Stamp from './A5Stamp.vue'
-import { coverBackground, formatCount, formatDuration } from '../shared/format'
+import { coverBackground, formatCount, formatDuration, mediaCover } from '../shared/format'
 import { postPageRoute } from '../post'
+import { watchPageRoute } from '../watch'
 import { profilePageRoute } from '../profile'
 import { postReactRoute } from '../api/post/react'
 
@@ -129,11 +130,11 @@ const artist = computed(() => {
   return first && first.length < 48 ? first : ''
 })
 
-const poster = computed(() => {
-  const url = props.post.mediaUrl
-  if (!url || props.post.kind !== 'video' || !url.includes('/get/')) return ''
-  return `${url.replace('/get/', '/thumbnail/')}/s/800x`
-})
+const poster = computed(() => mediaCover(props.post.coverUrl, props.post.mediaUrl))
+
+const targetHref = computed(() => props.post.kind === 'video'
+  ? watchPageRoute.query({ id: props.post.id }).url()
+  : postPageRoute.query({ id: props.post.id }).url())
 
 async function react(value: 'like' | 'dislike') {
   error.value = ''

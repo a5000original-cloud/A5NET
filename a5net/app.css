@@ -223,3 +223,40 @@ a {
     transition-duration: 1ms !important;
   }
 }
+
+/* Platforms */
+.a5-video-theme {
+  background:
+    radial-gradient(1100px 600px at 85% -10%, rgba(255, 138, 92, 0.14), transparent 62%),
+    radial-gradient(900px 600px at 0% 30%, rgba(143, 216, 210, 0.06), transparent 60%);
+}
+.a5-video-theme .a5-btn-primary {
+  background: #ff8a5c;
+  color: #1b0d07;
+}
+.a5-video-theme .a5-btn-primary:hover {
+  background: #ffa47e;
+}
+
+.a5-music-theme {
+  background:
+    radial-gradient(1000px 700px at 15% -10%, rgba(183, 166, 255, 0.16), transparent 60%),
+    radial-gradient(900px 600px at 95% 20%, rgba(143, 216, 210, 0.10), transparent 62%);
+}
+.a5-music-theme .a5-btn-primary {
+  background: #b7a6ff;
+  color: #120d20;
+}
+.a5-music-theme .a5-btn-primary:hover {
+  background: #c9bcff;
+}
+
+.a5-eq-bar {
+  transform-origin: bottom;
+  animation: a5-eq 720ms ease-in-out infinite alternate;
+}
+
+@keyframes a5-eq {
+  from { transform: scaleY(0.35); opacity: 0.55; }
+  to { transform: scaleY(1); opacity: 1; }
+}

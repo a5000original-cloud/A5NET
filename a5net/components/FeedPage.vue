@@ -34,7 +34,7 @@
             <h2 class="a5-display mt-3 text-2xl font-medium leading-tight group-hover:text-lime">{{ artifact.title }}</h2>
             <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-moss">{{ artifact.body }}</p>
             <div class="mt-5 flex items-center gap-2">
-              <Avatar :name="artifact.author.name" :hue="artifact.author.avatarHue" :accent="artifact.author.avatarAccent" size="xs" />
+              <Avatar :name="artifact.author.name" :hue="artifact.author.avatarHue" :accent="artifact.author.avatarAccent" :src="artifact.author.avatarUrl" size="xs" />
               <span class="text-[11px] text-moss">{{ artifact.author.name }}</span>
               <span class="a5-mono ml-auto text-[9px] text-moss/50">{{ artifact.flowLabel }}</span>
             </div>
@@ -151,7 +151,7 @@
             <ul class="mt-4 space-y-3">
               <li v-for="person in data.suggestions" :key="person.id" class="flex items-center gap-3">
                 <a :href="profilePageRoute.query({ id: person.id }).url()">
-                  <Avatar :name="person.name" :hue="person.avatarHue" :accent="person.avatarAccent" size="sm" />
+                  <Avatar :name="person.name" :hue="person.avatarHue" :accent="person.avatarAccent" :src="person.avatarUrl" size="sm" />
                 </a>
                 <div class="min-w-0 flex-1">
                   <a :href="profilePageRoute.query({ id: person.id }).url()" class="block truncate text-sm text-bone hover:text-lime">{{ person.name }}</a>
