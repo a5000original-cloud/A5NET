@@ -166,3 +166,60 @@ a {
 .a5-marquee-track {
   animation: a5-marquee 36s linear infinite;
 }
+
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.a5-post {
+  animation: a5-post-in var(--motion-base) var(--ease) both;
+}
+
+.a5-like-pop {
+  animation: a5-like 180ms var(--ease);
+}
+
+.a5-stamp-in {
+  animation: a5-stamp 240ms var(--ease) both;
+}
+
+.a5-card-hover {
+  transition-duration: var(--motion-fast);
+}
+
+.a5-skeleton {
+  background: linear-gradient(90deg, #121610 0%, #1d231a 45%, #121610 100%);
+  background-size: 220% 100%;
+  animation: a5-shimmer 1.2s linear infinite;
+}
+
+@keyframes a5-post-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes a5-like {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes a5-stamp {
+  from { opacity: 0; transform: scale(0.9) rotate(-6deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes a5-shimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}

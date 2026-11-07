@@ -22,6 +22,26 @@
         </div>
       </section>
 
+      <section v-if="artifact" class="a5-card a5-grain mb-6 overflow-hidden">
+        <a :href="postPageRoute.query({ id: artifact.id }).url()" class="group grid md:grid-cols-[300px_minmax(0,1fr)]">
+          <div class="relative aspect-video md:aspect-auto md:min-h-[220px]" :style="{ background: coverBackground(artifact.coverHue) }">
+            <img v-if="artifactPoster" :src="artifactPoster" alt="" loading="eager" class="absolute inset-0 h-full w-full object-cover opacity-80" />
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent"></div>
+            <A5Stamp :size="30" tone="light" class="absolute right-4 top-4 opacity-70" />
+          </div>
+          <div class="p-5 sm:p-6">
+            <p class="a5-mono text-[9px] text-lime/80">A5 · артефакт дня</p>
+            <h2 class="a5-display mt-3 text-2xl font-medium leading-tight group-hover:text-lime">{{ artifact.title }}</h2>
+            <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-moss">{{ artifact.body }}</p>
+            <div class="mt-5 flex items-center gap-2">
+              <Avatar :name="artifact.author.name" :hue="artifact.author.avatarHue" :accent="artifact.author.avatarAccent" size="xs" />
+              <span class="text-[11px] text-moss">{{ artifact.author.name }}</span>
+              <span class="a5-mono ml-auto text-[9px] text-moss/50">{{ artifact.flowLabel }}</span>
+            </div>
+          </div>
+        </a>
+      </section>
+
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div class="min-w-0">
           <Composer
@@ -56,12 +76,18 @@
           <div v-if="activeTab === 'collab'" class="grid gap-4 sm:grid-cols-2">
             <CollabCard v-for="collab in visibleCollabs" :key="collab.id" :collab="collab" />
             <p v-if="!visibleCollabs.length" class="col-span-full rounded-2xl border border-dashed border-line p-8 text-center text-sm text-moss">
-              Пока ни одной открытой коллаборации. Это шанс придумать первую.
+              Связок пока нет. Начни с одного брифа.
             </p>
           </div>
 
           <div v-else-if="visiblePosts.length" class="space-y-4">
-            <PostCard v-for="post in visiblePosts" :key="post.id" :post="post" />
+            <div v-for="(post, index) in streamPosts" :key="post.id">
+              <div v-if="index === 0 || streamPosts[index - 1]?.flowLabel !== post.flowLabel" class="a5-mono mb-2 flex items-center gap-3 text-[9px] text-moss/40">
+                <span>{{ post.flowLabel }}</span>
+                <span class="h-px flex-1 bg-line/70"></span>
+              </div>
+              <PostCard :post="post" />
+            </div>
             <div class="pt-2 text-center">
               <button v-if="hasMore" type="button" class="a5-btn" :disabled="loading" @click="loadMore">
                 {{ loading ? 'Загружаю…' : 'Показать ещё' }}
@@ -71,9 +97,9 @@
           </div>
 
           <div v-else class="rounded-2xl border border-dashed border-line p-10 text-center">
-            <p class="a5-display text-lg text-bone">Здесь пока тихо</p>
+            <p class="a5-display text-lg text-bone">Поток тих.</p>
             <p class="mx-auto mt-2 max-w-sm text-sm text-moss">
-              {{ data.viewerRole === 'owner' ? 'Флот ещё не посеян. Открой пульт и запусти A5NET.' : 'Ни одного поста по этому фильтру. Попробуй другую тему.' }}
+              Первый артефакт задаст тон.
             </p>
             <a v-if="data.viewerRole === 'owner'" :href="controlPageRoute.url()" class="a5-btn-primary mt-5 inline-flex">Открыть пульт</a>
           </div>
@@ -162,12 +188,14 @@ import PostCard from './PostCard.vue'
 import Composer from './Composer.vue'
 import CollabCard from './CollabCard.vue'
 import Avatar from './Avatar.vue'
-import { formatCount, plural } from '../shared/format'
+import A5Stamp from './A5Stamp.vue'
+import { coverBackground, formatCount, plural } from '../shared/format'
 import { feedListRoute } from '../api/feed/list'
 import { userFollowRoute } from '../api/user/follow'
 import { controlPageRoute } from '../control'
 import { invitesPageRoute } from '../invites'
 import { profilePageRoute } from '../profile'
+import { postPageRoute } from '../post'
 
 const props = defineProps<{ data: FeedData }>()
 
@@ -189,12 +217,21 @@ const followed = ref<string[]>([])
 
 const totalMembers = computed(() => props.data.stats.humans + props.data.stats.bots)
 
+const artifact = computed(() => props.data.artifact)
+const artifactPoster = computed(() => {
+  const url = artifact.value?.mediaUrl
+  if (!url || !url.includes('/get/')) return ''
+  return `${url.replace('/get/', '/thumbnail/')}/s/1200x`
+})
+
 const visiblePosts = computed(() => {
   let list = items.value
   if (activeTab.value !== 'all') list = list.filter(post => post.kind === activeTab.value)
   if (topicFilter.value) list = list.filter(post => post.topics.some(topic => topic.id === topicFilter.value))
   return list
 })
+
+const streamPosts = computed(() => visiblePosts.value.filter(post => post.id !== artifact.value?.id))
 
 const visibleCollabs = computed(() => props.data.collabs)
 

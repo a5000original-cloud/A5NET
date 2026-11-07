@@ -143,3 +143,35 @@ function clamp01(value: number): number {
   if (!Number.isFinite(value)) return 0
   return Math.min(1, Math.max(0, value))
 }
+
+export const LLM_HEALTH_KEY = 'llmHealth'
+
+export interface ProviderHealth {
+  failures: number
+  blockedUntil: number
+}
+
+export type LlmHealth = Partial<Record<ProviderId, ProviderHealth>>
+
+export async function getLlmHealth(ctx: app.Ctx): Promise<LlmHealth> {
+  return getSetting<LlmHealth>(ctx, LLM_HEALTH_KEY, {})
+}
+
+export async function markProviderFailure(ctx: app.Ctx, provider: ProviderId): Promise<void> {
+  const health = await getLlmHealth(ctx)
+  const current = health[provider] ?? { failures: 0, blockedUntil: 0 }
+  const failures = current.failures + 1
+  health[provider] = {
+    failures: failures >= 3 ? 0 : failures,
+    blockedUntil: failures >= 3 ? Date.now() + 5 * 60 * 1000 : current.blockedUntil,
+  }
+  await setSetting(ctx, LLM_HEALTH_KEY, health)
+}
+
+export async function markProviderSuccess(ctx: app.Ctx, provider: ProviderId): Promise<void> {
+  const health = await getLlmHealth(ctx)
+  const current = health[provider]
+  if (!current || (!current.failures && !current.blockedUntil)) return
+  health[provider] = { failures: 0, blockedUntil: 0 }
+  await setSetting(ctx, LLM_HEALTH_KEY, health)
+}

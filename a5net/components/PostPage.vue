@@ -76,15 +76,44 @@
                 <span class="font-mono text-[10px] text-moss/60">{{ formatCount(post.views) }} просм.</span>
                 <HypeMeter :score="post.hypeScore" :level="post.hypeLevel" />
                 <button
+                  v-if="post.author.id !== data.viewer.id"
+                  type="button"
+                  class="text-[10px] text-moss/50 underline decoration-line transition hover:text-bone"
+                  @click="reportOpen = !reportOpen"
+                >пожаловаться</button>
+                <button
                   v-if="canModerate"
                   type="button"
                   class="text-[10px] text-moss/50 underline decoration-line transition hover:text-ember"
                   :disabled="deleting"
                   @click="removePost"
-                >удалить</button>
+                >скрыть</button>
               </div>
             </div>
           </article>
+
+          <div v-if="reportOpen" class="a5-card mt-4 p-4">
+            <p class="a5-mono text-[9px] text-moss">жалоба на пост</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button
+                v-for="reason in reasons"
+                :key="reason.value"
+                type="button"
+                class="a5-chip"
+                :class="reportReason === reason.value ? 'a5-chip-active' : ''"
+                @click="reportReason = reason.value"
+              >{{ reason.label }}</button>
+            </div>
+            <textarea v-model="reportNote" class="a5-input mt-3 min-h-[70px]" maxlength="400" placeholder="Что не так? Коротко и по делу."></textarea>
+            <div class="mt-3 flex items-center justify-between">
+              <p v-if="reportError" class="text-[11px] text-ember">{{ reportError }}</p>
+              <p v-else class="text-[10px] text-moss/60">Жалоба уйдёт A5000 и админам.</p>
+              <button type="button" class="a5-btn !py-2 text-xs" :disabled="reportBusy" @click="sendReport">
+                {{ reportBusy ? 'Отправляю…' : 'Отправить жалобу' }}
+              </button>
+            </div>
+          </div>
+          <p v-if="reportSent" class="mt-3 text-[11px] text-lime">Жалоба принята. Спасибо, что не молчишь.</p>
 
           <section id="comments" class="mt-8">
             <div class="mb-4 flex items-center justify-between">
@@ -134,7 +163,7 @@
               </article>
             </div>
             <p v-else class="rounded-2xl border border-dashed border-line p-8 text-center text-sm text-moss">
-              Пока никто не высказался. Начни — здесь это ценят.
+              Тишина. Первый голос задаст тон.
             </p>
           </section>
         </div>
@@ -227,6 +256,7 @@ import { postCommentRoute } from '../api/post/comment'
 import { userFollowRoute } from '../api/user/follow'
 import { friendRequestRoute } from '../api/friend/request'
 import { postDeleteRoute } from '../api/post/delete'
+import { reportCreateRoute } from '../api/report/create'
 
 const props = defineProps<{ data: PostPageData }>()
 
@@ -240,6 +270,18 @@ const commentCount = ref(post.commentsCount)
 const commentText = ref('')
 const sending = ref(false)
 const deleting = ref(false)
+const reportOpen = ref(false)
+const reportBusy = ref(false)
+const reportSent = ref(false)
+const reportError = ref('')
+const reportNote = ref('')
+const reportReason = ref<'spam' | 'abuse' | 'offtopic' | 'other'>('spam')
+const reasons = [
+  { value: 'spam' as const, label: 'спам' },
+  { value: 'abuse' as const, label: 'агрессия' },
+  { value: 'offtopic' as const, label: 'не по теме' },
+  { value: 'other' as const, label: 'другое' },
+]
 const commentError = ref('')
 const actionError = ref('')
 const following = ref(props.data.author.isFollowing)
@@ -327,7 +369,7 @@ async function addFriend() {
 const canModerate = props.data.viewerRole !== 'member'
 
 async function removePost() {
-  if (!window.confirm('Удалить пост вместе с комментариями? Это действие нельзя отменить.')) return
+  if (!window.confirm('Скрыть пост? Он исчезнет из ленты, но останется в базе для модерации.')) return
   deleting.value = true
   actionError.value = ''
   try {
@@ -338,9 +380,34 @@ async function removePost() {
     }
     window.location.href = feedPageRoute.url()
   } catch {
-    actionError.value = 'Не удалось удалить пост.'
+    actionError.value = 'Не удалось скрыть пост.'
   } finally {
     deleting.value = false
+  }
+}
+
+async function sendReport() {
+  if (reportBusy.value) return
+  reportBusy.value = true
+  reportError.value = ''
+  try {
+    const result = await reportCreateRoute.run(ctx, {
+      targetType: 'post',
+      targetId: post.id,
+      reason: reportReason.value,
+      note: reportNote.value.trim() || undefined,
+    })
+    if (!result.ok) {
+      reportError.value = result.error
+      return
+    }
+    reportSent.value = true
+    reportOpen.value = false
+    reportNote.value = ''
+  } catch {
+    reportError.value = 'Жалоба не отправилась.'
+  } finally {
+    reportBusy.value = false
   }
 }
 </script>

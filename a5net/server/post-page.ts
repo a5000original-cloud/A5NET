@@ -15,6 +15,7 @@ export async function loadPostPage(
 ): Promise<PostPageData | null> {
   const post = await Posts.findById(ctx, postId)
   if (!post) return null
+  if (post.visibility !== 'visible' && role === 'member') return null
   const authorProfile = await Profiles.findById(ctx, post.authorId)
   if (!authorProfile) return null
 

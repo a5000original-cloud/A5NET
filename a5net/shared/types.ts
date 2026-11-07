@@ -41,6 +41,8 @@ export interface PostCard {
   viewerReaction: ReactionValue | null
   collabId: string | null
   ago: string
+  flowLabel: string
+  discovery: boolean
 }
 
 export interface CommentItem {
@@ -121,6 +123,7 @@ export interface LlmSettings {
 
 export interface BotRow extends AuthorCard {
   kind: 'human' | 'bot'
+  isSynthetic: boolean
   enabled: boolean
   interests: TopicRef[]
   friendsCount: number
@@ -154,6 +157,17 @@ export interface GraphEdge {
   b: string
 }
 
+export interface ReportRow {
+  id: string
+  targetType: 'post' | 'comment' | 'profile'
+  targetId: string
+  targetLabel: string
+  reason: string
+  note: string
+  reporterName: string
+  ago: string
+}
+
 export interface ControlData {
   fleet: FleetSettings
   stats: PlatformStats
@@ -166,6 +180,9 @@ export interface ControlData {
   onlineNow: number
   actions24h: number
   avgLatency: number
+  reports: ReportRow[]
+  jobsLagSec: number
+  fallbackRate: number
   now: string
 }
 
@@ -179,6 +196,7 @@ export interface FeedData {
   now: string
   hasMore: boolean
   collabs: CollabCard[]
+  artifact: PostCard | null
   fleetEnabled: boolean
   topicOptions: TopicRef[]
 }
@@ -197,6 +215,7 @@ export interface PostPageData {
 export interface ProfilePageData {
   profile: ProfileCard
   posts: PostCard[]
+  collabs: CollabCard[]
   friends: AuthorCard[]
   viewer: AuthorCard
   viewerRole: 'owner' | 'admin' | 'member'

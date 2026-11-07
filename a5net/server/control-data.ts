@@ -1,7 +1,10 @@
 import Profiles from '../tables/profiles.table'
 import Runs from '../tables/runs.table'
 import Friendships from '../tables/friendships.table'
-import type { BotRow, ControlData, GraphEdge, GraphNode, RunRow } from '../shared/types'
+import Reports from '../tables/reports.table'
+import Posts from '../tables/posts.table'
+import Comments from '../tables/comments.table'
+import type { BotRow, ControlData, GraphEdge, GraphNode, ReportRow, RunRow } from '../shared/types'
 import { getFleet, getLlmConfig, getSetting, publicLlm, SEED_KEY } from './settings'
 import { getStats } from './feed'
 import { topicById } from './taxonomy'
@@ -9,7 +12,7 @@ import { timeAgo } from '../shared/format'
 import { awakeScore, moscowHour } from './bots/cycle'
 
 export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
-  const [fleet, llmConfig, bots, runs, friendships, stats, seed] = await Promise.all([
+  const [fleet, llmConfig, bots, runs, friendships, stats, seed, openReports] = await Promise.all([
     getFleet(ctx),
     getLlmConfig(ctx),
     Profiles.findAll(ctx, { where: { kind: 'bot' }, limit: 120, order: [{ createdAt: 'asc' }] }),
@@ -17,6 +20,7 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
     Friendships.findAll(ctx, { where: { status: 'accepted' }, limit: 500 }),
     getStats(ctx),
     getSetting<{ version?: number }>(ctx, SEED_KEY, {}),
+    Reports.findAll(ctx, { where: { status: 'open' }, limit: 40, order: [{ createdAt: 'desc' }, { id: 'asc' }] }),
   ])
 
   const botMap = new Map(bots.map(bot => [bot.id, bot]))
@@ -37,6 +41,7 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
       name: bot.name,
       city: bot.city,
       kind: bot.kind,
+      isSynthetic: bot.isSynthetic,
       avatarHue: bot.avatarHue,
       avatarAccent: bot.avatarAccent,
       initials: bot.name.split(/\s+/).map(part => part[0] ?? '').join('').slice(0, 2).toUpperCase(),
@@ -97,6 +102,47 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
     ? Math.round(latencies.reduce((sum, value) => sum + value, 0) / latencies.length)
     : 0
 
+  const reportPostIds = [...new Set(openReports.filter(report => report.targetType === 'post').map(report => report.targetId))]
+  const reportCommentIds = [...new Set(openReports.filter(report => report.targetType === 'comment').map(report => report.targetId))]
+  const reportProfileIds = [...new Set(openReports.filter(report => report.targetType === 'profile').map(report => report.targetId))]
+  const [reportPosts, reportComments, reportProfiles] = await Promise.all([
+    reportPostIds.length ? Posts.findAll(ctx, { where: { id: reportPostIds }, limit: reportPostIds.length }) : [],
+    reportCommentIds.length ? Comments.findAll(ctx, { where: { id: reportCommentIds }, limit: reportCommentIds.length }) : [],
+    reportProfileIds.length ? Profiles.findAll(ctx, { where: { id: reportProfileIds }, limit: reportProfileIds.length }) : [],
+  ])
+  const labelMap = new Map<string, string>()
+  for (const post of reportPosts) labelMap.set(`post:${post.id}`, post.title)
+  for (const comment of reportComments) labelMap.set(`comment:${comment.id}`, comment.text.slice(0, 80))
+  for (const profile of reportProfiles) labelMap.set(`profile:${profile.id}`, profile.name)
+
+  const reporterIds = [...new Set(openReports.map(report => report.reporterId))]
+  const reporters = reporterIds.length
+    ? await Profiles.findAll(ctx, { where: { id: reporterIds }, limit: reporterIds.length })
+    : []
+  const reporterMap = new Map(reporters.map(profile => [profile.id, profile.name]))
+
+  const reports: ReportRow[] = openReports.map(report => {
+    const created = report.createdAt instanceof Date ? report.createdAt : new Date(report.createdAt)
+    return {
+      id: report.id,
+      targetType: report.targetType,
+      targetId: report.targetId,
+      targetLabel: labelMap.get(`${report.targetType}:${report.targetId}`) ?? report.targetId,
+      reason: report.reason,
+      note: report.note,
+      reporterName: reporterMap.get(report.reporterId) ?? 'Участник',
+      ago: timeAgo(created.toISOString(), now),
+    }
+  })
+
+  const lastRun = runs[0]
+  const jobsLagSec = lastRun
+    ? Math.max(0, Math.round((now - (lastRun.createdAt instanceof Date ? lastRun.createdAt.getTime() : new Date(lastRun.createdAt).getTime())) / 1000))
+    : 0
+  const fallbackRate = runs.length
+    ? Math.round((runs.filter(run => run.provider === 'local').length / runs.length) * 100)
+    : 0
+
   return {
     fleet,
     stats,
@@ -112,6 +158,9 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
     }).length,
     actions24h,
     avgLatency,
+    reports,
+    jobsLagSec,
+    fallbackRate,
     now: new Date(now).toISOString(),
   }
 }

@@ -19,6 +19,7 @@ export function toPostCard(
   author: ReturnType<typeof toAuthorCard>,
   reaction: ReactionValue | null,
   nowMs: number,
+  discovery = false,
 ): PostCard {
   const created = post.publishedAt instanceof Date ? post.publishedAt : new Date(post.publishedAt)
   return {
@@ -41,6 +42,8 @@ export function toPostCard(
     viewerReaction: reaction,
     collabId: post.collabId ?? null,
     ago: timeAgo(created.toISOString(), nowMs),
+    flowLabel: flowLabel(created),
+    discovery,
   }
 }
 
@@ -163,4 +166,16 @@ export async function getPostPageData(ctx: app.Ctx, postId: string, viewerId: st
 
 export async function viewerSocialSafe(ctx: app.Ctx, profileId: string) {
   return getViewerSocial(ctx, profileId)
+}
+
+function flowLabel(date: Date): string {
+  const time = new Intl.DateTimeFormat('ru-RU', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Moscow',
+  }).format(date)
+  const hour = Number(time.slice(0, 2))
+  const part = hour < 6 ? 'ночь' : hour < 12 ? 'утро' : hour < 18 ? 'день' : 'вечер'
+  return `${time} · ${part}`
 }

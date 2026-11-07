@@ -80,8 +80,11 @@ export async function getFeedData(
       authorMap.get(post.authorId) ?? fallbackAuthor(post.authorId),
       reactionMap.get(post.id) ?? null,
       nowMs,
+      !social.friendIds.has(post.authorId) && !social.followingIds.has(post.authorId),
     ),
   )
+
+  const artifact = items.find(item => item.kind === 'video') ?? null
 
   const [trends, suggestions, stats, collabs, fleet] = await Promise.all([
     Promise.resolve(buildTrends(raw)),
@@ -101,6 +104,7 @@ export async function getFeedData(
     now: new Date(nowMs).toISOString(),
     hasMore: diversified.length > offset + 24,
     collabs,
+    artifact,
     fleetEnabled: fleet.enabled,
     topicOptions: LEAF_TOPICS.slice(0, 28).map(topic => ({ id: topic.id, label: topic.label, hue: topic.hue })),
   }
@@ -212,17 +216,22 @@ export async function getProfilePageData(
 ) {
   const profile = await Profiles.findById(ctx, profileId)
   if (!profile) return null
-  const [targetSocial, viewerSocial, posts] = await Promise.all([
+  const [targetSocial, viewerSocial, posts, allCollabs] = await Promise.all([
     getViewerSocial(ctx, profile.id),
     getViewerSocial(ctx, viewer.id),
     listPosts(ctx, { viewerId: viewer.id, authorId: profile.id, limit: 24 }),
+    buildCollabs(ctx, viewer.id),
   ])
+  const collabs = allCollabs.filter(collab =>
+    collab.initiator.id === profile.id || collab.participants.some(person => person.id === profile.id),
+  )
   const friendIds = [...targetSocial.friendIds].slice(0, 12)
   const friendMap = await getAuthorMap(ctx, friendIds)
   const friends = friendIds.map(id => friendMap.get(id)).filter((item): item is AuthorCard => Boolean(item))
   return {
     profile: buildProfileCard(profile, viewer, targetSocial, viewerSocial),
     posts: posts.items,
+    collabs,
     friends,
     incomingRequest: viewerSocial.pendingIn.has(profile.id),
     now: new Date().toISOString(),

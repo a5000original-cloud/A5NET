@@ -1,6 +1,7 @@
 <template>
   <div class="flex min-h-screen items-center justify-center px-4 py-12">
-    <div class="a5-card a5-grain w-full max-w-lg overflow-hidden">
+    <div class="a5-card a5-grain relative w-full max-w-lg overflow-hidden">
+      <A5Stamp :size="44" class="absolute right-6 top-6 opacity-60" />
       <div class="border-b border-line/70 p-6 sm:p-8">
         <div class="flex items-center justify-between">
           <a :href="indexPageRoute.url()" class="flex items-baseline gap-2">
@@ -47,6 +48,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { feedPageRoute } from '../feed'
+import A5Stamp from './A5Stamp.vue'
 import { indexPageRoute } from '../index'
 import { joinPageRoute } from '../join'
 import { inviteRedeemRoute } from '../api/invite/redeem'

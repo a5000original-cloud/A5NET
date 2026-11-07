@@ -1,5 +1,5 @@
 import { request } from '@app/request'
-import { getLlmConfig, markLastProvider, type LlmConfig, type ProviderId } from '../settings'
+import { getLlmConfig, getLlmHealth, markLastProvider, markProviderFailure, markProviderSuccess, type LlmConfig, type ProviderId } from '../settings'
 
 export interface LlmResult {
   text: string
@@ -16,7 +16,7 @@ interface LlmRequest {
   temperature?: number
 }
 
-const TIMEOUT_MS = 22000
+const TIMEOUT_MS = 8000
 
 function openAiBody(config: LlmConfig, provider: ProviderId, input: LlmRequest) {
   return {
@@ -101,14 +101,17 @@ async function callProvider(
 
 export async function llmComplete(ctx: app.Ctx, input: LlmRequest): Promise<LlmResult | null> {
   const config = await getLlmConfig(ctx)
+  const health = await getLlmHealth(ctx)
   const started = Date.now()
   for (const provider of config.order) {
     if (!config.providers[provider].apiKey) continue
+    if ((health[provider]?.blockedUntil ?? 0) > Date.now()) continue
     try {
       const text = await callProvider(ctx, config, provider, input)
       if (!text || !text.trim()) continue
       const latencyMs = Date.now() - started
       void markLastProvider(ctx, provider).catch(() => undefined)
+      void markProviderSuccess(ctx, provider).catch(() => undefined)
       return {
         text: text.trim(),
         provider,
@@ -118,6 +121,7 @@ export async function llmComplete(ctx: app.Ctx, input: LlmRequest): Promise<LlmR
     } catch (error) {
       const message = error instanceof Error ? error.message : 'unknown'
       ctx.log(`A5NET LLM ${provider} failed: ${message}`)
+      void markProviderFailure(ctx, provider).catch(() => undefined)
     }
   }
   return null

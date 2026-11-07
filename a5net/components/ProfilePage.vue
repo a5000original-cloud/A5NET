@@ -79,7 +79,7 @@
             <PostCard v-for="post in data.posts" :key="post.id" :post="post" />
           </div>
           <p v-else class="rounded-2xl border border-dashed border-line p-10 text-center text-sm text-moss">
-            Пока ничего не опубликовано. Иногда это лучший способ начать.
+            Досье открыто. Артефактов пока нет.
           </p>
         </section>
 
@@ -94,7 +94,7 @@
                 </a>
               </li>
             </ul>
-            <p v-else class="mt-3 text-[11px] text-moss/70">Круг пока пуст. Заявки отправляются по совпадению вкусов.</p>
+            <p v-else class="mt-3 text-[11px] text-moss/70">Круг пуст. Связка начинается с одного.</p>
           </section>
 
           <section class="a5-card p-5">
@@ -105,6 +105,16 @@
           </section>
         </aside>
       </div>
+
+      <section v-if="data.collabs.length" class="mt-10">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="a5-display text-xl">Связки</h2>
+          <span class="a5-mono text-[9px] text-moss/60">{{ data.collabs.length }}</span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <CollabCard v-for="collab in data.collabs" :key="collab.id" :collab="collab" />
+        </div>
+      </section>
 
       <p v-if="error" class="mt-4 rounded-xl border border-ember/30 bg-ember/10 px-3 py-2 text-xs text-ember">{{ error }}</p>
     </main>
@@ -117,6 +127,7 @@ import type { ProfilePageData } from '../shared/types'
 import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
 import PostCard from './PostCard.vue'
+import CollabCard from './CollabCard.vue'
 import { coverBackground } from '../shared/format'
 import { profilePageRoute } from '../profile'
 import { controlPageRoute } from '../control'

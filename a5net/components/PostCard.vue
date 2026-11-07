@@ -1,5 +1,5 @@
 <template>
-  <article class="a5-card a5-card-hover a5-grain overflow-hidden">
+  <article class="a5-card a5-card-hover a5-grain a5-post overflow-hidden">
     <div class="flex items-start justify-between gap-3 p-4 pb-0 sm:p-5 sm:pb-0">
       <a :href="profilePageRoute.query({ id: post.author.id }).url()" class="flex min-w-0 items-center gap-3">
         <Avatar :name="post.author.name" :hue="post.author.avatarHue" :accent="post.author.avatarAccent" size="sm" />
@@ -22,7 +22,7 @@
       <div v-if="post.kind === 'video'" class="mt-4">
         <a :href="postPageRoute.query({ id: post.id }).url()" class="group/cover relative block overflow-hidden rounded-xl border border-line/80">
           <div class="relative aspect-video w-full" :style="{ background: coverBackground(post.coverHue) }">
-            <img v-if="poster" :src="poster" alt="" class="absolute inset-0 h-full w-full object-cover opacity-75" />
+            <img v-if="poster" :src="poster" alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover opacity-75" />
             <div class="absolute inset-0" :style="{ background: `linear-gradient(135deg, hsla(${post.coverHue}, 55%, 42%, 0.32), transparent 65%)` }"></div>
             <div class="absolute inset-0 opacity-60" style="background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 40%), radial-gradient(circle at 70% 70%, rgba(255,255,255,0.08), transparent 45%)"></div>
             <div class="absolute inset-0 flex items-center justify-center">
@@ -32,6 +32,7 @@
             </div>
             <span class="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-1 font-mono text-[10px] text-white/80">{{ formatDuration(post.durationSec) }}</span>
             <span class="absolute left-4 top-4 a5-mono text-[9px] text-white/60">видеоэтюд</span>
+            <A5Stamp :size="22" tone="light" class="absolute right-3 top-3 opacity-70" />
           </div>
         </a>
       </div>
@@ -54,6 +55,8 @@
         <span v-for="topic in post.topics" :key="topic.id" class="a5-chip" :style="{ borderColor: `hsla(${topic.hue}, 60%, 60%, 0.35)` }">
           {{ topic.label }}
         </span>
+        <span v-if="post.discovery" class="a5-mono self-center text-[8px] text-violet/60">· новый голос</span>
+        <span class="a5-mono ml-auto self-center text-[8px] text-moss/35">{{ post.flowLabel }}</span>
       </div>
     </div>
 
@@ -62,7 +65,7 @@
         <button
           type="button"
           class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs transition hover:bg-panel2"
-          :class="reaction === 'like' ? 'text-lime' : 'hover:text-bone'"
+          :class="reaction === 'like' ? 'a5-like-pop text-lime' : 'hover:text-bone'"
           :aria-pressed="reaction === 'like'"
           aria-label="Нравится"
           @click="react('like')"
@@ -102,6 +105,7 @@ import type { PostCard as PostCardData, ReactionValue } from '../shared/types'
 import Avatar from './Avatar.vue'
 import HypeMeter from './HypeMeter.vue'
 import AudioPlayer from './AudioPlayer.vue'
+import A5Stamp from './A5Stamp.vue'
 import { coverBackground, formatCount, formatDuration } from '../shared/format'
 import { postPageRoute } from '../post'
 import { profilePageRoute } from '../profile'

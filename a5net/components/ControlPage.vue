@@ -151,7 +151,7 @@
                     <Avatar :name="bot.name" :hue="bot.avatarHue" :accent="bot.avatarAccent" size="xs" />
                     <span>
                       <span class="block text-[12px] text-bone">{{ bot.name }}</span>
-                      <span class="block text-[10px] text-moss/60">{{ bot.city }}</span>
+                      <span class="block text-[10px] text-moss/60">{{ bot.city }}<span v-if="bot.isSynthetic" class="ml-1 text-violet/50">· а</span></span>
                     </span>
                   </a>
                 </td>
@@ -173,6 +173,29 @@
             </tbody>
           </table>
           <p v-if="!filteredBots.length" class="p-8 text-center text-xs text-moss/60">Ничего не нашлось.</p>
+        </div>
+      </section>
+
+      <section v-if="reports.length" class="a5-card mt-5 overflow-hidden border-ember/25">
+        <div class="flex items-center justify-between border-b border-line/70 px-5 py-4">
+          <p class="a5-mono text-[9px] text-ember/80">жалобы · {{ reports.length }}</p>
+          <span class="a5-mono text-[9px] text-moss/50">очередь модерации</span>
+        </div>
+        <div class="divide-y divide-line/40">
+          <article v-for="report in reports" :key="report.id" class="px-5 py-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="a5-pill !py-0.5 !text-[8px]">{{ targetTypeLabel(report.targetType) }}</span>
+              <span class="font-mono text-[9px] text-moss/50">{{ reasonLabel(report.reason) }}</span>
+              <span class="ml-auto font-mono text-[9px] text-moss/40">{{ report.ago }}</span>
+            </div>
+            <p class="mt-2 text-sm text-bone">{{ report.targetLabel }}</p>
+            <p v-if="report.note" class="mt-1 text-[11px] text-moss">{{ report.note }}</p>
+            <p class="mt-1 text-[10px] text-moss/50">от {{ report.reporterName }}</p>
+            <div class="mt-3 flex gap-2">
+              <button type="button" class="a5-btn !px-3 !py-1.5 text-[11px]" :disabled="busy" @click="resolveReport(report.id, 'hide')">Скрыть</button>
+              <button type="button" class="a5-btn-ghost text-[11px]" :disabled="busy" @click="resolveReport(report.id, 'dismiss')">Отклонить</button>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -206,7 +229,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import type { BotRow, ControlData, RunRow, GraphEdge, GraphNode } from '../shared/types'
+import type { BotRow, ControlData, ReportRow, RunRow, GraphEdge, GraphNode } from '../shared/types'
 import Avatar from './Avatar.vue'
 import FleetGraph from './FleetGraph.vue'
 import { formatCount } from '../shared/format'
@@ -214,12 +237,14 @@ import { feedPageRoute } from '../feed'
 import { profilePageRoute } from '../profile'
 import { controlStateRoute } from '../api/control/state'
 import { controlUpdateRoute } from '../api/control/update'
+import { moderationResolveRoute } from '../api/moderation/resolve'
 
 const props = defineProps<{ data: ControlData }>()
 
 const fleet = ref({ ...props.data.fleet })
 const bots = ref<BotRow[]>(props.data.bots)
 const logs = ref<RunRow[]>(props.data.logs)
+const reports = ref<ReportRow[]>(props.data.reports)
 const nodes = ref<GraphNode[]>(props.data.nodes)
 const edges = ref<GraphEdge[]>(props.data.edges)
 const llm = ref({ ...props.data.llm })
@@ -227,6 +252,8 @@ const stats = ref({ ...props.data.stats })
 const onlineNow = ref(props.data.onlineNow)
 const actions24h = ref(props.data.actions24h)
 const avgLatency = ref(props.data.avgLatency)
+const jobsLagSec = ref(props.data.jobsLagSec)
+const fallbackRate = ref(props.data.fallbackRate)
 const seeded = ref(props.data.seeded)
 const busy = ref(false)
 const message = ref('')
@@ -255,6 +282,8 @@ const metrics = computed(() => [
   { label: 'средний отклик', value: avgLatency.value ? `${avgLatency.value}ms` : 'local' },
   { label: 'постов', value: formatCount(stats.value.posts) },
   { label: 'часов просмотра', value: stats.value.hoursWatched },
+  { label: 'fallback LLM', value: fallbackRate.value + '%' },
+  { label: 'лаг тика', value: jobsLagSec.value + 'с' },
 ])
 
 let timer: number | undefined
@@ -273,12 +302,15 @@ async function refresh() {
     if (!result.ok) return
     bots.value = result.data.bots
     logs.value = result.data.logs
+    reports.value = result.data.reports
     nodes.value = result.data.nodes
     edges.value = result.data.edges
     stats.value = result.data.stats
     onlineNow.value = result.data.onlineNow
     actions24h.value = result.data.actions24h
     avgLatency.value = result.data.avgLatency
+    jobsLagSec.value = result.data.jobsLagSec
+    fallbackRate.value = result.data.fallbackRate
     seeded.value = result.data.seeded
     llm.value = result.data.llm
   } catch {
@@ -334,6 +366,38 @@ function tick() {
 
 function waitAll() {
   return runUpdate({ action: 'wait_all' })
+}
+
+async function resolveReport(id: string, action: 'hide' | 'dismiss') {
+  busy.value = true
+  message.value = ''
+  error.value = ''
+  try {
+    const result = await moderationResolveRoute.run(ctx, { id, action })
+    if (!result.ok) {
+      error.value = result.error
+      return
+    }
+    message.value = result.message
+    await refresh()
+  } catch {
+    error.value = 'Модерация не ответила.'
+  } finally {
+    busy.value = false
+  }
+}
+
+function targetTypeLabel(type: string): string {
+  if (type === 'post') return 'пост'
+  if (type === 'comment') return 'комментарий'
+  return 'профиль'
+}
+
+function reasonLabel(reason: string): string {
+  if (reason === 'spam') return 'спам'
+  if (reason === 'abuse') return 'агрессия'
+  if (reason === 'offtopic') return 'не по теме'
+  return 'другое'
 }
 
 function saveFleet() {

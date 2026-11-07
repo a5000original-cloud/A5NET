@@ -16,6 +16,7 @@
     ></video>
 
     <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10"></div>
+    <A5Stamp :size="26" tone="light" class="absolute right-4 top-4 opacity-60 mix-blend-screen" />
 
     <button
       v-if="!playing"
@@ -29,9 +30,10 @@
       </span>
     </button>
 
-    <div class="absolute inset-x-0 bottom-0 p-3">
-      <div class="mb-2 h-1 w-full overflow-hidden rounded-full bg-white/20">
+    <div class="absolute inset-x-0 bottom-0 p-3 transition-opacity duration-200 sm:opacity-0 sm:delay-200 sm:group-hover:opacity-100">
+      <div class="relative mb-2 h-[2px] w-full rounded-full bg-white/20">
         <div class="h-full rounded-full bg-lime transition-[width]" :style="{ width: progress * 100 + '%' }"></div>
+        <span class="absolute top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime" :style="{ left: progress * 100 + '%' }"></span>
       </div>
       <div class="flex items-center justify-between text-[10px] text-white/80">
         <span class="a5-mono">{{ title }}</span>
@@ -55,6 +57,7 @@
 import { computed, onUnmounted, ref } from 'vue'
 import { postWatchRoute } from '../api/post/watch'
 import { formatDuration } from '../shared/format'
+import A5Stamp from './A5Stamp.vue'
 
 const props = defineProps<{ src: string; title: string; duration: number; postId: string }>()
 
