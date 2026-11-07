@@ -505,6 +505,7 @@ function actionLabel(action: string): string {
     COMMENT: 'коммент',
     FRIEND_REQUEST: 'заявка',
     FOLLOW: 'подписка',
+    UNFOLLOW: 'отписка',
     WATCH_VIDEO: 'просмотр',
     JOIN_COLLAB: 'коллаб',
     WAIT: 'ожидание',
