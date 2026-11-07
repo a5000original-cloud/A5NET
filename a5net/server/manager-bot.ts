@@ -78,7 +78,7 @@ const TOPICS: Topic[] = [
     id: 'vague',
     label: 'уточнение проблемы',
     keywords: ['не работает', 'не получается', 'сломалось', 'ошибка', 'помогите', 'что делать', 'не могу', 'проблема', 'зависает', 'глючит', 'не открывается'],
-    weight: 0.9,
+    weight: 0.4,
     answer: 'Уточните, пожалуйста, что именно: вход в аккаунт, инвайт, профиль, публикация, комментарий, подписка или друзья, жалоба? Напишите одну фразу — и я дам точный следующий шаг.',
     suggestions: ['Вход', 'Инвайт', 'Профиль', 'Публикация'],
   },
@@ -234,12 +234,20 @@ const TOPICS: Topic[] = [
     suggestions: ['Как пожаловаться', 'Написать A5000'],
   },
   {
+    id: 'password',
+    label: 'смена пароля',
+    keywords: ['сменить пароль', 'поменять пароль', 'изменить пароль', 'забыл пароль', 'восстановить пароль', 'сбросить пароль'],
+    weight: 1.3,
+    answer: 'Пароль меняется в настройках аккаунта платформы Chatium. Если не помните текущий — на странице входа есть восстановление. Я пароль не вижу и не запрашиваю. Если письмо для восстановления не приходит, проверьте папку «Спам» и правильность адреса; если не помогает — напишите A5000.',
+    suggestions: ['Не приходит восстановление', 'Написать A5000'],
+  },
+  {
     id: 'security',
     label: 'безопасность',
     keywords: ['пароль', 'код из смс', 'взлом', 'украли аккаунт', 'фишинг', 'безопасность', 'двухфакторка', 'мошенники'],
     weight: 1.2,
     answer: 'Пароли, коды из SMS и письма, данные карты я не спрашиваю. Если аккаунт взломали — смените пароль и напишите A5000. Если вам пишут с просьбой прислать код, это мошенники.',
-    suggestions: ['Не могу войти', 'Написать A5000'],
+    suggestions: ['Сменить пароль', 'Написать A5000'],
   },
   {
     id: 'bug',
@@ -281,7 +289,7 @@ const TOPICS: Topic[] = [
   {
     id: 'commercial',
     label: 'платные услуги и реклама',
-    keywords: ['цена', 'стоимость', 'купить', 'оплата', 'реклама', 'сотрудничество', 'партнерство', 'продвижение', 'заказать', 'услуги', 'тариф', 'платная подписка'],
+    keywords: ['цена', 'стоимость', 'сколько стоит', 'почем', 'прайс', 'купить', 'оплата', 'реклама', 'сотрудничество', 'партнерство', 'продвижение', 'заказать', 'услуги', 'тариф', 'платная подписка'],
     weight: 1.2,
     answer: 'Цены, реклама, сотрудничество и другие услуги — это к A5000 лично. Я помогаю только по площадке: аккаунт, инвайты, профиль, публикации, жалобы. Напишите A5000 в личные сообщения.',
     suggestions: ['Вопрос по площадке', 'Написать A5000'],
@@ -347,6 +355,7 @@ const STEM_SUFFIXES = [
 const QUESTION_RE = /(как|почему|зачем|где|когда|что|кто|можно|нужно|стоит|помогите|подскажите|объясните|расскажите|не работает|не получается|не могу|ошибка)/i
 const EMPATHY_RE = /(бесит|ужас|достало|срочно|кошмар|ненавижу|раздражает|устал)/i
 const PLATFORM_HINT_RE = /(a5net|площадк|аккаунт|профил|пост|публикац|инвайт|приглашен|лент|коммент|реакц|подписк|друз|коллаб|связк|жалоб|модерац|бот|вход|войти|парол|регистрац|сайт)/i
+const VAGUE_ONLY_RE = /^(помогите|помоги|не работает|не получается|что делать|сломалось|не могу)(\s|!|,|$)/i
 
 function normalize(value: string): string {
   return value
@@ -462,8 +471,6 @@ export function answerManagerMessage(input: {
     .map(topic => ({ topic, score: scoreTopic(normalized, rawTokens, stems, topic) }))
     .sort((left, right) => right.score - left.score)
   const best = ranked[0]
-  const second = ranked[1]
-  const genericSecond = new Set(['vague', 'greeting', 'thanks', 'goodbye', 'help', 'about_bot', 'filter', 'unknown'])
 
   const isGreeting = /^(привет|здравствуйте|здравствуй|добрый день|добрый вечер|доброе утро|хай|ку)(\s|!|,|$)/.test(raw.toLowerCase())
   const isThanks = /^(спасибо|благодарю|спс|пасибо)(\s|!|,|$)/.test(raw.toLowerCase())
@@ -479,11 +486,7 @@ export function answerManagerMessage(input: {
     const empathy = best.topic.empathy && EMPATHY_RE.test(normalized)
       ? 'Понимаю, это неприятно. Давайте разберёмся.'
       : ''
-    let extra = empathy
-    if (second && second.score >= 2.4 && second.score >= best.score * 0.8 && second.topic.id !== best.topic.id && !genericSecond.has(second.topic.id)) {
-      extra = `${extra ? `${extra}\n\n` : ''}Если вопрос ещё и про «${second.topic.label}», уточните — отвечу отдельно.`
-    }
-    return replyFor(best.topic, extra)
+    return replyFor(best.topic, empathy)
   }
 
   if (best && best.score >= 1.2) {
@@ -495,6 +498,10 @@ export function answerManagerMessage(input: {
       return replyFor(best.topic)
     }
     return replyFor(best.topic, 'Похоже, вопрос про это. Если я понял неверно — уточните.')
+  }
+
+  if (VAGUE_ONLY_RE.test(raw.toLowerCase())) {
+    return replyFor(findTopic('vague'))
   }
 
   if (looksLikeQuestion(raw)) {
