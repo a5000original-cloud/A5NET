@@ -13,7 +13,7 @@
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2 rounded-full border border-line bg-panel2/60 px-3 py-1.5">
             <span class="h-1.5 w-1.5 rounded-full bg-lime a5-live-dot"></span>
-            <span class="a5-mono text-[9px] text-moss">{{ data.stats.humans + data.stats.bots }} участников</span>
+            <span class="a5-mono text-[9px] text-moss">{{ totalMembers }} {{ plural(totalMembers, 'участник', 'участника', 'участников') }}</span>
           </div>
           <button type="button" class="a5-btn-primary" @click="composing = !composing">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3v10M3 8h10" stroke-linecap="round" /></svg>
@@ -187,6 +187,8 @@ const hasMore = ref(props.data.hasMore)
 const loading = ref(false)
 const followed = ref<string[]>([])
 
+const totalMembers = computed(() => props.data.stats.humans + props.data.stats.bots)
+
 const visiblePosts = computed(() => {
   let list = items.value
   if (activeTab.value !== 'all') list = list.filter(post => post.kind === activeTab.value)
@@ -231,5 +233,4 @@ async function follow(id: string) {
   }
 }
 
-void plural
 </script>

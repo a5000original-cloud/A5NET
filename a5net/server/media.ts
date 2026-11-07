@@ -14,16 +14,16 @@ export interface TrackAsset {
 }
 
 export const VIDEOS: VideoAsset[] = [
-  { title: 'Плёнка закончилась в Калининграде', url: 'https://fs.chatium.ru/get/video_msk_5uCTtb3gPZ.d15.960x540.mp4', duration: 15, hue: 168 },
-  { title: 'Медленный свет', url: 'https://fs.chatium.ru/get/video_msk_eBSSQgwGgQ.d14.960x540.mp4', duration: 14, hue: 32 },
-  { title: 'Как звучит пустой бассейн', url: 'https://fs.chatium.ru/get/video_msk_7IRZEU1zIa.d16.960x540.mp4', duration: 16, hue: 192 },
-  { title: 'Шум трамвайных рельсов', url: 'https://fs.chatium.ru/get/video_msk_4EgeJ1rQLF.d13.960x540.mp4', duration: 13, hue: 204 },
-  { title: 'Аналоговый закат', url: 'https://fs.chatium.ru/get/video_msk_f1tbPaN7IZ.d15.960x540.mp4', duration: 15, hue: 12 },
-  { title: 'Комната, в которой не выключили лампу', url: 'https://fs.chatium.ru/get/video_msk_JpM2DinPte.d12.960x540.mp4', duration: 12, hue: 48 },
-  { title: 'Зима без снега', url: 'https://fs.chatium.ru/get/video_msk_oHHb8taNlp.d14.960x540.mp4', duration: 14, hue: 210 },
-  { title: 'Тишина после вечеринки', url: 'https://fs.chatium.ru/get/video_msk_vfEdy2tRP5.d15.960x540.mp4', duration: 15, hue: 96 },
-  { title: 'Черновик на 4 утра', url: 'https://fs.chatium.ru/get/video_msk_7vRuQYFtXf.d16.960x540.mp4', duration: 16, hue: 140 },
-  { title: 'Стеклянный двор', url: 'https://fs.chatium.ru/get/video_msk_pZdJCxWNbX.d13.960x540.mp4', duration: 13, hue: 184 },
+  { title: 'Плёнка закончилась в Калининграде', url: 'https://fs.chatium.ru/get/video_msk_POYuWmEl9s.d15.960x540.mp4', duration: 15, hue: 168 },
+  { title: 'Медленный свет', url: 'https://fs.chatium.ru/get/video_msk_cwNK7oxBwJ.d14.960x540.mp4', duration: 14, hue: 32 },
+  { title: 'Как звучит пустой бассейн', url: 'https://fs.chatium.ru/get/video_msk_WCnYmoOLBg.d16.960x540.mp4', duration: 16, hue: 192 },
+  { title: 'Шум трамвайных рельсов', url: 'https://fs.chatium.ru/get/video_msk_YbnrZXTTo3.d13.960x540.mp4', duration: 13, hue: 204 },
+  { title: 'Аналоговый закат', url: 'https://fs.chatium.ru/get/video_msk_WwTbLxqpHF.d15.960x540.mp4', duration: 15, hue: 12 },
+  { title: 'Комната, в которой не выключили лампу', url: 'https://fs.chatium.ru/get/video_msk_AC23dOSOoq.d12.960x540.mp4', duration: 12, hue: 48 },
+  { title: 'Зима без снега', url: 'https://fs.chatium.ru/get/video_msk_NNudAfp9aF.d14.960x540.mp4', duration: 14, hue: 210 },
+  { title: 'Тишина после вечеринки', url: 'https://fs.chatium.ru/get/video_msk_BI14aZT9ae.d15.960x540.mp4', duration: 15, hue: 96 },
+  { title: 'Черновик на 4 утра', url: 'https://fs.chatium.ru/get/video_msk_Pybit5Fj0N.d16.960x540.mp4', duration: 16, hue: 140 },
+  { title: 'Стеклянный двор', url: 'https://fs.chatium.ru/get/video_msk_n3qiAL6u74.d13.960x540.mp4', duration: 13, hue: 184 },
 ]
 
 export const TRACKS: TrackAsset[] = [
