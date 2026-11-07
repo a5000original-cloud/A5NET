@@ -482,6 +482,10 @@ export function answerManagerMessage(input: {
     return replyFor(findTopic('greeting'))
   }
 
+  if (/(пожал|жалоб|репорт)/i.test(normalized)) {
+    return replyFor(findTopic('report'))
+  }
+
   if (best && best.score >= 2.4) {
     const empathy = best.topic.empathy && EMPATHY_RE.test(normalized)
       ? 'Понимаю, это неприятно. Давайте разберёмся.'
