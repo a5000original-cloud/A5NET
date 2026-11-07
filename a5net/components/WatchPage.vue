@@ -64,7 +64,8 @@
               </span>
             </a>
             <div class="flex gap-2">
-              <button type="button" class="a5-btn !py-2 text-xs" @click="toggleFollow">
+              <span v-if="data.author.isSelf" class="a5-pill !text-[9px]">твой канал</span>
+              <button v-else type="button" class="a5-btn !py-2 text-xs" @click="toggleFollow">
                 {{ following ? 'Ты подписан' : 'Подписаться' }}
               </button>
               <a :href="profilePageRoute.query({ id: data.author.id }).url()" class="a5-btn-ghost text-xs">Канал</a>
