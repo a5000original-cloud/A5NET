@@ -184,7 +184,7 @@ async function redeem() {
     }
     window.location.href = feedPageRoute.url()
   } catch {
-    error.value = 'Не удалось применить код. Попробуй ещё раз.'
+    error.value = 'Пропуск не принят. Код недействителен.'
   } finally {
     busy.value = false
   }

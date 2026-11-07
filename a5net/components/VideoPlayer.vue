@@ -5,7 +5,7 @@
       :src="src"
       :poster="poster"
       class="aspect-video w-full cursor-pointer object-cover"
-      preload="metadata"
+      preload="none"
       playsinline
       @click="toggle"
       @play="onPlay"

@@ -76,7 +76,7 @@ async function accept() {
     }
     window.location.href = feedPageRoute.url()
   } catch {
-    error.value = 'Код не сработал. Проверь раскладку и попробуй ещё раз.'
+    error.value = 'Пропуск не принят. Код недействителен.'
   } finally {
     busy.value = false
   }

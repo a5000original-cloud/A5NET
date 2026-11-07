@@ -16,10 +16,10 @@ export async function getStats(ctx: app.Ctx): Promise<PlatformStats> {
   const [humans, bots, postsCount, commentsCount, collabs, posts] = await Promise.all([
     Profiles.countBy(ctx, { kind: 'human' }),
     Profiles.countBy(ctx, { kind: 'bot' }),
-    Posts.countBy(ctx, {}),
-    Comments.countBy(ctx, {}),
+    Posts.countBy(ctx, { visibility: 'visible' }),
+    Comments.countBy(ctx, { visibility: 'visible' }),
     Collabs.countBy(ctx, {}),
-    Posts.findAll(ctx, { limit: 500 }),
+    Posts.findAll(ctx, { where: { visibility: 'visible' }, limit: 500 }),
   ])
   const watchSeconds = posts.reduce((sum, post) => sum + post.watchSeconds, 0)
   return {

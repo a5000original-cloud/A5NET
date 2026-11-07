@@ -96,7 +96,7 @@ const props = defineProps<{ data: InvitesData }>()
 
 const invites = ref<InviteRow[]>(props.data.invites)
 const note = ref('')
-const maxUses = ref(3)
+const maxUses = ref(1)
 const busy = ref(false)
 const error = ref('')
 const copied = ref('')
