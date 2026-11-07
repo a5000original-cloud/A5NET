@@ -1,50 +1,31 @@
 import { jsx } from '@app/html-jsx'
-import { findCurrentWorkspaceAgents } from '@ai-agents/sdk/process'
-import { generateChatClientAgentToken } from '@start/sdk'
 import { Styles } from './styles'
 import AssistantPage from './components/AssistantPage.vue'
-import { toAuthorCard } from './server/social'
+import { loadManagerHistory } from './server/manager-data'
 import { resolveMembership } from './server/page-helpers'
-
-const TRANSPORT_KEY = 'a5net-manager'
+import { toAuthorCard } from './server/social'
 
 export const assistantPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
-  if (!membership) return ctx.resp.redirect('/')
+  if (!membership || !ctx.user) return ctx.resp.redirect('/')
 
-  let agentId = ''
-  let agentToken = ''
-
-  try {
-    const agents = await findCurrentWorkspaceAgents(ctx)
-    const agent = agents.find(item => item.workspaceAgentKey === 'a5000-manager')
-    if (agent) {
-      agentId = agent.id
-      agentToken = await generateChatClientAgentToken(ctx, {
-        agentId,
-        transportKey: TRANSPORT_KEY,
-      })
-    }
-  } catch {
-    // Агент ещё не опубликован — страница покажет спокойную заглушку.
-  }
+  const history = await loadManagerHistory(ctx, ctx.user.id, 40)
 
   return (
     <html lang="ru">
       <head>
-        <title>A5000_Менеджер — помощник A5NET</title>
+        <title>A5000_Менеджер — бот-помощник A5NET</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
-          content="Цифровой менеджер-помощник A5NET: аккаунт, инвайты, публикации, баги и вопросы по платформе."
+          content="Бот-помощник A5NET: вход, инвайты, профиль, публикации, жалобы и ошибки. Отвечает по правилам площадки."
         />
         <Styles />
       </head>
       <body class="bg-ink">
         <AssistantPage
-          agentId={agentId}
-          agentToken={agentToken}
-          transportKey={TRANSPORT_KEY}
+          ssr
+          initialMessages={history}
           viewer={toAuthorCard(membership.profile)}
           role={membership.role}
         />

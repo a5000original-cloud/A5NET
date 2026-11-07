@@ -259,3 +259,19 @@ export interface InviteResult {
   error?: string
   redirectTo?: string
 }
+
+export interface ManagerMessageView {
+  id: string
+  role: 'user' | 'bot'
+  text: string
+  intent: string | null
+  createdAt: string
+}
+
+export interface ManagerReply {
+  text: string
+  intent: string
+  suggestions: string[]
+  escalate: boolean
+  createdAt: string
+}
