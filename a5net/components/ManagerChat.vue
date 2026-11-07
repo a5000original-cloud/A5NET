@@ -66,10 +66,8 @@
       </template>
     </div>
 
-    <div v-if="error || agentLinked === false" class="border-t border-line/70 bg-panel2/40 px-4 py-2.5 sm:px-5">
-      <p class="text-[11px] leading-relaxed text-amber-200/80">
-        {{ error || 'Помощник временно недоступен. Обновите страницу через минуту.' }}
-      </p>
+    <div v-if="notice" class="border-t border-line/70 bg-panel2/40 px-4 py-2.5 sm:px-5">
+      <p class="text-[11px] leading-relaxed text-ember/80">{{ notice }}</p>
     </div>
 
     <form class="border-t border-line/70 p-3 sm:p-4" @submit.prevent="submit">
@@ -96,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useChatClient } from '@start/sdk/chatClient/vue'
 
 const props = defineProps<{
@@ -115,6 +113,23 @@ const { messages, me, loading, error, agentLinked, send } = useChatClient({
 const draft = ref('')
 const sending = ref(false)
 const scroller = ref<HTMLElement | null>(null)
+const awaitingReply = ref(false)
+const replyTimeout = ref(false)
+let replyTimer: ReturnType<typeof setTimeout> | undefined
+
+const notice = computed(() => {
+  if (error.value) return error.value
+  if (agentLinked.value === false) return 'Помощник временно недоступен. Обновите страницу через минуту.'
+  if (replyTimeout.value) return 'Помощник не ответил за минуту. Возможно, он временно недоступен — попробуйте ещё раз чуть позже.'
+  return ''
+})
+
+function clearReplyTimer() {
+  if (replyTimer) {
+    clearTimeout(replyTimer)
+    replyTimer = undefined
+  }
+}
 
 const suggestions = [
   'Не получается войти',
@@ -133,12 +148,22 @@ async function submit() {
   const text = draft.value.trim()
   if (!text || sending.value || loading.value || agentLinked.value === false) return
   sending.value = true
+  awaitingReply.value = true
+  replyTimeout.value = false
+  clearReplyTimer()
+  replyTimer = setTimeout(() => {
+    if (awaitingReply.value) {
+      awaitingReply.value = false
+      replyTimeout.value = true
+    }
+  }, 60000)
   try {
     await send(text)
     draft.value = ''
     await scrollToBottom()
   } catch {
-    // Текст ошибки показывает error из useChatClient.
+    awaitingReply.value = false
+    clearReplyTimer()
   } finally {
     sending.value = false
   }
@@ -157,9 +182,17 @@ function formatTime(value: string): string {
 
 watch(
   () => messages.value.length,
-  () => { void scrollToBottom() },
+  () => {
+    const last = messages.value[messages.value.length - 1]
+    if (awaitingReply.value && last && last.createdBy !== me.value) {
+      awaitingReply.value = false
+      clearReplyTimer()
+    }
+    void scrollToBottom()
+  },
   { flush: 'post' },
 )
 
 onMounted(() => { void scrollToBottom() })
+onUnmounted(clearReplyTimer)
 </script>
