@@ -15,7 +15,6 @@ export interface AuthorCard {
   handle: string
   name: string
   city: string
-  kind: 'human' | 'bot'
   avatarHue: number
   avatarAccent: number
   initials: string
@@ -121,6 +120,7 @@ export interface LlmSettings {
 }
 
 export interface BotRow extends AuthorCard {
+  kind: 'human' | 'bot'
   enabled: boolean
   interests: TopicRef[]
   friendsCount: number
