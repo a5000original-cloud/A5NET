@@ -31,7 +31,7 @@
           :cy="pos(node.id).y"
           :r="radius(node)"
           :fill="`hsl(${node.hue} 62% 58%)`"
-          :fill-opacity="0.9"
+          fill-opacity="0.9"
           stroke="#0b0d0a"
           stroke-width="1.5"
         >
@@ -52,7 +52,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import type { GraphEdge, GraphNode } from '../shared/types'
 
 const props = defineProps<{ nodes: GraphNode[]; edges: GraphEdge[] }>()
@@ -67,9 +66,18 @@ interface Position {
   vy: number
 }
 
-const positions = ref<Record<string, Position>>(buildInitial())
+function hash(input: string): number {
+  let value = 2166136261
+  for (let index = 0; index < input.length; index += 1) {
+    value ^= input.charCodeAt(index)
+    value = Math.imul(value, 16777619)
+  }
+  return value >>> 0
+}
 
-function buildInitial(): Record<string, Position> {
+const layout = buildLayout()
+
+function buildLayout(): Record<string, Position> {
   const map: Record<string, Position> = {}
   props.nodes.forEach((node, index) => {
     const angle = (index / Math.max(1, props.nodes.length)) * Math.PI * 2
@@ -80,22 +88,9 @@ function buildInitial(): Record<string, Position> {
       vy: 0,
     }
   })
-  return map
-}
 
-function pos(id: string): Position {
-  return positions.value[id] ?? { x: width / 2, y: height / 2, vx: 0, vy: 0 }
-}
-
-function radius(node: GraphNode): number {
-  return 3.4 + Math.min(7, node.degree) * 0.75
-}
-
-onMounted(() => {
-  window.setTimeout(() => {
-  const map = { ...positions.value }
   const idList = props.nodes.map(node => node.id)
-  for (let iteration = 0; iteration < 220; iteration += 1) {
+  for (let iteration = 0; iteration < 170; iteration += 1) {
     for (const id of idList) {
       const a = map[id]
       if (!a) continue
@@ -107,16 +102,17 @@ onMounted(() => {
         let dy = a.y - b.y
         let distance = Math.sqrt(dx * dx + dy * dy)
         if (distance < 0.5) {
-          dx = Math.random() - 0.5
-          dy = Math.random() - 0.5
+          const angle = ((hash(`${id}:${other}`) % 360) * Math.PI) / 180
+          dx = Math.cos(angle)
+          dy = Math.sin(angle)
           distance = 1
         }
-        const force = 1900 / (distance * distance)
+        const force = 1700 / (distance * distance)
         a.vx += (dx / distance) * force
         a.vy += (dy / distance) * force
       }
-      a.vx += (width / 2 - a.x) * 0.0035
-      a.vy += (height / 2 - a.y) * 0.0035
+      a.vx += (width / 2 - a.x) * 0.003
+      a.vy += (height / 2 - a.y) * 0.003
     }
 
     for (const edge of props.edges) {
@@ -126,7 +122,7 @@ onMounted(() => {
       const dx = b.x - a.x
       const dy = b.y - a.y
       const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy))
-      const spring = (distance - 78) * 0.008
+      const spring = (distance - 82) * 0.007
       a.vx += (dx / distance) * spring
       a.vy += (dy / distance) * spring
       b.vx -= (dx / distance) * spring
@@ -136,13 +132,21 @@ onMounted(() => {
     for (const id of idList) {
       const a = map[id]
       if (!a) continue
-      a.vx *= 0.82
-      a.vy *= 0.82
+      a.vx *= 0.8
+      a.vy *= 0.8
       a.x = Math.min(width - 18, Math.max(18, a.x + a.vx))
       a.y = Math.min(height - 18, Math.max(18, a.y + a.vy))
     }
   }
-  positions.value = map
-  }, 40)
-})
+
+  return map
+}
+
+function pos(id: string): Position {
+  return layout[id] ?? { x: width / 2, y: height / 2, vx: 0, vy: 0 }
+}
+
+function radius(node: GraphNode): number {
+  return 3.4 + Math.min(7, node.degree) * 0.75
+}
 </script>
