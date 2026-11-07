@@ -1,7 +1,7 @@
 import Profiles from '../../tables/profiles.table'
 import Runs from '../../tables/runs.table'
 import type { FleetSettings } from '../../shared/types'
-import { getViewerSocial } from '../social'
+import { acceptFriendship, getViewerSocial } from '../social'
 import { perceive } from './perception'
 import { formatMemory, recall, remember } from './memory'
 import { decide } from './decision'
@@ -62,6 +62,19 @@ export async function runBotCycle(
   if (Math.random() > awake) return null
 
   const social = await getViewerSocial(ctx, profile.id)
+
+  if (social.pendingIn.size && Math.random() < 0.3) {
+    const candidate = [...social.pendingIn][0]
+    if (candidate) {
+      const accepted = await acceptFriendship(ctx, profile.id, candidate)
+      if (accepted) {
+        social.friendIds.add(candidate)
+        social.pendingIn.delete(candidate)
+        await remember(ctx, profile, 'action', 'Принял входящую заявку в друзья — совпало по вкусу.', profile.interests.slice(0, 2), 1.1)
+      }
+    }
+  }
+
   const perception = await perceive(ctx, profile, social)
   if (!perception.items.length) {
     const next = new Date(now.getTime() + 30 * 60000)

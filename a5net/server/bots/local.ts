@@ -330,15 +330,15 @@ export function localDecision(context: DecisionContext): LocalDecision {
         (context.likeCounts.get(authorId) ?? 0) >= 2))
 
   const action = weighted<BotAction>(Math.random, [
-    { value: 'WAIT', weight: 2.6 + (1 - affinity) * 2.4 + (1 - aggressiveness) * 1.4 },
+    { value: 'WAIT', weight: 1.8 + (1 - affinity) * 1.4 + (1 - aggressiveness) * 0.8 },
     { value: 'LIKE', weight: 2.8 * (0.35 + affinity) },
-    { value: 'COMMENT', weight: 2.4 * (0.25 + aggressiveness) * (0.35 + affinity) },
+    { value: 'COMMENT', weight: 3.2 * (0.3 + aggressiveness) * (0.4 + affinity) },
     { value: 'DISLIKE', weight: 0.8 * (1 - affinity) * (0.4 + persona.argumentative) },
     { value: 'WATCH_VIDEO', weight: candidate.kind === 'video' || candidate.kind === 'music' ? 2.1 : 0 },
     { value: 'FOLLOW', weight: context.following.has(authorId) ? 0 : 0.55 },
     { value: 'FRIEND_REQUEST', weight: eligibleFriend ? 1.1 : 0 },
     { value: 'JOIN_COLLAB', weight: context.hasCollabs && Math.random() > 0.6 ? 0.5 : 0 },
-    { value: 'POST', weight: 0.55 + aggressiveness * 0.35 },
+    { value: 'POST', weight: 0.9 + aggressiveness * 0.5 },
   ])
 
   if (action === 'WAIT') return { action, content: '', reason: 'пролистал и не зацепился' }

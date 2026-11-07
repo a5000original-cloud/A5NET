@@ -5,7 +5,11 @@ export const botTickJob = app.job('/', async ctx => {
   const fleet = await getFleet(ctx)
   if (!fleet.enabled) return
 
-  await runFleetTick(ctx)
+  try {
+    await runFleetTick(ctx)
+  } catch (error) {
+    ctx.log(`A5NET tick failed: ${error instanceof Error ? error.message : String(error)}`)
+  }
 
   const after = await getFleet(ctx)
   if (!after.enabled) return
