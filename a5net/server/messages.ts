@@ -63,7 +63,7 @@ export async function getInboxData(
   role: 'owner' | 'admin' | 'member',
   peerId?: string,
 ): Promise<InboxData> {
-  const conversations = await listConversations(ctx, viewer.id)
+  let conversations = await listConversations(ctx, viewer.id)
   const activePeerId = peerId || conversations[0]?.peer.id
   let messages: MessageItem[] = []
   let activePeer = conversations.find(item => item.peer.id === activePeerId)?.peer ?? null
@@ -82,6 +82,7 @@ export async function getInboxData(
     for (const row of rows) {
       if (row.toId === viewer.id && !row.read) await Messages.update(ctx, { id: row.id, read: true })
     }
+    conversations = await listConversations(ctx, viewer.id)
     messages = rows.map(row => {
       const created = row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt)
       return {

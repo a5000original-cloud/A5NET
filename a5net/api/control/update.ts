@@ -9,11 +9,12 @@ import {
   type ProviderId,
 } from '../../server/settings'
 import { runFleetTick, startFleet, stopFleet, scheduleTick, waitAllBots } from '../../server/bots/fleet'
+import { growFleet } from '../../server/bots/grow'
 import { seedA5Net } from '../../server/seed'
 
 export const controlUpdateRoute = app.post('/')
   .body(s => ({
-    action: s.enum(['tick', 'seed', 'start', 'stop', 'wait_all'] as const).optional(),
+    action: s.enum(['tick', 'seed', 'start', 'stop', 'wait_all', 'grow'] as const).optional(),
     aggressiveness: s.number().min(0).max(1).optional(),
     intervalMin: s.number().int().min(1).max(60).optional(),
     intervalMax: s.number().int().min(2).max(120).optional(),
@@ -54,7 +55,12 @@ export const controlUpdateRoute = app.post('/')
 
       if (req.body.action === 'wait_all') {
         const count = await waitAllBots(ctx)
-        message = `Экстренный WAIT:  ботам назначена пауза на 2 часа.`
+        message = `Экстренный WAIT: ${count} ботам назначена пауза на 2 часа.`
+      }
+
+      if (req.body.action === 'grow') {
+        const created = await growFleet(ctx, 10)
+        message = `Флот вырос: +${created.length} ботов. Теперь у них есть свои вкусы и паузы.`
       }
 
       if (req.body.action === 'tick') {

@@ -31,6 +31,7 @@
           </button>
           <button type="button" class="a5-btn" :disabled="busy" @click="tick">Прогнать цикл</button>
           <button type="button" class="a5-btn" :disabled="busy" @click="waitAll">WAIT всем</button>
+          <button type="button" class="a5-btn" :disabled="busy" @click="grow">+10 ботов</button>
           <button type="button" class="a5-btn" :disabled="busy || bots.length > 0" @click="seed">Посеять</button>
         </div>
       </div>
@@ -188,7 +189,7 @@
               <a :href="item.channelUrl" target="_blank" rel="noopener noreferrer" class="text-sm text-bone underline decoration-line hover:text-sky">{{ item.profileName }}</a>
               <span class="ml-auto font-mono text-[9px] text-moss/40">{{ item.ago }}</span>
             </div>
-            <p class="mt-2 text-[11px] text-moss">Заявлено: <span class="font-mono text-bone">{{ formatCount(item.claimedCount) }}</span> · {{ item.status }}</p>
+            <p class="mt-2 text-[11px] text-moss">Заявлено: <span class="font-mono text-bone">{{ formatCount(item.claimedCount) }}</span> · {{ transferStatus(item.status) }}</p>
             <p v-if="item.note" class="mt-1 text-[11px] text-moss/70">{{ item.note }}</p>
             <a v-if="item.screenshotUrl" :href="item.screenshotUrl" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block">
               <img :src="item.screenshotUrl" alt="скриншот статистики" loading="lazy" class="h-24 w-auto rounded-lg border border-line object-cover" />
@@ -355,7 +356,7 @@ async function refresh() {
 }
 
 interface UpdatePayload {
-  action?: 'tick' | 'seed' | 'start' | 'stop' | 'wait_all'
+  action?: 'tick' | 'seed' | 'start' | 'stop' | 'wait_all' | 'grow'
   aggressiveness?: number
   intervalMin?: number
   intervalMax?: number
@@ -404,6 +405,10 @@ function waitAll() {
   return runUpdate({ action: 'wait_all' })
 }
 
+function grow() {
+  return runUpdate({ action: 'grow' })
+}
+
 async function reviewTransfer(id: string, action: 'approve' | 'reject') {
   busy.value = true
   message.value = ''
@@ -444,6 +449,12 @@ async function resolveReport(id: string, action: 'hide' | 'dismiss') {
   } finally {
     busy.value = false
   }
+}
+
+function transferStatus(status: string): string {
+  if (status === 'approved') return 'подтверждено'
+  if (status === 'rejected') return 'отклонено'
+  return 'на проверке'
 }
 
 function targetTypeLabel(type: string): string {
