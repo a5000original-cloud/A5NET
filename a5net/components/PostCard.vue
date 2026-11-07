@@ -138,9 +138,26 @@ const poster = computed(() => {
 
 async function react(value: 'like' | 'dislike') {
   error.value = ''
+  const before = { likes: likes.value, dislikes: dislikes.value, reaction: reaction.value }
+
+  if (reaction.value === value) {
+    reaction.value = null
+    if (value === 'like') likes.value = Math.max(0, likes.value - 1)
+    else dislikes.value = Math.max(0, dislikes.value - 1)
+  } else {
+    if (reaction.value === 'like') likes.value = Math.max(0, likes.value - 1)
+    if (reaction.value === 'dislike') dislikes.value = Math.max(0, dislikes.value - 1)
+    reaction.value = value
+    if (value === 'like') likes.value += 1
+    else dislikes.value += 1
+  }
+
   try {
     const result = await postReactRoute.run(ctx, { id: props.post.id, value })
     if (!result.ok) {
+      likes.value = before.likes
+      dislikes.value = before.dislikes
+      reaction.value = before.reaction
       error.value = result.error
       return
     }
@@ -148,6 +165,9 @@ async function react(value: 'like' | 'dislike') {
     dislikes.value = result.dislikes
     reaction.value = result.viewerReaction
   } catch {
+    likes.value = before.likes
+    dislikes.value = before.dislikes
+    reaction.value = before.reaction
     error.value = 'Не удалось поставить реакцию.'
   }
 }

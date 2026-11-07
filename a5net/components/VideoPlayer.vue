@@ -16,7 +16,7 @@
     ></video>
 
     <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10"></div>
-    <A5Stamp :size="26" tone="light" class="absolute right-4 top-4 opacity-60 mix-blend-screen" />
+    <A5Stamp :size="26" tone="light" class="absolute bottom-14 right-4 opacity-45 mix-blend-screen" />
 
     <button
       v-if="!playing"
