@@ -84,7 +84,16 @@ export async function getFeedData(
     ),
   )
 
-  const artifact = items.find(item => item.kind === 'video') ?? null
+  const artifactPost = pagePosts
+    .filter(post => post.kind === 'video')
+    .sort((a, b) => {
+      const aAge = nowMs - (a.publishedAt instanceof Date ? a.publishedAt.getTime() : new Date(a.publishedAt).getTime())
+      const bAge = nowMs - (b.publishedAt instanceof Date ? b.publishedAt.getTime() : new Date(b.publishedAt).getTime())
+      const aScore = a.hypeScore + (aAge < 24 * 3600000 ? 30 : 0)
+      const bScore = b.hypeScore + (bAge < 24 * 3600000 ? 30 : 0)
+      return bScore - aScore
+    })[0] ?? null
+  const artifact = artifactPost ? items.find(item => item.id === artifactPost.id) ?? null : null
 
   const [trends, suggestions, stats, collabs, fleet] = await Promise.all([
     Promise.resolve(buildTrends(raw)),

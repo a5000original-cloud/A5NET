@@ -89,7 +89,12 @@ export async function executeAction(
       draft.durationSec = 0
     }
     const sameTitle = await Posts.findAll(ctx, { where: { title: draft.title }, limit: 12 })
-    if (sameTitle.length) draft.title = `${draft.title} · ${sameTitle.length + 1}`.slice(0, 120)
+    if (sameTitle.length) {
+      const firstSentence = draft.body.split(/(?<=[.!?])\s/)[0]?.replace(/[.!?]$/, '').trim() ?? ''
+      draft.title = firstSentence.length >= 18
+        ? firstSentence.slice(0, 100)
+        : `${draft.title} — ${profile.city}`.slice(0, 120)
+    }
     const post = await Posts.create(ctx, {
       authorId: profile.id,
       kind: draft.kind,
