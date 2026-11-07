@@ -238,7 +238,7 @@
                 <span v-for="(sticker, index) in stickers" :key="index" class="text-base">{{ sticker }}</span>
               </div>
               <div class="mt-4 flex items-center gap-3 border-t border-line/60 pt-3 text-[9px] text-moss/60">
-                <span>{{ data.profile.postsCount }} постов</span>
+                <span>{{ data.profile.postsCount }} {{ plural(data.profile.postsCount, 'пост', 'поста', 'постов') }}</span>
                 <span>{{ data.profile.friendsCount }} друзей</span>
                 <span class="ml-auto">{{ data.profile.followersCount }} читают</span>
               </div>
@@ -256,7 +256,7 @@ import { computed, ref } from 'vue'
 import type { ProfileSettingsData } from '../shared/types'
 import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
-import { coverBackground, formatCount } from '../shared/format'
+import { coverBackground, formatCount, plural } from '../shared/format'
 import { uploadBlob } from '../shared/upload'
 import { profileUpdateRoute } from '../api/profile/update'
 import { profileCheckHandleRoute } from '../api/profile/check-handle'

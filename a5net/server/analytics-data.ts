@@ -89,6 +89,7 @@ export async function getProfileAnalytics(
   const hits = rows.filter(row => row.trend === 'hit').length
   return {
     profile: toAuthorCard(profile),
+    viewerRole: 'member',
     totals: {
       views: viewCounts.reduce((sum, value) => sum + value, 0),
       likes: posts.reduce((sum, post) => sum + post.likes, 0),

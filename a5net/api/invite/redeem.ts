@@ -6,6 +6,7 @@ import { findMembership } from '../../server/access'
 import { embedTopics } from '../../server/vec'
 import { transliterate } from '../../server/bots/personas'
 import { consumeInviteUse, findInviteByCode } from '../../server/invites'
+import { isHandleBlocked } from '../../server/profile-settings'
 import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 
 function handleCandidate(name: string, username: string | undefined): string {
@@ -34,10 +35,13 @@ export const inviteRedeemRoute = app.post('/')
       }
 
       let handle = handleCandidate(user.displayName || 'Участник', user.username)
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const taken = await Profiles.findOneBy(ctx, { handle })
-        if (!taken) break
-        handle = `${handleCandidate(user.displayName || 'Участник', user.username)}${attempt + 2}`
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const blocked = await isHandleBlocked(ctx, handle, Boolean(ctx.user?.is('Owner')))
+        if (!blocked) break
+        handle = `${handleCandidate(user.displayName || 'Участник', user.username).slice(0, 18)}${Math.floor(10 + Math.random() * 89)}`
+      }
+      if (await isHandleBlocked(ctx, handle, Boolean(ctx.user?.is('Owner')))) {
+        return { ok: false as const, error: 'Не удалось подобрать свободный ник. Напиши A5000.' }
       }
 
       const name = user.displayName || [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Участник A5NET'

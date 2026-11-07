@@ -1,6 +1,6 @@
 <template>
   <div>
-    <SiteHeader :viewer="data.profile" role="member" active="profile" />
+    <SiteHeader :viewer="data.profile" :role="data.viewerRole" active="profile" />
 
     <main class="a5-shell pb-28 pt-8">
       <a :href="profilePageRoute.query({ id: data.profile.id }).url()" class="a5-btn-ghost !px-0 text-xs">← К профилю</a>

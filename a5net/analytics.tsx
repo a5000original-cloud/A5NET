@@ -12,6 +12,7 @@ export const analyticsPageRoute = app.get('/', async ctx => {
   if (id !== membership.profile.id && !ctx.user?.is('Owner')) return ctx.resp.redirect('/')
   const data = await getProfileAnalytics(ctx, id)
   if (!data) return ctx.resp.redirect('/')
+  data.viewerRole = membership.role
 
   return (
     <html lang="ru">

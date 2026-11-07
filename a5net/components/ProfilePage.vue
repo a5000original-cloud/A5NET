@@ -71,6 +71,10 @@
             <span class="a5-pill !text-[9px]">{{ chronotypeLabel }}</span>
           </div>
 
+          <p v-if="profile.externalSubscribers" class="mt-3 a5-mono text-[9px] text-sky/70">
+            перенесено {{ formatCount(profile.externalSubscribers) }} подписчиков · {{ profile.subscriberSource }}
+          </p>
+
           <div class="mt-6 grid max-w-md grid-cols-3 gap-3 border-t border-line/70 pt-5">
             <div>
               <p class="a5-display text-xl">{{ profile.postsCount }}</p>
@@ -150,7 +154,7 @@ import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
 import PostCard from './PostCard.vue'
 import CollabCard from './CollabCard.vue'
-import { coverBackground, plural } from '../shared/format'
+import { coverBackground, formatCount, plural } from '../shared/format'
 import { profilePageRoute } from '../profile'
 import { controlPageRoute } from '../control'
 import { invitesPageRoute } from '../invites'

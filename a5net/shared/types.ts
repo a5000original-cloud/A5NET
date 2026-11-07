@@ -387,6 +387,7 @@ export interface AnalyticsDaily {
 
 export interface ProfileAnalyticsData {
   profile: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
   totals: { views: number; likes: number; comments: number; watchHours: number; followers: number; posts: number }
   posts: AnalyticsPostRow[]
   audience: Array<{ author: AuthorCard; views: number }>

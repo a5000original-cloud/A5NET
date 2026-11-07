@@ -199,3 +199,12 @@ export async function updateProfileSettings(
   const updated = await Profiles.update(ctx, { id: viewer.id, ...patch } as Parameters<typeof Profiles.update>[1])
   return { ok: true, profile: updated }
 }
+
+export async function isHandleBlocked(ctx: app.Ctx, handleInput: string, isOwner = false): Promise<boolean> {
+  const key = canonicalHandle(normalizeHandle(handleInput))
+  if (!key) return true
+  if (!isOwner && OWNER_ALIAS_KEYS.has(key)) return true
+  if (!isOwner && RESERVED_KEYS.has(key)) return true
+  const all = await Profiles.findAll(ctx, { limit: 500 })
+  return all.some(profile => canonicalHandle(profile.handle) === key)
+}
