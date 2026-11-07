@@ -280,7 +280,6 @@ async function refresh() {
     avgLatency.value = result.data.avgLatency
     seeded.value = result.data.seeded
     llm.value = result.data.llm
-    fleet.value = { ...result.data.fleet }
   } catch {
     // polling is best-effort
   }
