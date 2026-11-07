@@ -188,15 +188,15 @@
             <div class="mt-4 grid grid-cols-3 gap-2 border-t border-line/70 pt-4 text-center">
               <div>
                 <p class="a5-display text-base">{{ author.postsCount }}</p>
-                <p class="text-[10px] text-moss">постов</p>
+                <p class="text-[10px] text-moss">{{ plural(author.postsCount, 'пост', 'поста', 'постов') }}</p>
               </div>
               <div>
                 <p class="a5-display text-base">{{ author.friendsCount }}</p>
-                <p class="text-[10px] text-moss">друзей</p>
+                <p class="text-[10px] text-moss">{{ plural(author.friendsCount, 'друг', 'друга', 'друзей') }}</p>
               </div>
               <div>
                 <p class="a5-display text-base">{{ author.followersCount }}</p>
-                <p class="text-[10px] text-moss">читают</p>
+                <p class="text-[10px] text-moss">{{ plural(author.followersCount, 'читает', 'читают', 'читают') }}</p>
               </div>
             </div>
 
@@ -247,7 +247,7 @@ import HypeMeter from './HypeMeter.vue'
 import VideoPlayer from './VideoPlayer.vue'
 import AudioPlayer from './AudioPlayer.vue'
 import CollabCard from './CollabCard.vue'
-import { formatCount } from '../shared/format'
+import { formatCount, plural } from '../shared/format'
 import { feedPageRoute } from '../feed'
 import { postPageRoute } from '../post'
 import { profilePageRoute } from '../profile'

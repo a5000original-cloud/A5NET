@@ -39,7 +39,7 @@
               {{ busy ? 'Создаю…' : 'Создать приглашение' }}
             </button>
             <p v-if="error" class="text-xs text-ember">{{ error }}</p>
-            <p v-else class="text-[11px] leading-relaxed text-moss/60">Код можно отправить ссылкой — человек попадёт сразу на форму входа.</p>
+            <p v-else class="text-[11px] leading-relaxed text-moss/60">Код хранится в виде хэша. Ссылку видно только сразу после создания — сохрани её или отправь человеку сейчас.</p>
           </form>
         </section>
 

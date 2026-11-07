@@ -55,15 +55,15 @@
           <div class="mt-6 grid max-w-md grid-cols-3 gap-3 border-t border-line/70 pt-5">
             <div>
               <p class="a5-display text-xl">{{ profile.postsCount }}</p>
-              <p class="text-[10px] uppercase tracking-wider text-moss">постов</p>
+              <p class="text-[10px] uppercase tracking-wider text-moss">{{ plural(profile.postsCount, 'пост', 'поста', 'постов') }}</p>
             </div>
             <div>
               <p class="a5-display text-xl">{{ profile.friendsCount }}</p>
-              <p class="text-[10px] uppercase tracking-wider text-moss">друзей</p>
+              <p class="text-[10px] uppercase tracking-wider text-moss">{{ plural(profile.friendsCount, 'друг', 'друга', 'друзей') }}</p>
             </div>
             <div>
               <p class="a5-display text-xl">{{ profile.followersCount }}</p>
-              <p class="text-[10px] uppercase tracking-wider text-moss">читают</p>
+              <p class="text-[10px] uppercase tracking-wider text-moss">{{ plural(profile.followersCount, 'читает', 'читают', 'читают') }}</p>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
 import PostCard from './PostCard.vue'
 import CollabCard from './CollabCard.vue'
-import { coverBackground } from '../shared/format'
+import { coverBackground, plural } from '../shared/format'
 import { profilePageRoute } from '../profile'
 import { controlPageRoute } from '../control'
 import { invitesPageRoute } from '../invites'
