@@ -82,6 +82,7 @@ import { obtainStorageFilePutUrl } from '@app/storage'
 import type { AuthorCard, TopicRef } from '../shared/types'
 import Avatar from './Avatar.vue'
 import { postCreateRoute } from '../api/post/create'
+import { postPageRoute } from '../post'
 
 const props = defineProps<{ viewer: AuthorCard; topicOptions: TopicRef[] }>()
 defineEmits<{ close: [] }>()
@@ -174,7 +175,7 @@ async function submit() {
       error.value = result.error
       return
     }
-    window.location.reload()
+    window.location.href = postPageRoute.query({ id: result.id }).url()
   } catch {
     error.value = 'Публикация не удалась. Попробуй ещё раз.'
   } finally {
