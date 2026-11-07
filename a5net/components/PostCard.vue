@@ -56,7 +56,6 @@
           {{ topic.label }}
         </span>
         <span v-if="post.discovery" class="a5-mono self-center text-[8px] text-violet/60">· новый голос</span>
-        <span class="a5-mono ml-auto self-center text-[8px] text-moss/35">{{ post.flowLabel }}</span>
       </div>
     </div>
 
