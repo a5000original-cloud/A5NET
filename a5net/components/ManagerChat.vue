@@ -89,17 +89,10 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import { managerMessageRoute } from '../api/manager/message'
 import type { ManagerMessageView } from '../shared/types'
 
-const props = defineProps<{ initialMessages: ManagerMessageView[] }>()
-
-const DEFAULT_SUGGESTIONS = [
-  'Не могу войти',
-  'Не работает инвайт',
-  'Как опубликовать пост',
-  'Как пожаловаться',
-]
+const props = defineProps<{ initialMessages: ManagerMessageView[]; initialSuggestions: string[] }>()
 
 const messages = ref<ManagerMessageView[]>([...props.initialMessages])
-const suggestions = ref<string[]>(DEFAULT_SUGGESTIONS)
+const suggestions = ref<string[]>([...props.initialSuggestions])
 const draft = ref('')
 const sending = ref(false)
 const error = ref('')

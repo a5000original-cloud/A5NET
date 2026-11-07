@@ -18,7 +18,7 @@
         </span>
       </section>
 
-      <ManagerChat :initial-messages="initialMessages" />
+      <ManagerChat :initial-messages="initialMessages" :initial-suggestions="initialSuggestions" />
 
       <p class="mt-4 text-center text-[11px] leading-relaxed text-moss/60">
         Не отправляйте пароли, коды из SMS и письма, данные карты или паспорта. Бот никогда их не спрашивает.
@@ -34,6 +34,7 @@ import type { AuthorCard, ManagerMessageView } from '../shared/types'
 
 defineProps<{
   initialMessages: ManagerMessageView[]
+  initialSuggestions: string[]
   viewer: AuthorCard
   role: 'owner' | 'admin' | 'member'
 }>()

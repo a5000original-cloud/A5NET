@@ -2,6 +2,7 @@ import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import AssistantPage from './components/AssistantPage.vue'
 import { loadManagerHistory } from './server/manager-data'
+import { suggestionsForIntent } from './server/manager-bot'
 import { resolveMembership } from './server/page-helpers'
 import { toAuthorCard } from './server/social'
 
@@ -10,6 +11,7 @@ export const assistantPageRoute = app.get('/', async ctx => {
   if (!membership || !ctx.user) return ctx.resp.redirect('/')
 
   const history = await loadManagerHistory(ctx, ctx.user.id, 40)
+  const lastBot = [...history].reverse().find(message => message.role === 'bot')
 
   return (
     <html lang="ru">
@@ -26,6 +28,7 @@ export const assistantPageRoute = app.get('/', async ctx => {
         <AssistantPage
           ssr
           initialMessages={history}
+          initialSuggestions={suggestionsForIntent(lastBot?.intent ?? null)}
           viewer={toAuthorCard(membership.profile)}
           role={membership.role}
         />

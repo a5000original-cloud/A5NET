@@ -541,3 +541,9 @@ export function answerManagerMessage(input: {
 }
 
 export { DEFAULT_SUGGESTIONS }
+
+export function suggestionsForIntent(intent: string | null | undefined): string[] {
+  if (!intent) return [...DEFAULT_SUGGESTIONS]
+  const topic = TOPICS.find(item => item.id === intent)
+  return topic && topic.suggestions.length ? [...topic.suggestions] : [...DEFAULT_SUGGESTIONS]
+}
