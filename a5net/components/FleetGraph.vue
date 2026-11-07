@@ -92,6 +92,7 @@ function radius(node: GraphNode): number {
 }
 
 onMounted(() => {
+  window.setTimeout(() => {
   const map = { ...positions.value }
   const idList = props.nodes.map(node => node.id)
   for (let iteration = 0; iteration < 220; iteration += 1) {
@@ -142,5 +143,6 @@ onMounted(() => {
     }
   }
   positions.value = map
+  }, 40)
 })
 </script>

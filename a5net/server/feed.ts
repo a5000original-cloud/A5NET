@@ -147,9 +147,17 @@ export async function buildCollabs(ctx: app.Ctx, viewerId: string): Promise<Coll
   const rows = await Collabs.findAll(ctx, { limit: 30, order: [{ createdAt: 'desc' }, { id: 'asc' }] })
   const allIds = [...new Set(rows.flatMap(row => [row.initiatorId, ...row.participantIds]))]
   const authors = await getAuthorMap(ctx, allIds)
+  const linkedIds = [...new Set(rows.flatMap(row => row.postId ? [row.postId] : []))]
+  const linkedPosts = linkedIds.length
+    ? await Posts.findAll(ctx, { where: { id: linkedIds }, limit: linkedIds.length })
+    : []
+  const postDates = new Map(linkedPosts.map(post => [post.id, post.publishedAt]))
   const nowMs = Date.now()
   return rows.map(row => {
-    const created = row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt)
+    const linkedDate = row.postId ? postDates.get(row.postId) : undefined
+    const created = linkedDate instanceof Date
+      ? linkedDate
+      : row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt)
     return {
       id: row.id,
       title: row.title,
