@@ -40,7 +40,13 @@ export async function getFeedData(
 ): Promise<FeedData> {
   const nowMs = Date.now()
   const social = await getViewerSocial(ctx, viewer.id)
-  const raw = await Posts.findAll(ctx, { limit: 120, order: [{ publishedAt: 'desc' }, { id: 'asc' }] })
+  const raw = await Posts.findAll(ctx, { where: { visibility: 'visible' }, limit: 120, order: [{ publishedAt: 'desc' }, { id: 'asc' }] })
+
+  const rawAuthorIds = [...new Set(raw.map(post => post.authorId))]
+  const rawAuthors = rawAuthorIds.length
+    ? await Profiles.findAll(ctx, { where: { id: rawAuthorIds }, limit: rawAuthorIds.length })
+    : []
+  const kindById = new Map(rawAuthors.map(author => [author.id, author.kind]))
 
   const scored = raw.map(post => {
     const created = post.publishedAt instanceof Date ? post.publishedAt.getTime() : new Date(post.publishedAt).getTime()
@@ -52,7 +58,7 @@ export async function getFeedData(
     const jitter = ((hashSeed(post.id) % 1000) / 1000) * 0.22
     return {
       postId: post.id,
-      score: recency * 0.9 + Math.max(0, affinity) * 1.75 + friendBoost + hype * 0.42 + jitter,
+      score: recency * 0.9 + Math.max(0, affinity) * 1.75 + friendBoost + hype * 0.42 + jitter + (kindById.get(post.authorId) === 'human' ? 0.45 : 0),
     }
   })
   scored.sort((a, b) => b.score - a.score)

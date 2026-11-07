@@ -1,6 +1,8 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import Posts from '../../tables/posts.table'
 import Comments from '../../tables/comments.table'
 import { memberErrorCode, requireMember } from '../../server/access'
+import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 import { addEdge, toAuthorCard } from '../../server/social'
 import { refreshHype } from '../../server/hype'
 import { timeAgo } from '../../shared/format'
@@ -9,8 +11,12 @@ export const postCommentRoute = app.post('/')
   .body(s => ({ id: s.string(), text: s.string().min(1).max(600) }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const viewer = membership.profile
+      const rate = await consumeRate(ctx, 'post:comment', viewer.id, 30, 3600 * 1000)
+      if (!rate.ok) return { ok: false as const, error: rateLimitMessage(rate) }
       const post = await Posts.findById(ctx, req.body.id)
       if (!post) return { ok: false as const, error: 'Пост не найден.' }
       const text = req.body.text.trim()

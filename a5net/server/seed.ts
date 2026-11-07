@@ -4,7 +4,6 @@ import Comments from '../tables/comments.table'
 import Edges from '../tables/edges.table'
 import Friendships from '../tables/friendships.table'
 import Collabs from '../tables/collabs.table'
-import Invites from '../tables/invites.table'
 import type { FleetSettings } from '../shared/types'
 import { ensureOwnerProfile } from './access'
 import { DEFAULT_FLEET, getFleet, saveFleet, setSetting, SEED_KEY } from './settings'
@@ -17,6 +16,7 @@ import { cosine, embedTopics } from './vec'
 import { hashSeed, mulberry32, pick } from './rng'
 import { topicLabel, topicPath } from './taxonomy'
 import { TRACKS, VIDEOS } from './media'
+import { createInviteRecord, findInviteByCode } from './invites'
 import { botTickJob } from '../jobs/bot-tick'
 import {
   SEED_COLLABS,
@@ -207,6 +207,7 @@ export async function seedA5Net(ctx: app.Ctx, options: { force?: boolean } = {})
       avatarHue: draft.avatarHue,
       avatarAccent: draft.avatarAccent,
       enabled: true,
+      isSynthetic: true,
       lastActionAt: new Date(Date.now() - Math.floor(rng() * 40) * 3600000),
       nextActionAt: new Date(Date.now() - Math.floor(rng() * 20) * 60000),
       followersCount: 0,
@@ -361,14 +362,12 @@ export async function seedA5Net(ctx: app.Ctx, options: { force?: boolean } = {})
   let invites = 0
   const inviteAuthor = owner?.profile.id ?? bots[0]!.id
   for (const invite of SEED_INVITES) {
-    const existingInvite = await Invites.findOneBy(ctx, { code: invite.code })
+    const existingInvite = await findInviteByCode(ctx, invite.code)
     if (existingInvite) continue
-    await Invites.create(ctx, {
+    await createInviteRecord(ctx, {
       code: invite.code,
       note: invite.note,
       maxUses: invite.maxUses,
-      uses: 0,
-      active: true,
       createdByProfileId: inviteAuthor,
     })
     invites += 1

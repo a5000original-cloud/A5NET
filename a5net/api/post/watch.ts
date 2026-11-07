@@ -1,3 +1,4 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import Posts from '../../tables/posts.table'
 import Watches from '../../tables/watches.table'
 import { memberErrorCode, requireMember } from '../../server/access'
@@ -7,6 +8,8 @@ export const postWatchRoute = app.post('/')
   .body(s => ({ id: s.string(), seconds: s.number().min(0).max(3600) }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const viewer = membership.profile
       const post = await Posts.findById(ctx, req.body.id)

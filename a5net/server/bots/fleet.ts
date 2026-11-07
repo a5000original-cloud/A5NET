@@ -51,3 +51,12 @@ export async function stopFleet(ctx: app.Ctx): Promise<FleetSettings> {
 export async function scheduleTick(ctx: app.Ctx): Promise<void> {
   await botTickJob.scheduleJobAsap(ctx)
 }
+
+export async function waitAllBots(ctx: app.Ctx, minutes = 120): Promise<number> {
+  const bots = await Profiles.findAll(ctx, { where: { kind: 'bot', enabled: true }, limit: 120 })
+  const until = new Date(Date.now() + minutes * 60000)
+  for (const bot of bots) {
+    await Profiles.update(ctx, { id: bot.id, nextActionAt: until })
+  }
+  return bots.length
+}

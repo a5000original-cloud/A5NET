@@ -1,3 +1,4 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import { memberErrorCode, requireOwner } from '../../server/access'
 import {
   getFleet,
@@ -7,12 +8,12 @@ import {
   saveLlmConfig,
   type ProviderId,
 } from '../../server/settings'
-import { runFleetTick, startFleet, stopFleet, scheduleTick } from '../../server/bots/fleet'
+import { runFleetTick, startFleet, stopFleet, scheduleTick, waitAllBots } from '../../server/bots/fleet'
 import { seedA5Net } from '../../server/seed'
 
 export const controlUpdateRoute = app.post('/')
   .body(s => ({
-    action: s.enum(['tick', 'seed', 'start', 'stop'] as const).optional(),
+    action: s.enum(['tick', 'seed', 'start', 'stop', 'wait_all'] as const).optional(),
     aggressiveness: s.number().min(0).max(1).optional(),
     intervalMin: s.number().int().min(1).max(60).optional(),
     intervalMax: s.number().int().min(2).max(120).optional(),
@@ -24,6 +25,8 @@ export const controlUpdateRoute = app.post('/')
   }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       await requireOwner(ctx)
       let message = ''
 
@@ -47,6 +50,11 @@ export const controlUpdateRoute = app.post('/')
       if (req.body.action === 'stop') {
         await stopFleet(ctx)
         message = 'Флот остановлен. Текущая цепочка задач завершится без новых действий.'
+      }
+
+      if (req.body.action === 'wait_all') {
+        const count = await waitAllBots(ctx)
+        message = `Экстренный WAIT:  ботам назначена пауза на 2 часа.`
       }
 
       if (req.body.action === 'tick') {

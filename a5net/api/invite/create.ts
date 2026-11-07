@@ -1,14 +1,7 @@
-import Invites from '../../tables/invites.table'
+import { requireSameOrigin } from '../../server/http-guard'
 import { memberErrorCode, requireMember } from '../../server/access'
-
-function makeCode(): string {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  for (let index = 0; index < 6; index += 1) {
-    code += alphabet[Math.floor(Math.random() * alphabet.length)]
-  }
-  return `A5-${code}`
-}
+import { createInviteRecord } from '../../server/invites'
+import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 
 export const inviteCreateRoute = app.post('/')
   .body(s => ({
@@ -17,26 +10,21 @@ export const inviteCreateRoute = app.post('/')
   }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const canCreate = membership.role === 'owner' || membership.role === 'admin' || Boolean(ctx.user?.is('Staff'))
       if (!canCreate) return { ok: false as const, error: 'Инвайты создают только администраторы.' }
 
-      let code = makeCode()
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const existing = await Invites.findOneBy(ctx, { code })
-        if (!existing) break
-        code = makeCode()
-      }
+      const rate = await consumeRate(ctx, 'invite:create', membership.profile.id, 20, 24 * 3600 * 1000)
+      if (!rate.ok) return { ok: false as const, error: rateLimitMessage(rate) }
 
-      const invite = await Invites.create(ctx, {
-        code,
+      const created = await createInviteRecord(ctx, {
         note: req.body.note?.trim() || 'Без комментария',
-        maxUses: req.body.maxUses ?? 3,
-        uses: 0,
-        active: true,
+        maxUses: req.body.maxUses ?? 1,
         createdByProfileId: membership.profile.id,
       })
-      return { ok: true as const, code: invite.code, id: invite.id }
+      return { ok: true as const, code: created.code, id: created.invite.id }
     } catch (error) {
       return { ok: false as const, error: memberErrorCode(error) }
     }

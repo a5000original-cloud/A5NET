@@ -1,7 +1,9 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import { getOriginalUrl, getDurationFromHash } from '@app/storage'
 import Profiles from '../../tables/profiles.table'
 import Posts from '../../tables/posts.table'
 import { memberErrorCode, requireMember } from '../../server/access'
+import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 
 export const postCreateRoute = app.post('/')
   .body(s => ({
@@ -13,8 +15,12 @@ export const postCreateRoute = app.post('/')
   }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const author = membership.profile
+      const rate = await consumeRate(ctx, 'post:create', author.id, 10, 3600 * 1000)
+      if (!rate.ok) return { ok: false as const, error: rateLimitMessage(rate) }
       const hash = req.body.mediaHash?.trim() || undefined
       const mediaUrl = hash ? getOriginalUrl(ctx, hash) : undefined
       const duration = hash ? getDurationFromHash(hash) ?? 0 : 0

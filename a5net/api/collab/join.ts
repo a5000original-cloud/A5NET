@@ -1,3 +1,4 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import Collabs from '../../tables/collabs.table'
 import { memberErrorCode, requireMember } from '../../server/access'
 import { addEdge } from '../../server/social'
@@ -6,6 +7,8 @@ export const collabJoinRoute = app.post('/')
   .body(s => ({ id: s.string() }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const viewer = membership.profile
       const collab = await Collabs.findById(ctx, req.body.id)

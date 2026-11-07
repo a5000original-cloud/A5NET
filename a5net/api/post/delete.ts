@@ -1,3 +1,4 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import Posts from '../../tables/posts.table'
 import Comments from '../../tables/comments.table'
 import Reactions from '../../tables/reactions.table'
@@ -8,6 +9,8 @@ export const postDeleteRoute = app.post('/')
   .body(s => ({ id: s.string() }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const canModerate = membership.role === 'owner' || membership.role === 'admin' || Boolean(ctx.user?.is('Staff'))
       if (!canModerate) return { ok: false as const, error: 'Удалять посты могут только администраторы.' }

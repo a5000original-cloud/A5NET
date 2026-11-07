@@ -1,3 +1,4 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import Profiles from '../../tables/profiles.table'
 import Edges from '../../tables/edges.table'
 import { memberErrorCode, requireMember } from '../../server/access'
@@ -7,6 +8,8 @@ export const userFollowRoute = app.post('/')
   .body(s => ({ profileId: s.string() }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const viewer = membership.profile
       const target = await Profiles.findById(ctx, req.body.profileId)

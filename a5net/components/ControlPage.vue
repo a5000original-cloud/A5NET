@@ -30,6 +30,7 @@
             {{ busy ? '…' : fleet.enabled ? 'Остановить флот' : 'Запустить флот' }}
           </button>
           <button type="button" class="a5-btn" :disabled="busy" @click="tick">Прогнать цикл</button>
+          <button type="button" class="a5-btn" :disabled="busy" @click="waitAll">WAIT всем</button>
           <button type="button" class="a5-btn" :disabled="busy || bots.length > 0" @click="seed">Посеять</button>
         </div>
       </div>
@@ -286,7 +287,7 @@ async function refresh() {
 }
 
 interface UpdatePayload {
-  action?: 'tick' | 'seed' | 'start' | 'stop'
+  action?: 'tick' | 'seed' | 'start' | 'stop' | 'wait_all'
   aggressiveness?: number
   intervalMin?: number
   intervalMax?: number
@@ -329,6 +330,10 @@ function stop() {
 
 function tick() {
   return runUpdate({ action: 'tick' })
+}
+
+function waitAll() {
+  return runUpdate({ action: 'wait_all' })
 }
 
 function saveFleet() {

@@ -8,6 +8,7 @@ const Posts = Heap.Table('t_a5_posts_M3V8', {
   title: Heap.String({ customMeta: { title: 'Заголовок' } }),
   body: Heap.String({ customMeta: { title: 'Текст' } }),
   publishedAt: Heap.DateTime({ customMeta: { title: 'Опубликовано' } }),
+  visibility: Heap.NonRequired(Heap.Enum({ visible: 'visible', hidden: 'hidden' } as const, { customMeta: { title: 'Видимость' } }), 'visible'),
   topics: Heap.Array(Heap.String(), { customMeta: { title: 'Темы' } }),
   mediaUrl: Heap.Optional(Heap.String({ customMeta: { title: 'Медиа' } })),
   coverHue: Heap.Number({ customMeta: { title: 'Оттенок обложки' } }),

@@ -214,6 +214,7 @@ export interface InviteRow {
   createdAt: string
   ago: string
   link: string
+  copyable: boolean
 }
 
 export interface InvitesData {

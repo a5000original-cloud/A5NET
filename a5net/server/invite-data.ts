@@ -2,6 +2,7 @@ import Invites from '../tables/invites.table'
 import Profiles from '../tables/profiles.table'
 import type { InvitesData } from '../shared/types'
 import { timeAgo } from '../shared/format'
+import { maskInviteCode } from './invites'
 import { toAuthorCard } from './social'
 
 export async function getInvitesData(
@@ -20,7 +21,8 @@ export async function getInvitesData(
       const created = row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt)
       return {
         id: row.id,
-        code: row.code,
+        code: maskInviteCode(row),
+        copyable: Boolean(row.code),
         note: row.note,
         maxUses: row.maxUses,
         uses: row.uses,

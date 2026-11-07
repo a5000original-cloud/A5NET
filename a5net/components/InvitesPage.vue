@@ -69,8 +69,8 @@
                   </div>
                   <span class="font-mono text-[10px] text-moss">{{ invite.uses }} / {{ invite.maxUses }}</span>
                 </div>
-                <button type="button" class="a5-btn !px-3 !py-1.5 text-[11px]" @click="copy(invite.code)">
-                  {{ copied === invite.code ? 'Ссылка скопирована' : 'Скопировать ссылку' }}
+                <button type="button" class="a5-btn !px-3 !py-1.5 text-[11px]" :disabled="!invite.copyable" @click="copy(invite.code)">
+                  {{ !invite.copyable ? 'Код скрыт' : copied === invite.code ? 'Ссылка скопирована' : 'Скопировать ссылку' }}
                 </button>
               </div>
             </article>
@@ -125,6 +125,7 @@ async function create() {
         createdAt: new Date().toISOString(),
         ago: 'только что',
         link: '',
+        copyable: true,
       },
       ...invites.value,
     ]
@@ -137,6 +138,7 @@ async function create() {
 }
 
 async function copy(code: string) {
+  if (!code || code.includes('•')) return
   const url = `${window.location.origin}${joinPageRoute.query({ code }).path()}`
   try {
     await navigator.clipboard.writeText(url)

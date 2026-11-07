@@ -50,7 +50,9 @@ export async function listPosts(
 ): Promise<{ items: PostCard[]; hasMore: boolean }> {
   const limit = Math.min(options.limit ?? 24, 60)
   const offset = Math.max(0, options.offset ?? 0)
-  const where = options.authorId ? { authorId: options.authorId } : {}
+  const where = options.authorId
+    ? { authorId: options.authorId, visibility: 'visible' as const }
+    : { visibility: 'visible' as const }
   const rows = await Posts.findAll(ctx, {
     where,
     limit: limit + 1,
@@ -86,7 +88,7 @@ export async function listComments(
   viewerId: string,
 ): Promise<CommentItem[]> {
   const rows = await Comments.findAll(ctx, {
-    where: { postId },
+    where: { postId, visibility: 'visible' },
     limit: 100,
     order: [{ createdAt: 'asc' }, { id: 'asc' }],
   })
@@ -112,7 +114,7 @@ export async function findRelatedPosts(
   viewerId: string,
   limit = 3,
 ): Promise<PostCard[]> {
-  const rows = await Posts.findAll(ctx, { limit: 40, order: [{ publishedAt: 'desc' }, { id: 'asc' }] })
+  const rows = await Posts.findAll(ctx, { where: { visibility: 'visible' }, limit: 40, order: [{ publishedAt: 'desc' }, { id: 'asc' }] })
   const topicSet = new Set(post.topics)
   const scored = rows
     .filter(row => row.id !== post.id)

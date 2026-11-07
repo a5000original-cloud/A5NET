@@ -1,10 +1,12 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import { requireRealUser } from '@app/auth'
 import Profiles from '../../tables/profiles.table'
 import Members from '../../tables/members.table'
-import Invites from '../../tables/invites.table'
 import { findMembership } from '../../server/access'
 import { embedTopics } from '../../server/vec'
 import { transliterate } from '../../server/bots/personas'
+import { consumeInviteUse, findInviteByCode } from '../../server/invites'
+import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 
 function handleCandidate(name: string, username: string | undefined): string {
   const base = username?.trim() || transliterate(name).replace(/\s+/g, '.') || 'guest'
@@ -15,12 +17,16 @@ export const inviteRedeemRoute = app.post('/')
   .body(s => ({ code: s.string().min(3).max(40) }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const user = requireRealUser(ctx)
       const existing = await findMembership(ctx)
       if (existing) return { ok: true as const, alreadyMember: true }
 
-      const code = req.body.code.trim().toUpperCase()
-      const invite = await Invites.findOneBy(ctx, { code })
+      const rate = await consumeRate(ctx, 'invite:redeem', user.id, 5, 60 * 1000)
+      if (!rate.ok) return { ok: false as const, error: rateLimitMessage(rate) }
+
+      const invite = await findInviteByCode(ctx, req.body.code)
       if (!invite || !invite.active) return { ok: false as const, error: 'Код не найден или уже недействителен.' }
       if (invite.uses >= invite.maxUses) return { ok: false as const, error: 'У этого кода закончились приглашения.' }
       if (invite.expiresAt && invite.expiresAt.getTime() < Date.now()) {
@@ -43,6 +49,7 @@ export const inviteRedeemRoute = app.post('/')
         city: '—',
         bio: 'Пришёл по приглашению. Пока осматриваюсь.',
         kind: 'human',
+        isSynthetic: false,
         voiceTone: 'warm',
         commentLength: 'medium',
         slang: false,
@@ -67,16 +74,10 @@ export const inviteRedeemRoute = app.post('/')
         profileId: profile.id,
         role: 'member',
         invitedBy: invite.createdByProfileId,
-        inviteCode: invite.code,
+        inviteCode: invite.code || 'hashed',
       })
 
-      const uses = invite.uses + 1
-      await Invites.update(ctx, {
-        id: invite.id,
-        uses,
-        active: uses < invite.maxUses,
-      })
-
+      await consumeInviteUse(ctx, invite)
       return { ok: true as const, profileId: profile.id }
     } catch (error) {
       const message = error instanceof Error ? error.message : ''

@@ -7,7 +7,8 @@ import Collabs from '../../tables/collabs.table'
 import Edges from '../../tables/edges.table'
 import { addEdge, requestFriendship, type ViewerSocial } from '../social'
 import { refreshHype } from '../hype'
-import { cosine, postVector } from '../vec'
+import { cosine, embedText, postVector } from '../vec'
+import { remember } from './memory'
 import type { LocalDecision, LocalPost } from './local'
 import { localPost, type BotAction } from './local'
 import type { PersonaDraft } from './personas'
@@ -139,6 +140,23 @@ export async function executeAction(
   if (action === 'COMMENT') {
     const text = decision.content.trim().slice(0, 500)
     if (!text) return { status: 'wait', targetTitle: post.title, detail: 'не придумал комментарий' }
+
+    const already = await Comments.findOneBy(ctx, { postId: post.id, authorId: profile.id })
+    if (already) return { status: 'wait', targetTitle: post.title, detail: 'уже высказался под этим постом' }
+
+    const sameText = await Comments.findOneBy(ctx, { postId: post.id, text })
+    if (sameText) return { status: 'wait', targetTitle: post.title, detail: 'не стал повторять чужую мысль' }
+
+    const recent = await Comments.findAll(ctx, {
+      where: { authorId: profile.id },
+      limit: 40,
+      order: [{ publishedAt: 'desc' }, { id: 'asc' }],
+    })
+    const vector = embedText(text, post.topics)
+    if (recent.some(row => cosine(vector, embedText(row.text)) > 0.92)) {
+      return { status: 'wait', targetTitle: post.title, detail: 'решил не повторяться' }
+    }
+
     await Comments.create(ctx, {
       postId: post.id,
       authorId: profile.id,
@@ -149,6 +167,19 @@ export async function executeAction(
     await Posts.update(ctx, { id: post.id, commentsCount: post.commentsCount + 1 })
     await addEdge(ctx, { fromId: profile.id, toId: post.authorId, kind: 'comment', postId: post.id })
     await refreshHype(ctx, post.id)
+
+    const author = await Profiles.findById(ctx, post.authorId)
+    if (author) {
+      await remember(
+        ctx,
+        profile,
+        'impression',
+        `Автор ${author.name} пишет про ${author.interests.slice(0, 2).map(topic => topic).join(', ')}. Стоит читать внимательнее.`,
+        author.interests.slice(0, 2),
+        0.9,
+      )
+    }
+
     return { status: 'done', targetTitle: post.title, detail: 'написал комментарий' }
   }
 

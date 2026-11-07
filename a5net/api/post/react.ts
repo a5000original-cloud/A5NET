@@ -1,6 +1,8 @@
+import { requireSameOrigin } from '../../server/http-guard'
 import Posts from '../../tables/posts.table'
 import Reactions from '../../tables/reactions.table'
 import { memberErrorCode, requireMember } from '../../server/access'
+import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 import { addEdge } from '../../server/social'
 import { refreshHype } from '../../server/hype'
 
@@ -8,8 +10,12 @@ export const postReactRoute = app.post('/')
   .body(s => ({ id: s.string(), value: s.enum(['like', 'dislike'] as const) }))
   .handle(async (ctx, req) => {
     try {
+      const guard = requireSameOrigin(ctx)
+      if (guard) return { ok: false as const, error: guard }
       const membership = await requireMember(ctx)
       const viewer = membership.profile
+      const rate = await consumeRate(ctx, 'post:react', viewer.id, 120, 3600 * 1000)
+      if (!rate.ok) return { ok: false as const, error: rateLimitMessage(rate) }
       const post = await Posts.findById(ctx, req.body.id)
       if (!post) return { ok: false as const, error: 'Пост не найден.' }
 

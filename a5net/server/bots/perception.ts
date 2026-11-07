@@ -20,11 +20,17 @@ export async function perceive(
 ): Promise<Perception> {
   const rows = await Posts.findAll(ctx, { limit: 100, order: [{ publishedAt: 'desc' }, { id: 'asc' }] })
   const nowMs = Date.now()
+  const authorIdsAll = [...new Set(rows.map(post => post.authorId))]
+  const authorRows = authorIdsAll.length
+    ? await Profiles.findAll(ctx, { where: { id: authorIdsAll }, limit: authorIdsAll.length })
+    : []
+  const kindById = new Map(authorRows.map(author => [author.id, author.kind]))
   const scored = rows
-    .filter(post => post.authorId !== profile.id)
+    .filter(post => post.authorId !== profile.id && post.visibility === 'visible')
     .map(post => {
       const created = post.publishedAt instanceof Date ? post.publishedAt.getTime() : new Date(post.publishedAt).getTime()
       const ageHours = Math.max(0, (nowMs - created) / 3600000)
+      if (ageHours > 96) return null
       const affinity = Math.max(0, cosine(profile.interestVector, postVector(post.title, post.body, post.topics)))
       const friend = social.friendIds.has(post.authorId) ? 0.5 : social.followingIds.has(post.authorId) ? 0.28 : 0
       const recency = Math.exp(-ageHours / 30)
@@ -33,9 +39,9 @@ export async function perceive(
       return {
         post,
         affinity,
-        score: recency * 0.8 + affinity * 1.6 + friend + hype * 0.35 + discovery * 0.55,
+        score: recency * 0.8 + affinity * 1.6 + friend + hype * 0.35 + discovery * 0.55 + (kindById.get(post.authorId) === 'human' ? 1.2 : 0),
       }
-    })
+    }).filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
     .sort((a, b) => b.score - a.score)
 
   const top = scored.slice(0, 8)
