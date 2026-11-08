@@ -3,12 +3,15 @@ import { Styles } from './styles'
 import AssistantPage from './components/AssistantPage.vue'
 import { loadManagerHistory } from './server/manager-data'
 import { suggestionsForIntent } from './server/manager-bot'
+import { ownerGateRedirect } from './server/security'
 import { resolveMembership } from './server/page-helpers'
 import { toAuthorCard } from './server/social'
 
 export const assistantPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership || !ctx.user) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
 
   const history = await loadManagerHistory(ctx, ctx.user.id, 40)
   const lastBot = [...history].reverse().find(message => message.role === 'bot')

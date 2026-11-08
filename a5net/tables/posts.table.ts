@@ -2,7 +2,7 @@ import { Heap } from '@app/heap'
 
 const Posts = Heap.Table('t_a5_posts_M3V8', {
   authorId: Heap.String({ customMeta: { title: 'ID автора' } }),
-  kind: Heap.Enum({ text: 'text', video: 'video', music: 'music', collab: 'collab' } as const, {
+  kind: Heap.Enum({ text: 'text', video: 'video', music: 'music', collab: 'collab', photo: 'photo' } as const, {
     customMeta: { title: 'Тип' },
   }),
   title: Heap.String({ customMeta: { title: 'Заголовок' } }),
@@ -27,6 +27,7 @@ const Posts = Heap.Table('t_a5_posts_M3V8', {
   mediaStatus: Heap.NonRequired(Heap.Enum({ ready: 'ready', processing: 'processing', failed: 'failed' } as const, { customMeta: { title: 'Статус медиа' } }), 'ready'),
   source: Heap.NonRequired(Heap.Enum({ upload: 'upload', seed: 'seed', link: 'link' } as const, { customMeta: { title: 'Источник' } }), 'seed'),
   aspectRatio: Heap.Optional(Heap.Number({ customMeta: { title: 'Соотношение сторон' } })),
+  orientation: Heap.NonRequired(Heap.Enum({ horizontal: 'horizontal', vertical: 'vertical' } as const, { customMeta: { title: 'Ориентация' } }), 'horizontal'),
   album: Heap.Optional(Heap.String({ customMeta: { title: 'Альбом / серия' } })),
 }, {
   customMeta: {

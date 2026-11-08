@@ -12,7 +12,7 @@ function derivedCover(url: string | undefined): string | undefined {
 
 export const postCreateRoute = app.post('/')
   .body(s => ({
-    kind: s.enum(['text', 'video', 'music'] as const),
+    kind: s.enum(['text', 'video', 'music', 'photo'] as const),
     title: s.string().min(1).max(140),
     body: s.string().min(1).max(600),
     topics: s.array(s.string()).min(1).max(3),
@@ -22,6 +22,7 @@ export const postCreateRoute = app.post('/')
     sizeBytes: s.number().min(0).max(50 * 1024 * 1024 * 1024).optional(),
     mimeType: s.string().max(120).optional(),
     album: s.string().max(80).optional(),
+    orientation: s.enum(['horizontal', 'vertical'] as const).optional(),
   }))
   .handle(async (ctx, req) => {
     try {
@@ -38,7 +39,7 @@ export const postCreateRoute = app.post('/')
       const duration = req.body.durationSec && req.body.durationSec > 0
         ? req.body.durationSec
         : hash ? getDurationFromHash(hash) ?? 0 : 0
-      const coverUrl = coverHash ? getOriginalUrl(ctx, coverHash) : derivedCover(mediaUrl)
+      const coverUrl = coverHash ? getOriginalUrl(ctx, coverHash) : req.body.kind === 'photo' ? mediaUrl : derivedCover(mediaUrl)
 
       const post = await Posts.create(ctx, {
         authorId: author.id,
@@ -54,6 +55,7 @@ export const postCreateRoute = app.post('/')
         mediaStatus: 'ready',
         source: hash ? 'upload' : 'link',
         album: req.body.album?.trim() || undefined,
+        orientation: req.body.orientation ?? 'horizontal',
         coverHue: (author.avatarHue + 18) % 360,
         durationSec: Math.round(duration),
         hypeScore: 4,

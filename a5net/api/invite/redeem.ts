@@ -60,6 +60,8 @@ export const inviteRedeemRoute = app.post('/')
         emoji: false,
         argumentative: 0.4,
         politicalLeaning: 'neutral',
+      gender: 'x',
+      typoRate: 0,
         interests,
         interestVector: embedTopics(interests),
         chronotype: 'steady',

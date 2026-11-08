@@ -7,6 +7,7 @@ import Collabs from '../../tables/collabs.table'
 import Edges from '../../tables/edges.table'
 import { addEdge, requestFriendship, type ViewerSocial } from '../social'
 import { refreshHype } from '../hype'
+import { toggleEmoji } from '../emoji'
 import { cosine, embedText, postVector } from '../vec'
 import { remember } from './memory'
 import { sendMessage } from '../messages'
@@ -34,6 +35,8 @@ function personaOf(profile: typeof Profiles.T): PersonaDraft {
     emoji: profile.emoji,
     argumentative: profile.argumentative,
     politicalLeaning: profile.politicalLeaning,
+      gender: profile.gender,
+      typoRate: profile.typoRate,
     interests: profile.interests,
     interestVector: profile.interestVector,
     chronotype: profile.chronotype,
@@ -140,6 +143,12 @@ export async function executeAction(
 
   if (action === 'LIKE' || action === 'DISLIKE') {
     const result = await setReaction(ctx, profile, post, action === 'LIKE' ? 'like' : 'dislike')
+    if (result.changed && Math.random() < 0.42) {
+      const emoji = action === 'LIKE'
+        ? (['fire', 'heart', 'lol', 'respect'] as const)[Math.floor(Math.random() * 4)]
+        : (['sad', 'wow'] as const)[Math.floor(Math.random() * 2)]
+      if (emoji) await toggleEmoji(ctx, post.id, profile.id, emoji)
+    }
     return { status: 'done', targetTitle: post.title, detail: result.detail }
   }
 

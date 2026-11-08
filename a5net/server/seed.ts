@@ -201,6 +201,8 @@ export async function seedA5Net(ctx: app.Ctx, options: { force?: boolean } = {})
       emoji: draft.emoji,
       argumentative: draft.argumentative,
       politicalLeaning: draft.politicalLeaning,
+      gender: draft.gender,
+      typoRate: draft.typoRate,
       interests: draft.interests,
       interestVector: draft.interestVector,
       chronotype: draft.chronotype,

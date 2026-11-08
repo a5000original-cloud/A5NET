@@ -2,11 +2,14 @@ import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import InvitesPage from './components/InvitesPage.vue'
 import { getInvitesData } from './server/invite-data'
+import { ownerGateRedirect } from './server/security'
 import { resolveMembership } from './server/page-helpers'
 
 export const invitesPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
   const canOpen = membership.role === 'owner' || membership.role === 'admin' || Boolean(ctx.user?.is('Staff'))
   if (!canOpen) return ctx.resp.redirect('/')
 

@@ -1,3 +1,4 @@
+import { ownerGateRedirect } from './server/security'
 import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import WatchPage from './components/WatchPage.vue'
@@ -8,6 +9,8 @@ import { videoHubRoute } from './video'
 export const watchPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
 
   const id = queryString(ctx, 'id')
   const data = id ? await getWatchData(ctx, id, membership.profile, membership.role) : null

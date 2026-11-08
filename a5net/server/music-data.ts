@@ -47,6 +47,16 @@ export async function getMusicHubData(
     }
   }).filter(shelf => shelf.ids.length > 0)
 
+  const originals = tracks.filter(track => track.author.handle === 'a5000')
+  if (originals.length) {
+    shelves.unshift({
+      id: 'a5000-originals',
+      title: 'A5000 · оригиналы',
+      subtitle: 'Null Null Null Music · все треки',
+      ids: originals.map(track => track.id),
+    })
+  }
+
   const featured = [...tracks].sort((a, b) => b.likes + b.views / 20 - (a.likes + a.views / 20))[0] ?? null
   const totalSeconds = tracks.reduce((sum, track) => sum + track.duration, 0)
 

@@ -46,6 +46,7 @@
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2.5s5.5 3.2 5.5 7A3.2 3.2 0 018 11.8a3.2 3.2 0 01-5.5-2.3c0-3.8 5.5-7 5.5-7z" /></svg>
                 {{ formatCount(dislikes) }}
               </button>
+              <EmojiBar :post-id="data.post.id" :counts="data.post.emojiCounts" :viewer-emoji="data.post.viewerEmoji" />
               <button type="button" class="a5-btn-ghost text-xs" @click="share">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 8h4M8 2v4M8 10v4" stroke-linecap="round" /><path d="M3 6v7h10V6" stroke-linecap="round" /></svg>
                 {{ shared ? 'Ссылка скопирована' : 'Поделиться' }}
@@ -128,6 +129,7 @@ import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
 import VideoPlayer from './VideoPlayer.vue'
 import CommentsBlock from './CommentsBlock.vue'
+import EmojiBar from './EmojiBar.vue'
 import { coverBackground, formatCount, mediaCover } from '../shared/format'
 import { formatBytes, formatLongDuration } from '../shared/upload'
 import { videoHubRoute } from '../video'

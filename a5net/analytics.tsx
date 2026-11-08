@@ -1,3 +1,4 @@
+import { ownerGateRedirect } from './server/security'
 import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import AnalyticsPage from './components/AnalyticsPage.vue'
@@ -7,6 +8,8 @@ import { queryString, resolveMembership } from './server/page-helpers'
 export const analyticsPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
 
   const id = queryString(ctx, 'id') || membership.profile.id
   if (id !== membership.profile.id && !ctx.user?.is('Owner')) return ctx.resp.redirect('/')

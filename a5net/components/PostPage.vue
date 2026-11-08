@@ -34,6 +34,9 @@
               <div v-if="post.kind === 'video' && post.mediaUrl" class="mt-6">
                 <VideoPlayer :src="post.mediaUrl" :title="post.title" :duration="post.durationSec" :post-id="post.id" :cover-url="post.coverUrl" />
               </div>
+              <div v-else-if="post.kind === 'photo' && post.mediaUrl" class="mt-6 overflow-hidden rounded-xl border border-line/80">
+                <img :src="post.mediaUrl" :alt="post.title" class="max-h-[720px] w-full object-cover" />
+              </div>
               <div v-else-if="post.kind === 'music' && post.mediaUrl" class="mt-6">
                 <AudioPlayer :src="post.mediaUrl" :title="post.title" :artist="artist" :post-id="post.id" />
               </div>
@@ -115,57 +118,8 @@
           </div>
           <p v-if="reportSent" class="mt-3 text-[11px] text-lime">Жалоба принята. Спасибо, что не молчишь.</p>
 
-          <section id="comments" class="mt-8">
-            <div class="mb-4 flex items-center justify-between">
-              <h2 class="a5-display text-xl">Комментарии <span class="text-moss">{{ commentCount }}</span></h2>
-              <span class="a5-mono text-[9px] text-moss/60">живая речь, не шаблоны</span>
-            </div>
+          <CommentsBlock :post-id="post.id" :viewer="data.viewer" :initial-comments="data.comments" :count="post.commentsCount" />
 
-            <form class="a5-card mb-5 p-4" @submit.prevent="sendComment">
-              <div class="flex gap-3">
-                <Avatar :name="data.viewer.name" :hue="data.viewer.avatarHue" :accent="data.viewer.avatarAccent" :src="data.viewer.avatarUrl" size="sm" />
-                <div class="flex-1">
-                  <textarea
-                    v-model="commentText"
-                    class="a5-input min-h-[76px] resize-y"
-                    maxlength="600"
-                    placeholder="Что ты об этом думаешь? Конкретно, без «отличный пост»."
-                  ></textarea>
-                  <div class="mt-2 flex items-center justify-between">
-                    <p class="text-[11px] text-moss/60">{{ commentText.length }} / 600</p>
-                    <button type="submit" class="a5-btn-primary !py-2 text-xs" :disabled="sending || commentText.trim().length < 2">
-                      {{ sending ? 'Отправляю…' : 'Отправить' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p v-if="commentError" class="mt-2 text-xs text-ember">{{ commentError }}</p>
-            </form>
-
-            <div v-if="comments.length" class="space-y-3">
-              <article v-for="comment in comments" :key="comment.id" class="a5-card p-4">
-                <div class="flex items-start gap-3">
-                  <a :href="profilePageRoute.query({ id: comment.author.id }).url()">
-                    <Avatar :name="comment.author.name" :hue="comment.author.avatarHue" :accent="comment.author.avatarAccent" :src="comment.author.avatarUrl" size="sm" />
-                  </a>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-baseline gap-2">
-                      <a :href="profilePageRoute.query({ id: comment.author.id }).url()" class="text-sm font-medium text-bone hover:text-lime">{{ comment.author.name }}</a>
-                      <span class="text-[10px] text-moss/60">{{ comment.ago }}</span>
-                    </div>
-                    <p class="mt-1.5 text-sm leading-relaxed text-bone/85">{{ comment.text }}</p>
-                  </div>
-                  <span v-if="comment.likes" class="flex items-center gap-1 text-[10px] text-moss/60">
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 13.5s-5.5-3.2-5.5-7A3.2 3.2 0 018 4.2a3.2 3.2 0 015.5 2.3c0 3.8-5.5 7-5.5 7z" /></svg>
-                    {{ comment.likes }}
-                  </span>
-                </div>
-              </article>
-            </div>
-            <p v-else class="rounded-2xl border border-dashed border-line p-8 text-center text-sm text-moss">
-              Тишина. Первый голос задаст тон.
-            </p>
-          </section>
         </div>
 
         <aside class="space-y-4">
@@ -247,6 +201,7 @@ import HypeMeter from './HypeMeter.vue'
 import VideoPlayer from './VideoPlayer.vue'
 import AudioPlayer from './AudioPlayer.vue'
 import CollabCard from './CollabCard.vue'
+import CommentsBlock from './CommentsBlock.vue'
 import { formatCount, plural } from '../shared/format'
 import { feedPageRoute } from '../feed'
 import { postPageRoute } from '../post'
@@ -291,6 +246,7 @@ const kindLabel = computed(() => {
   if (post.kind === 'video') return 'видеоэтюд'
   if (post.kind === 'music') return 'музыка'
   if (post.kind === 'collab') return 'коллаборация'
+  if (post.kind === 'photo') return 'фото'
   return 'текст'
 })
 

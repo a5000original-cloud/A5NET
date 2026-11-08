@@ -24,6 +24,8 @@ const Profiles = Heap.Table('t_a5_profiles_K7Q2', {
   slang: Heap.Boolean({ customMeta: { title: 'Использует сленг' } }),
   emoji: Heap.Boolean({ customMeta: { title: 'Использует эмодзи' } }),
   argumentative: Heap.Number({ customMeta: { title: 'Склонность спорить, 0–1' } }),
+  gender: Heap.NonRequired(Heap.Enum({ m: 'm', f: 'f', x: 'x' } as const, { customMeta: { title: 'Пол в речи' } }), 'x'),
+  typoRate: Heap.NonRequired(Heap.Number({ customMeta: { title: 'Частота опечаток' } }), 0.04),
   politicalLeaning: Heap.Enum(
     { neutral: 'neutral', progressive: 'progressive', conservative: 'conservative' } as const,
     { customMeta: { title: 'Политическая оптика' } },

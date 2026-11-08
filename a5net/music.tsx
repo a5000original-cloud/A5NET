@@ -2,11 +2,14 @@ import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import MusicHubPage from './components/MusicHubPage.vue'
 import { getMusicHubData } from './server/music-data'
+import { ownerGateRedirect } from './server/security'
 import { resolveMembership } from './server/page-helpers'
 
 export const musicHubRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
 
   const data = await getMusicHubData(ctx, membership.profile, membership.role)
 

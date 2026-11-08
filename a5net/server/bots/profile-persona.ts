@@ -14,6 +14,8 @@ export function personaFromProfile(profile: typeof Profiles.T): PersonaDraft {
     emoji: profile.emoji,
     argumentative: profile.argumentative,
     politicalLeaning: profile.politicalLeaning,
+      gender: profile.gender,
+      typoRate: profile.typoRate,
     interests: profile.interests,
     interestVector: profile.interestVector,
     chronotype: profile.chronotype,

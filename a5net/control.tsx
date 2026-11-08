@@ -2,11 +2,14 @@ import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import ControlPage from './components/ControlPage.vue'
 import { getControlData } from './server/control-data'
+import { ownerGateRedirect } from './server/security'
 import { resolveMembership } from './server/page-helpers'
 
 export const controlPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
   if (!ctx.user?.is('Owner')) return ctx.resp.redirect('/')
 
   const data = await getControlData(ctx)

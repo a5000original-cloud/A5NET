@@ -21,6 +21,7 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <NotificationBell />
           <SearchOverlay />
           <a
             v-if="showInvites"
@@ -58,9 +59,14 @@
             >
               <a :href="profilePageRoute.query({ id: viewer.id }).url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Мой профиль</a>
               <a :href="profileSettingsRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Настроить профиль</a>
+              <a :href="notificationsPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Уведомления</a>
+              <a :href="friendsPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Заявки в друзья</a>
+              <a :href="shortsPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">A5 Shorts</a>
               <a :href="inboxPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Сообщения</a>
               <a :href="assistantPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">A5000_Менеджер</a>
               <a v-if="showInvites" :href="invitesPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Приглашения</a>
+              <InstallApp variant="menu" />
+              <a v-if="role === 'owner'" :href="securityPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Безопасность</a>
               <a v-if="role === 'owner'" :href="controlPageRoute.url()" class="block px-4 py-3 text-sm text-violet hover:bg-panel2">Пульт A5000</a>
               <div class="a5-divider"></div>
               <button type="button" class="block w-full px-4 py-3 text-left text-sm text-moss hover:bg-panel2 hover:text-bone" @click="signOut">
@@ -86,6 +92,7 @@
         </a>
       </div>
     </nav>
+    <PwaBoot />
   </div>
 </template>
 
@@ -94,6 +101,9 @@ import { computed, ref } from 'vue'
 import type { AuthorCard } from '../shared/types'
 import Avatar from './Avatar.vue'
 import SearchOverlay from './SearchOverlay.vue'
+import NotificationBell from './NotificationBell.vue'
+import PwaBoot from './PwaBoot.vue'
+import InstallApp from './InstallApp.vue'
 import { feedPageRoute } from '../feed'
 import { videoHubRoute } from '../video'
 import { musicHubRoute } from '../music'
@@ -103,11 +113,15 @@ import { profilePageRoute } from '../profile'
 import { profileSettingsRoute } from '../settings'
 import { assistantPageRoute } from '../assistant'
 import { inboxPageRoute } from '../inbox'
+import { securityPageRoute } from '../security'
+import { notificationsPageRoute } from '../notifications'
+import { friendsPageRoute } from '../friends'
+import { shortsPageRoute } from '../shorts'
 
 const props = defineProps<{
   viewer: AuthorCard
   role: 'owner' | 'admin' | 'member'
-  active: 'feed' | 'video' | 'music' | 'inbox' | 'invites' | 'control' | 'profile' | 'manager' | 'settings' | 'none'
+  active: 'feed' | 'video' | 'music' | 'shorts' | 'inbox' | 'invites' | 'control' | 'profile' | 'manager' | 'settings' | 'security' | 'notifications' | 'friends' | 'none'
 }>()
 
 const menuOpen = ref(false)
@@ -117,6 +131,7 @@ const items = computed(() => [
   { key: 'feed', label: 'Поток', href: feedPageRoute.url() },
   { key: 'video', label: 'Видео', href: videoHubRoute.url() },
   { key: 'music', label: 'Музыка', href: musicHubRoute.url() },
+  { key: 'shorts', label: 'Shorts', href: shortsPageRoute.url() },
   { key: 'manager', label: 'Менеджер', href: assistantPageRoute.url() },
   { key: 'inbox', label: 'Письма', href: inboxPageRoute.url() },
 ])
@@ -153,7 +168,7 @@ const dockItems = computed(() => [
 ])
 
 const activeLabel = computed(() => {
-  const map: Record<string, string> = { feed: 'поток', video: 'video', music: 'audio', manager: 'manager', inbox: 'письма', profile: 'досье', settings: 'настройки' }
+  const map: Record<string, string> = { feed: 'поток', video: 'video', music: 'audio', manager: 'manager', inbox: 'письма', profile: 'досье', settings: 'настройки', security: 'A5 PASS', notifications: 'события', friends: 'круг', shorts: 'shorts' }
   return map[props.active] ?? 'closed'
 })
 

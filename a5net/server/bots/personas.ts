@@ -16,6 +16,8 @@ export interface PersonaDraft {
   slang: boolean
   emoji: boolean
   argumentative: number
+  gender: 'm' | 'f' | 'x'
+  typoRate: number
   politicalLeaning: 'neutral' | 'progressive' | 'conservative'
   interests: string[]
   interestVector: number[]
@@ -144,6 +146,10 @@ export function generatePersona(index: number): PersonaDraft {
   }
 
   const voice = pick(rng, VOICES)
+  const female = ['Марта','Ника','Аня','Дина','Соня','Лиза','Вера','Настя','Катя','Майя','Оля','Аля','Надя','Юля','Милана','Тася','Марина','Арина','Полина','Зоя','Ася','Нина','Даша','Ева','Лида']
+  const male = ['Тимур','Лёва','Гоша','Кирилл','Артём','Рома','Миша','Илья','Феликс','Дэн','Костя','Боря','Гриша','Ким','Стас','Егор','Ваня','Лёша','Сева','Слава','Ефим','Родион','Лев','Оскар','Марк','Игнат','Адам']
+  const firstName = name.split(' ')[0] ?? ''
+  const gender: 'm' | 'f' | 'x' = female.includes(firstName) ? 'f' : male.includes(firstName) ? 'm' : (rng() > 0.5 ? 'f' : 'm')
   const bio = pick(rng, BIOS[primaryRoot] ?? BIOS['music']!)
   const age = 19 + Math.floor(rng() * 24)
   const chronoRoll = rng()
@@ -165,6 +171,8 @@ export function generatePersona(index: number): PersonaDraft {
     slang: rng() > 0.45,
     emoji: rng() > 0.66,
     argumentative: Math.round(rng() * 100) / 100,
+    gender,
+    typoRate: Math.round((0.02 + rng() * 0.07) * 100) / 100,
     politicalLeaning: rng() < 0.55 ? 'neutral' : rng() < 0.5 ? 'progressive' : 'conservative',
     interests: chosen,
     interestVector: embedTopics(chosen),

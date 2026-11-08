@@ -5,6 +5,7 @@ import { memberErrorCode, requireMember } from '../../server/access'
 import { consumeRate, rateLimitMessage } from '../../server/rate-limit'
 import { addEdge } from '../../server/social'
 import { refreshHype } from '../../server/hype'
+import { createNotification } from '../../server/notifications'
 
 export const postReactRoute = app.post('/')
   .body(s => ({ id: s.string(), value: s.enum(['like', 'dislike'] as const) }))
@@ -51,6 +52,15 @@ export const postReactRoute = app.post('/')
         })
       }
       await refreshHype(ctx, post.id)
+      if (next === 'like') {
+        await createNotification(ctx, {
+          recipientId: post.authorId,
+          actorId: viewer.id,
+          type: 'like',
+          postId: post.id,
+          text: `оценил(а) «${post.title}»`,
+        })
+      }
       return { ok: true as const, likes, dislikes, viewerReaction: next }
     } catch (error) {
       return { ok: false as const, error: memberErrorCode(error) }

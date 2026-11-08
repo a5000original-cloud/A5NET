@@ -270,6 +270,42 @@ function affinityOf(persona: PersonaDraft, post: LocalPost): number {
   return Math.max(0, cosine(persona.interestVector, postVector(post.title, post.body, post.topics)))
 }
 
+const FEMININE_FORMS: Array<[RegExp, string]> = [
+  [/\bСмотрел\b/g, 'Смотрела'], [/\bсмотрел\b/g, 'смотрела'],
+  [/\bпосмотрел\b/g, 'посмотрела'], [/\bпересмотрел\b/g, 'пересмотрела'],
+  [/\bзаписал\b/g, 'записала'], [/\bпонял\b/g, 'поняла'],
+  [/\bзабрал\b/g, 'забрала'], [/\bувидел\b/g, 'увидела'],
+  [/\bсказал\b/g, 'сказала'], [/\bрешил\b/g, 'решила'],
+  [/\bпоставил\b/g, 'поставила'], [/\bнаписал\b/g, 'написала'],
+  [/\bслушал\b/g, 'слушала'], [/\bхотел\b/g, 'хотела'],
+  [/\bмог\b/g, 'могла'], [/\bне думал\b/g, 'не думала'],
+  [/\bбыл\b/g, 'была'], [/\bнашёл\b/g, 'нашла'], [/\bпришёл\b/g, 'пришла'],
+]
+
+function feminize(text: string): string {
+  let result = text
+  for (const [pattern, replacement] of FEMININE_FORMS) result = result.replace(pattern, replacement)
+  return result
+}
+
+function humanizeComment(text: string, persona: { gender?: 'm' | 'f' | 'x'; typoRate?: number }, rng: () => number): string {
+  let result = persona.gender === 'f' ? feminize(text) : text
+  const rate = persona.typoRate ?? 0.04
+  if (rng() > rate) return result
+  const mode = Math.floor(rng() * 4)
+  if (mode === 0) result = result.replace(/тся\b/g, 'ться')
+  else if (mode === 1 && result.length > 20) {
+    const start = Math.floor(rng() * (result.length - 8))
+    const end = start + 4 + Math.floor(rng() * 4)
+    result = result.slice(0, start) + result.slice(end)
+  } else if (mode === 2 && result.length > 2) {
+    result = result.charAt(0).toLowerCase() + result.slice(1)
+  } else {
+    result = result.replace(/\b([а-яё]{6,})\b/i, word => word + word.slice(-1))
+  }
+  return result
+}
+
 export function localComment(
   persona: PersonaDraft,
   post: LocalPost,
@@ -299,9 +335,9 @@ export function localComment(
       }
     }
     if (persona.emoji && rng() > 0.55) text = `${text} ${pick(rng, EMOJI)}`
-    if (!recent.includes(text) && text.length < 420) return text
+    if (!recent.includes(text) && text.length < 420) return humanizeComment(text, persona, rng)
   }
-  return `${pick(rng, openers).replace('{detail}', detail)} ${pick(rng, tails)}`.slice(0, 420)
+  return humanizeComment(`${pick(rng, openers).replace('{detail}', detail)} ${pick(rng, tails)}`, persona, rng).slice(0, 420)
 }
 
 export function localDecision(context: DecisionContext): LocalDecision {
@@ -450,7 +486,7 @@ export function reflectionText(action: string, detail: string, persona: { emoji:
   return persona.emoji && Math.random() > 0.8 ? `${base} 🙂` : base
 }
 
-export function localReply(persona: { handle: string }, incoming: string): string {
+export function localReply(persona: { handle: string; gender?: 'm' | 'f' | 'x'; typoRate?: number }, incoming: string): string {
   const rng = mulberry32(hashSeed(`reply:${persona.handle}:${incoming.slice(0, 40)}`))
   const detail = incoming.replace(/\s+/g, ' ').trim().slice(0, 60)
   const options = [
@@ -462,5 +498,5 @@ export function localReply(persona: { handle: string }, incoming: string): strin
     `Не люблю пустые ответы, поэтому: я как раз пересматривал это.`,
     `«${detail}» — хороший поворот. У меня был другой опыт, но твой интереснее.`,
   ]
-  return pick(rng, options)
+  return humanizeComment(pick(rng, options), persona, rng)
 }

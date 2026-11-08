@@ -4,6 +4,9 @@ import type { FleetSettings } from '../../shared/types'
 import { acceptFriendship, getViewerSocial } from '../social'
 import Messages from '../../tables/messages.table'
 import { sendMessage } from '../messages'
+import { createNotification } from '../notifications'
+import Comments from '../../tables/comments.table'
+import Posts from '../../tables/posts.table'
 import { perceive } from './perception'
 import { formatMemory, recall, remember } from './memory'
 import { decide } from './decision'
@@ -92,6 +95,63 @@ export async function runBotCycle(
         social.pendingIn.delete(candidate)
         await remember(ctx, profile, 'action', 'Принял входящую заявку в друзья — совпало по вкусу.', profile.interests.slice(0, 2), 1.1)
       }
+    }
+  }
+
+  const recentPosts = await Posts.findAll(ctx, {
+    where: { authorId: profile.id, visibility: 'visible' },
+    limit: 8,
+    order: [{ publishedAt: 'desc' }],
+  })
+  if (recentPosts.length && Math.random() < 0.7) {
+    const postIds = recentPosts.map(post => post.id)
+    const comments = await Comments.findAll(ctx, {
+      where: { postId: postIds, visibility: 'visible' },
+      limit: 40,
+      order: [{ publishedAt: 'desc' }],
+    })
+    for (const comment of comments) {
+      if (comment.authorId === profile.id || comment.parentId) continue
+      const author = await Profiles.findById(ctx, comment.authorId)
+      if (!author || author.kind !== 'human') continue
+      const replied = await Comments.findOneBy(ctx, {
+        postId: comment.postId,
+        parentId: comment.id,
+        authorId: profile.id,
+      })
+      if (replied) continue
+      const reply = localReply(profile, comment.text)
+      await Comments.create(ctx, {
+        postId: comment.postId,
+        authorId: profile.id,
+        text: reply,
+        likes: 0,
+        parentId: comment.id,
+        publishedAt: new Date(),
+      })
+      const post = recentPosts.find(item => item.id === comment.postId)
+      if (post) await Posts.update(ctx, { id: post.id, commentsCount: post.commentsCount + 1 })
+      await createNotification(ctx, {
+        recipientId: author.id,
+        actorId: profile.id,
+        type: 'reply',
+        postId: comment.postId,
+        commentId: comment.id,
+        text: `ответил(а) на твой комментарий под «${post?.title ?? 'постом'}»`,
+      })
+      await finish(
+        ctx,
+        profile,
+        { action: 'COMMENT', content: reply, reason: 'ответил на комментарий' },
+        'done',
+        'ответил(а) на комментарий',
+        'local',
+        0,
+        'ответ на комментарий',
+        fleet.aggressiveness,
+        post?.title,
+      )
+      return { botId: profile.id, name: profile.name, action: 'COMMENT', status: 'done', detail: 'ответил(а) на комментарий', provider: 'local', latencyMs: 0 }
     }
   }
 

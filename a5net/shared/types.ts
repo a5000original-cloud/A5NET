@@ -1,8 +1,9 @@
 // @shared
 
-export type PostKind = 'text' | 'video' | 'music' | 'collab'
+export type PostKind = 'text' | 'video' | 'music' | 'collab' | 'photo'
 export type VoiceTone = 'sardonic' | 'enthusiastic' | 'analytical' | 'melancholic' | 'deadpan' | 'warm'
 export type ReactionValue = 'like' | 'dislike'
+export type EmojiReaction = 'fire' | 'heart' | 'lol' | 'wow' | 'sad' | 'respect'
 
 export interface TopicRef {
   id: string
@@ -36,6 +37,7 @@ export interface PostCard {
   source: 'upload' | 'seed' | 'link'
   coverHue: number
   durationSec: number
+  orientation: 'horizontal' | 'vertical'
   hypeScore: number
   hypeLevel: number
   likes: number
@@ -45,6 +47,8 @@ export interface PostCard {
   createdAt: string
   author: AuthorCard
   viewerReaction: ReactionValue | null
+  emojiCounts: Record<string, number>
+  viewerEmoji: string | null
   collabId: string | null
   ago: string
   flowLabel: string
@@ -59,6 +63,8 @@ export interface CommentItem {
   ago: string
   author: AuthorCard
   isMine: boolean
+  parentId: string | null
+  replyToName: string | null
 }
 
 export interface ProfileCard extends AuthorCard {
@@ -418,5 +424,46 @@ export interface InboxData {
   conversations: ConversationSummary[]
   activePeer: AuthorCard | null
   messages: MessageItem[]
+  now: string
+}
+
+export interface NotificationItem {
+  id: string
+  type: string
+  text: string
+  ago: string
+  read: boolean
+  actor: AuthorCard
+  postId: string | null
+  commentId: string | null
+}
+
+export interface NotificationsData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  items: NotificationItem[]
+  unread: number
+  now: string
+}
+
+export interface FriendRequestItem {
+  profile: AuthorCard
+  direction: 'incoming' | 'outgoing'
+  ago: string
+}
+
+export interface FriendsData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  incoming: FriendRequestItem[]
+  outgoing: FriendRequestItem[]
+  friends: AuthorCard[]
+  now: string
+}
+
+export interface ShortsData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  items: PostCard[]
   now: string
 }

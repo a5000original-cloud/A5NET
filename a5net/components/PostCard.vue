@@ -37,6 +37,10 @@
         </a>
       </div>
 
+      <div v-else-if="post.kind === 'photo' && post.mediaUrl" class="mt-4 overflow-hidden rounded-xl border border-line/80">
+        <img :src="post.mediaUrl" :alt="post.title" loading="lazy" class="max-h-[560px] w-full object-cover" />
+      </div>
+
       <div v-else-if="post.kind === 'music' && post.mediaUrl" class="mt-4">
         <AudioPlayer
           :src="post.mediaUrl"
@@ -56,6 +60,10 @@
           {{ topic.label }}
         </span>
         <span v-if="post.discovery" class="a5-mono self-center text-[8px] text-violet/60">· новый голос</span>
+      </div>
+
+      <div class="mt-3">
+        <EmojiBar :post-id="post.id" :counts="post.emojiCounts" :viewer-emoji="post.viewerEmoji" />
       </div>
     </div>
 
@@ -103,6 +111,7 @@ import { computed, ref } from 'vue'
 import type { PostCard as PostCardData, ReactionValue } from '../shared/types'
 import Avatar from './Avatar.vue'
 import HypeMeter from './HypeMeter.vue'
+import EmojiBar from './EmojiBar.vue'
 import AudioPlayer from './AudioPlayer.vue'
 import A5Stamp from './A5Stamp.vue'
 import { coverBackground, formatCount, formatDuration, mediaCover } from '../shared/format'
@@ -122,6 +131,7 @@ const kindLabel = computed(() => {
   if (props.post.kind === 'video') return 'видео'
   if (props.post.kind === 'music') return 'музыка'
   if (props.post.kind === 'collab') return 'коллаб'
+  if (props.post.kind === 'photo') return 'фото'
   return 'текст'
 })
 

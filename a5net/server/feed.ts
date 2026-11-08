@@ -8,6 +8,7 @@ import { timeAgo } from '../shared/format'
 import { LEAF_TOPICS, topicById } from './taxonomy'
 import { fallbackAuthor, getAuthorMap, getViewerSocial, toAuthorCard, type ViewerSocial } from './social'
 import { listPosts, toPostCard, toTopicRefs } from './post-data'
+import { getEmojiSummary } from './emoji'
 import { getFleet } from './settings'
 import { cosine, postVector } from './vec'
 import { hashSeed } from './rng'
@@ -74,6 +75,7 @@ export async function getFeedData(
     ? await Reactions.findAll(ctx, { where: { postId: pageIds, profileId: viewer.id }, limit: pageIds.length })
     : []
   const reactionMap = new Map(reactionRows.map(row => [row.postId, row.value as 'like' | 'dislike']))
+  const emoji = await getEmojiSummary(ctx, pageIds, viewer.id)
 
   const items = pagePosts.map(post =>
     toPostCard(
@@ -82,6 +84,8 @@ export async function getFeedData(
       reactionMap.get(post.id) ?? null,
       nowMs,
       !social.friendIds.has(post.authorId) && !social.followingIds.has(post.authorId),
+      emoji.counts.get(post.id) ?? {},
+      emoji.viewer.get(post.id) ?? null,
     ),
   )
 

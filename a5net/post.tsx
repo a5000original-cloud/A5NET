@@ -1,3 +1,4 @@
+import { ownerGateRedirect } from './server/security'
 import { jsx } from '@app/html-jsx'
 import { Styles } from './styles'
 import PostPage from './components/PostPage.vue'
@@ -7,6 +8,8 @@ import { queryString, resolveMembership } from './server/page-helpers'
 export const postPageRoute = app.get('/', async ctx => {
   const membership = await resolveMembership(ctx)
   if (!membership) return ctx.resp.redirect('/')
+  const gate = await ownerGateRedirect(ctx)
+  if (gate) return gate
 
   const id = queryString(ctx, 'id')
   const data = id ? await loadPostPage(ctx, id, membership.profile, membership.role) : null

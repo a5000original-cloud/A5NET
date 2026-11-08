@@ -48,6 +48,7 @@
         </div>
         <div class="flex w-full max-w-md items-center gap-2">
           <input v-model="query" class="a5-input !py-2.5" placeholder="Поиск по видео и авторам" />
+          <a :href="shortsPageRoute.url()" class="a5-btn shrink-0 !py-2.5 text-xs">Shorts</a>
           <a :href="feedPageRoute.url()" class="a5-btn shrink-0 !py-2.5 text-xs">Загрузить</a>
         </div>
       </div>
@@ -113,6 +114,7 @@ import Avatar from './Avatar.vue'
 import { formatCount, mediaCover } from '../shared/format'
 import { formatLongDuration } from '../shared/upload'
 import { watchPageRoute } from '../watch'
+import { shortsPageRoute } from '../shorts'
 import { feedPageRoute } from '../feed'
 
 const props = defineProps<{ data: VideoHubData }>()

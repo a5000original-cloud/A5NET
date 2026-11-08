@@ -204,6 +204,7 @@ const tabs = [
   { key: 'video', label: 'Видео' },
   { key: 'music', label: 'Музыка' },
   { key: 'text', label: 'Тексты' },
+  { key: 'photo', label: 'Фото' },
   { key: 'collab', label: 'Коллаборации' },
 ]
 

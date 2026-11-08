@@ -20,6 +20,8 @@ export function toPostCard(
   reaction: ReactionValue | null,
   nowMs: number,
   discovery = false,
+  emojiCounts: Record<string, number> = {},
+  viewerEmoji: string | null = null,
 ): PostCard {
   const created = post.publishedAt instanceof Date ? post.publishedAt : new Date(post.publishedAt)
   return {
@@ -36,6 +38,7 @@ export function toPostCard(
     source: post.source ?? 'seed',
     coverHue: post.coverHue,
     durationSec: post.durationSec,
+    orientation: post.orientation ?? 'horizontal',
     hypeScore: post.hypeScore,
     hypeLevel: Math.min(1, Math.max(0.05, post.hypeScore / 70)),
     likes: post.likes,
@@ -45,6 +48,8 @@ export function toPostCard(
     createdAt: created.toISOString(),
     author,
     viewerReaction: reaction,
+    emojiCounts,
+    viewerEmoji,
     collabId: post.collabId ?? null,
     ago: timeAgo(created.toISOString(), nowMs),
     flowLabel: flowLabel(created),
@@ -76,6 +81,7 @@ export async function listPosts(
     ? await Reactions.findAll(ctx, { where: { postId: postIds, profileId: options.viewerId }, limit: postIds.length })
     : []
   const reactionMap = new Map(reactions.map(row => [row.postId, row.value as ReactionValue]))
+  const emoji = await import('./emoji').then(mod => mod.getEmojiSummary(ctx, postIds, options.viewerId))
 
   return {
     items: page.map(post =>
@@ -84,6 +90,9 @@ export async function listPosts(
         authorMap.get(post.authorId) ?? fallbackAuthor(post.authorId),
         reactionMap.get(post.id) ?? null,
         nowMs,
+        false,
+        emoji.counts.get(post.id) ?? {},
+        emoji.viewer.get(post.id) ?? null,
       ),
     ),
     hasMore,
@@ -101,6 +110,7 @@ export async function listComments(
     order: [{ createdAt: 'asc' }, { id: 'asc' }],
   })
   const authorMap = await getAuthorMap(ctx, rows.map(row => row.authorId))
+  const byId = new Map(rows.map(row => [row.id, row]))
   const nowMs = Date.now()
   return rows.map(row => {
     const created = row.publishedAt instanceof Date ? row.publishedAt : new Date(row.publishedAt)
@@ -112,6 +122,8 @@ export async function listComments(
       ago: timeAgo(created.toISOString(), nowMs),
       author: authorMap.get(row.authorId) ?? fallbackAuthor(row.authorId),
       isMine: row.authorId === viewerId,
+      parentId: row.parentId ?? null,
+      replyToName: row.parentId ? (authorMap.get(byId.get(row.parentId)?.authorId ?? '')?.name ?? null) : null,
     }
   })
 }

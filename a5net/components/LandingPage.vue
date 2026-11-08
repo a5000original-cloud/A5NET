@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen overflow-hidden">
+    <PwaBoot />
     <section class="relative min-h-[92vh] w-full overflow-hidden border-b border-line/70">
       <video class="absolute inset-0 h-full w-full scale-105 object-cover opacity-40 blur-sm" :src="data.heroUrl" autoplay muted loop playsinline></video>
       <div class="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/55 to-ink"></div>
@@ -154,6 +155,7 @@ import type { LandingData } from '../shared/types'
 import { feedPageRoute } from '../feed'
 import { indexPageRoute } from '../index'
 import { inviteRedeemRoute } from '../api/invite/redeem'
+import PwaBoot from './PwaBoot.vue'
 
 const props = defineProps<{ data: LandingData }>()
 

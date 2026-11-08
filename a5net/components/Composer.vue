@@ -43,13 +43,13 @@
       <div v-if="kind !== 'text'" class="rounded-2xl border border-line bg-coal/60 p-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="a5-label !mb-1">{{ kind === 'video' ? 'Видеофайл' : 'Аудиофайл' }}</p>
-            <p class="text-[11px] text-moss/70">MP4 / WebM / MOV / MP3 / WAV · размер не ограничен</p>
+            <p class="a5-label !mb-1">{{ kind === 'video' ? 'Видеофайл' : kind === 'photo' ? 'Изображение' : 'Аудиофайл' }}</p>
+            <p class="text-[11px] text-moss/70">MP4 / WebM / MOV / MP3 / WAV / JPG / PNG · размер не ограничен</p>
           </div>
           <label class="a5-btn cursor-pointer">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5" stroke-linecap="round" /><path d="M2.5 12.5h11" stroke-linecap="round" /></svg>
             {{ uploading ? `Загружаю ${uploadPercent}%` : fileName ? 'Заменить файл' : 'Выбрать файл' }}
-            <input type="file" class="hidden" :accept="kind === 'video' ? 'video/*' : 'audio/*'" @change="upload" />
+            <input type="file" class="hidden" :accept="kind === 'video' ? 'video/*' : kind === 'photo' ? 'image/*' : 'audio/*'" @change="upload" />
           </label>
         </div>
 
@@ -124,6 +124,7 @@ import type { AuthorCard, TopicRef } from '../shared/types'
 import Avatar from './Avatar.vue'
 import { postCreateRoute } from '../api/post/create'
 import { watchPageRoute } from '../watch'
+import { postPageRoute } from '../post'
 import { captureVideoFrame, formatBytes, formatLongDuration, readMediaMeta, uploadBlob, uploadFile } from '../shared/upload'
 import { coverBackground } from '../shared/format'
 
@@ -134,9 +135,10 @@ const kinds = [
   { value: 'text' as const, label: 'Текст' },
   { value: 'video' as const, label: 'Видео' },
   { value: 'music' as const, label: 'Музыка' },
+  { value: 'photo' as const, label: 'Фото' },
 ]
 
-const kind = ref<'text' | 'video' | 'music'>('text')
+const kind = ref<'text' | 'video' | 'music' | 'photo'>('text')
 const title = ref('')
 const body = ref('')
 const topics = ref<string[]>([])
@@ -156,10 +158,11 @@ const lastFile = ref<File | null>(null)
 const bodyPlaceholder = computed(() => {
   if (kind.value === 'video') return 'Что происходит в кадре и почему это стоит смотреть?'
   if (kind.value === 'music') return 'Пара слов о треке. Без рекламного тона.'
+  if (kind.value === 'photo') return 'Что в кадре и почему ты его сохранил?'
   return 'Мысль, наблюдение или вопрос. Живым языком.'
 })
 
-function selectKind(value: 'text' | 'video' | 'music') {
+function selectKind(value: 'text' | 'video' | 'music' | 'photo') {
   if (kind.value === value) return
   kind.value = value
   resetMedia()
@@ -295,6 +298,7 @@ async function submit() {
       durationSec: meta.value.duration || undefined,
       sizeBytes: meta.value.size || undefined,
       mimeType: lastFile.value?.type || undefined,
+      orientation: meta.value.height > meta.value.width ? 'vertical' : 'horizontal',
     })
     if (!result.ok) {
       error.value = result.error
@@ -302,7 +306,7 @@ async function submit() {
     }
     window.location.href = result.kind === 'video'
       ? watchPageRoute.query({ id: result.id }).url()
-      : `/a5net/post?id=${result.id}`
+      : postPageRoute.query({ id: result.id }).url()
   } catch {
     error.value = 'Публикация не удалась. Попробуй ещё раз.'
   } finally {

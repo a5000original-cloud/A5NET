@@ -48,6 +48,8 @@ export async function ensureOwnerProfile(ctx: app.Ctx): Promise<Membership | nul
     emoji: false,
     argumentative: 0.3,
     politicalLeaning: 'neutral',
+      gender: 'm',
+      typoRate: 0,
     interests: ['tech', 'ai-agents', 'interfaces', 'cinema', 'city'],
     interestVector: embedTopics(['tech', 'ai-agents', 'interfaces', 'cinema', 'city']),
     chronotype: 'nightowl',
