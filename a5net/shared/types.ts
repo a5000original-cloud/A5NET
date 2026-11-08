@@ -495,3 +495,24 @@ export interface ShortsData {
   items: PostCard[]
   now: string
 }
+
+export interface CommunityCard {
+  id: string
+  name: string
+  slug: string
+  description: string
+  topicId: string
+  coverHue: number
+  members: number
+  posts: number
+  latestTitle: string | null
+  latestPostId: string | null
+  joined: boolean
+}
+
+export interface CommunitiesData {
+  viewer: AuthorCard
+  viewerRole: 'owner' | 'admin' | 'member'
+  items: CommunityCard[]
+  now: string
+}

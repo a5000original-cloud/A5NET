@@ -101,3 +101,9 @@ export function topicAncestors(id: string): string[] {
   }
   return result
 }
+
+export function rootTopic(id: string): TopicNode {
+  let node = topicById(id)
+  while (node.parent) node = topicById(node.parent)
+  return node
+}

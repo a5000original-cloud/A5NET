@@ -62,6 +62,7 @@
               <a :href="notificationsPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Уведомления</a>
               <a :href="friendsPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Заявки в друзья</a>
               <a :href="shortsPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">A5 Shorts</a>
+              <a :href="communitiesPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Сообщества</a>
               <a :href="inboxPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Сообщения</a>
               <a :href="assistantPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">A5000_Менеджер</a>
               <a v-if="showInvites" :href="invitesPageRoute.url()" class="block px-4 py-3 text-sm text-bone hover:bg-panel2">Приглашения</a>
@@ -117,11 +118,12 @@ import { securityPageRoute } from '../security'
 import { notificationsPageRoute } from '../notifications'
 import { friendsPageRoute } from '../friends'
 import { shortsPageRoute } from '../shorts'
+import { communitiesPageRoute } from '../communities'
 
 const props = defineProps<{
   viewer: AuthorCard
   role: 'owner' | 'admin' | 'member'
-  active: 'feed' | 'video' | 'music' | 'shorts' | 'inbox' | 'invites' | 'control' | 'profile' | 'manager' | 'settings' | 'security' | 'notifications' | 'friends' | 'none'
+  active: 'feed' | 'video' | 'music' | 'shorts' | 'communities' | 'inbox' | 'invites' | 'control' | 'profile' | 'manager' | 'settings' | 'security' | 'notifications' | 'friends' | 'none'
 }>()
 
 const menuOpen = ref(false)
@@ -168,7 +170,7 @@ const dockItems = computed(() => [
 ])
 
 const activeLabel = computed(() => {
-  const map: Record<string, string> = { feed: 'поток', video: 'video', music: 'audio', manager: 'manager', inbox: 'письма', profile: 'досье', settings: 'настройки', security: 'A5 PASS', notifications: 'события', friends: 'круг', shorts: 'shorts' }
+  const map: Record<string, string> = { feed: 'поток', video: 'video', music: 'audio', manager: 'manager', inbox: 'письма', profile: 'досье', settings: 'настройки', security: 'A5 PASS', notifications: 'события', friends: 'круг', shorts: 'shorts', communities: 'круги' }
   return map[props.active] ?? 'closed'
 })
 
