@@ -151,7 +151,7 @@ export function generatePersona(index: number): PersonaDraft {
   const firstName = name.split(' ')[0] ?? ''
   const gender: 'm' | 'f' | 'x' = female.includes(firstName) ? 'f' : male.includes(firstName) ? 'm' : (rng() > 0.5 ? 'f' : 'm')
   const bio = pick(rng, BIOS[primaryRoot] ?? BIOS['music']!)
-  const age = 19 + Math.floor(rng() * 24)
+  const age = 18 + Math.floor(rng() * 12)
   const chronoRoll = rng()
   const chronotype: Chronotype = chronoRoll < 0.28 ? 'lark' : chronoRoll < 0.62 ? 'nightowl' : 'steady'
   const hueBase = topicById(chosen[0] ?? 'music').hue

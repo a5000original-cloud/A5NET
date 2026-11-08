@@ -1,6 +1,6 @@
 
 const SW = `
-const CACHE = 'a5net-v3';
+const CACHE = 'a5net-v4';
 const OFFLINE = '/a5net/offline';
 
 self.addEventListener('install', event => {
@@ -27,11 +27,11 @@ self.addEventListener('fetch', event => {
   }
   if (/\\.(css|js|png|jpg|jpeg|webp|svg|woff2?)$/.test(url.pathname)) {
     event.respondWith(
-      caches.match(request).then(hit => hit || fetch(request).then(response => {
+      fetch(request).then(response => {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(request, copy)).catch(() => undefined);
         return response;
-      }))
+      }).catch(() => caches.match(request).then(hit => hit || new Response('', { status: 504 })))
     );
   }
 });

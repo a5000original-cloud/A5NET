@@ -113,7 +113,8 @@ export async function runBotCycle(
     for (const comment of comments) {
       if (comment.authorId === profile.id || comment.parentId) continue
       const author = await Profiles.findById(ctx, comment.authorId)
-      if (!author || author.kind !== 'human') continue
+      if (!author) continue
+      if (author.kind !== 'human' && Math.random() > 0.18) continue
       const replied = await Comments.findOneBy(ctx, {
         postId: comment.postId,
         parentId: comment.id,
