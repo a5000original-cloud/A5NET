@@ -73,11 +73,14 @@
             </button>
           </div>
 
-          <div v-if="activeTab === 'collab'" class="grid gap-4 sm:grid-cols-2">
-            <CollabCard v-for="collab in visibleCollabs" :key="collab.id" :collab="collab" />
-            <p v-if="!visibleCollabs.length" class="col-span-full rounded-2xl border border-dashed border-line p-8 text-center text-sm text-moss">
-              Связок пока нет. Начни с одного брифа.
-            </p>
+          <div v-if="activeTab === 'collab'" class="space-y-4">
+            <CreateCollabForm />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <CollabCard v-for="collab in visibleCollabs" :key="collab.id" :collab="collab" />
+              <p v-if="!visibleCollabs.length" class="col-span-full rounded-2xl border border-dashed border-line p-8 text-center text-sm text-moss">
+                Связок пока нет. Начни с одного брифа.
+              </p>
+            </div>
           </div>
 
           <div v-else-if="visiblePosts.length" class="space-y-4">
@@ -187,6 +190,7 @@ import SiteHeader from './SiteHeader.vue'
 import PostCard from './PostCard.vue'
 import Composer from './Composer.vue'
 import CollabCard from './CollabCard.vue'
+import CreateCollabForm from './CreateCollabForm.vue'
 import Avatar from './Avatar.vue'
 import A5Stamp from './A5Stamp.vue'
 import { coverBackground, formatCount, plural } from '../shared/format'

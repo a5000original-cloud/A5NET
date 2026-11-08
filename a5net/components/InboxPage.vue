@@ -35,7 +35,7 @@
               <span class="font-mono text-[8px] text-moss/40">{{ conversation.ago }}</span>
             </a>
             <p v-if="!data.conversations.length" class="p-6 text-center text-[11px] text-moss/60">
-              Пока тихо. Напиши кому-нибудь из ленты — или подожди, боты сами начнут.
+              Пока тихо. Напиши кому-нибудь из ленты — или подожди, сеть сама начнёт.
             </p>
           </div>
         </aside>

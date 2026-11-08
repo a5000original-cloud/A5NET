@@ -9,6 +9,26 @@
     </div>
     <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-moss">{{ collab.brief }}</p>
 
+    <div class="mt-3 rounded-xl border border-line/70 bg-coal/60 p-3">
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-[10px] text-moss">{{ collab.goal }}</p>
+        <span class="font-mono text-[10px] text-lime">{{ collab.progress }}%</span>
+      </div>
+      <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+        <div class="h-full rounded-full bg-lime transition-all" :style="{ width: collab.progress + '%' }"></div>
+      </div>
+      <div class="mt-2 flex items-center justify-between text-[9px] text-moss/60">
+        <span>{{ formatCount(collab.currentFollowers) }} / {{ formatCount(collab.targetFollowers) }} подписчиков</span>
+        <span v-if="collab.daysLeft !== null">{{ collab.daysLeft }} дн.</span>
+      </div>
+      <p class="mt-1 text-[9px] text-moss/40">цель: по {{ formatCount(collab.goalFollowers) }} каждому</p>
+      <div v-if="collab.tasks.length" class="mt-2 space-y-1">
+        <p v-for="task in collab.tasks.slice(0, 3)" :key="task" class="flex items-center gap-1.5 text-[9px] text-moss/70">
+          <span class="h-1 w-1 rounded-full bg-violet"></span>{{ task }}
+        </p>
+      </div>
+    </div>
+
     <div class="mt-3 flex items-center justify-between gap-3">
       <div class="flex items-center">
         <Avatar
@@ -49,6 +69,7 @@ import type { CollabCard } from '../shared/types'
 import Avatar from './Avatar.vue'
 import { collabJoinRoute } from '../api/collab/join'
 import { postPageRoute } from '../post'
+import { formatCount } from '../shared/format'
 
 const props = defineProps<{ collab: CollabCard }>()
 

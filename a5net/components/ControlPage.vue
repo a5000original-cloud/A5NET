@@ -182,6 +182,24 @@
         </div>
       </section>
 
+      <section v-if="pendingStickers.length" class="a5-card mt-5 overflow-hidden border-violet/25">
+        <div class="flex items-center justify-between border-b border-line/70 px-5 py-4">
+          <p class="a5-mono text-[9px] text-violet/80">наклейки на модерации · {{ pendingStickers.length }}</p>
+          <span class="a5-mono text-[9px] text-moss/50">тихо, без публичного скандала</span>
+        </div>
+        <div class="grid gap-3 p-4 sm:grid-cols-2">
+          <article v-for="item in pendingStickers" :key="item.id" class="flex items-center gap-3 rounded-xl border border-line/60 p-3">
+            <img :src="item.imageUrl" alt="" class="h-12 w-12 object-contain" />
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[11px] text-bone">{{ item.title }}</p>
+              <p class="text-[9px] text-moss/50">{{ item.authorName }} · {{ item.ago }}</p>
+            </div>
+            <button type="button" class="a5-btn-primary !px-2 !py-1 text-[9px]" :disabled="busy" @click="reviewSticker(item.id, 'approve')">Да</button>
+            <button type="button" class="a5-btn-ghost !px-2 !py-1 text-[9px]" :disabled="busy" @click="reviewSticker(item.id, 'reject')">Нет</button>
+          </article>
+        </div>
+      </section>
+
       <section v-if="subscriberTransfers.length" class="a5-card mt-5 overflow-hidden border-sky/25">
         <div class="flex items-center justify-between border-b border-line/70 px-5 py-4">
           <p class="a5-mono text-[9px] text-sky/80">перенос подписчиков · {{ subscriberTransfers.length }}</p>
@@ -274,6 +292,7 @@ import { controlStateRoute } from '../api/control/state'
 import { controlUpdateRoute } from '../api/control/update'
 import { moderationResolveRoute } from '../api/moderation/resolve'
 import { subscriberReviewRoute } from '../api/subscriber/review'
+import { stickerReviewRoute } from '../api/sticker/review'
 
 const props = defineProps<{ data: ControlData }>()
 
@@ -282,6 +301,7 @@ const bots = ref<BotRow[]>(props.data.bots)
 const logs = ref<RunRow[]>(props.data.logs)
 const reports = ref<ReportRow[]>(props.data.reports)
 const subscriberTransfers = ref(props.data.subscriberTransfers)
+const pendingStickers = ref(props.data.pendingStickers)
 const transferCounts = ref<Record<string, number>>(Object.fromEntries(props.data.subscriberTransfers.map(item => [item.id, item.claimedCount])))
 const nodes = ref<GraphNode[]>(props.data.nodes)
 const edges = ref<GraphEdge[]>(props.data.edges)
@@ -345,6 +365,7 @@ async function refresh() {
     logs.value = result.data.logs
     reports.value = result.data.reports
     subscriberTransfers.value = result.data.subscriberTransfers
+    pendingStickers.value = result.data.pendingStickers
     for (const item of result.data.subscriberTransfers) {
       if (!(item.id in transferCounts.value)) transferCounts.value[item.id] = item.claimedCount
     }
@@ -416,6 +437,25 @@ function waitAll() {
 
 function grow() {
   return runUpdate({ action: 'grow' })
+}
+
+async function reviewSticker(id: string, action: 'approve' | 'reject') {
+  busy.value = true
+  message.value = ''
+  error.value = ''
+  try {
+    const result = await stickerReviewRoute.run(ctx, { id, action })
+    if (!result.ok) {
+      error.value = result.error
+      return
+    }
+    message.value = action === 'approve' ? 'Наклейка одобрена — автор увидит её в профиле.' : 'Наклейка отклонена.'
+    await refresh()
+  } catch {
+    error.value = 'Не удалось обработать наклейку.'
+  } finally {
+    busy.value = false
+  }
 }
 
 async function reviewTransfer(id: string, action: 'approve' | 'reject') {

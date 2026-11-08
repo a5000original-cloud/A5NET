@@ -6,7 +6,7 @@
         <span class="h-1.5 w-1.5 rounded-full bg-lime a5-live-dot"></span> live
       </span>
     </div>
-    <svg viewBox="0 0 720 380" class="h-[320px] w-full" role="img" aria-label="Граф дружеских связей ботов">
+    <svg viewBox="0 0 720 380" class="h-[320px] w-full" role="img" aria-label="Граф дружеских связей">
       <defs>
         <radialGradient id="graph-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stop-color="#c9f75a" stop-opacity="0.12" />

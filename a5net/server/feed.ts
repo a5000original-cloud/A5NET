@@ -3,7 +3,7 @@ import Posts from '../tables/posts.table'
 import Comments from '../tables/comments.table'
 import Reactions from '../tables/reactions.table'
 import Collabs from '../tables/collabs.table'
-import type { AuthorCard, CollabCard, FeedData, PlatformStats, ProfileCard, TrendItem } from '../shared/types'
+import type { AuthorCard, CollabCard, FeedData, PlatformStats, ProfileCard, StickerPlacement, TrendItem } from '../shared/types'
 import { timeAgo } from '../shared/format'
 import { LEAF_TOPICS, topicById } from './taxonomy'
 import { fallbackAuthor, getAuthorMap, getViewerSocial, toAuthorCard, type ViewerSocial } from './social'
@@ -175,7 +175,9 @@ export async function buildCollabs(ctx: app.Ctx, viewerId: string): Promise<Coll
   const linkedPosts = linkedIds.length
     ? await Posts.findAll(ctx, { where: { id: linkedIds }, limit: linkedIds.length })
     : []
-  const postDates = new Map(linkedPosts.map(post => [post.id, post.publishedAt]))
+  const postDates = new Map(linkedPosts.map(post => [post.id, post.publishedAt]));
+  const profileRows = await Profiles.findAll(ctx, { where: { id: allIds }, limit: allIds.length });
+  const followersById = new Map(profileRows.map(profile => [profile.id, profile.followersCount]));
   const nowMs = Date.now()
   return rows.map(row => {
     const linkedDate = row.postId ? postDates.get(row.postId) : undefined
@@ -194,9 +196,39 @@ export async function buildCollabs(ctx: app.Ctx, viewerId: string): Promise<Coll
       createdAt: created.toISOString(),
       ago: timeAgo(created.toISOString(), nowMs),
       postId: row.postId ?? null,
+      goal: row.goal ?? 'Совместный проект',
+      deadline: row.deadline ? (row.deadline instanceof Date ? row.deadline : new Date(row.deadline)).toISOString() : null,
+      daysLeft: row.deadline ? Math.max(0, Math.ceil(((row.deadline instanceof Date ? row.deadline.getTime() : new Date(row.deadline).getTime()) - nowMs) / 86400000)) : null,
+      goalFollowers: row.goalFollowers ?? 15000,
+      targetFollowers: (row.goalFollowers ?? 15000) * (row.participantIds.length + 1),
+      currentFollowers: [row.initiatorId, ...row.participantIds].reduce((sum, id) => sum + (followersById.get(id) ?? 0), 0),
+      progress: Math.min(100, Math.round(([row.initiatorId, ...row.participantIds].reduce((sum, id) => sum + (followersById.get(id) ?? 0), 0) / Math.max(1, (row.goalFollowers ?? 15000) * (row.participantIds.length + 1))) * 100)),
+      tasks: row.tasks ?? [],
       joined: row.participantIds.includes(viewerId) || row.initiatorId === viewerId,
     }
   })
+}
+
+function parseStickerLayout(raw: string | undefined, stickers: string[]): StickerPlacement[] {
+  try {
+    const parsed = JSON.parse(raw || '[]')
+    if (Array.isArray(parsed) && parsed.length === stickers.length) {
+      return parsed.map((item, index) => ({
+        x: Number(item?.x) || 10 + index * 13,
+        y: Number(item?.y) || 14 + (index % 3) * 20,
+        scale: Number(item?.scale) || 1,
+        float: Boolean(item?.float),
+      }))
+    }
+  } catch {
+    // fall through
+  }
+  return stickers.map((_, index) => ({
+    x: 10 + index * 13,
+    y: 14 + (index % 3) * 20,
+    scale: 1,
+    float: index % 2 === 0,
+  }))
 }
 
 export function buildProfileCard(
@@ -221,6 +253,7 @@ export function buildProfileCard(
     coverPosition: profile.coverPosition ?? 50,
     tagline: profile.tagline ?? '',
     stickers: profile.stickers ?? [],
+    stickerLayout: parseStickerLayout(profile.stickerLayout, profile.stickers ?? []),
     links: profile.links ?? [],
     profileTheme: profile.profileTheme ?? 'graphite',
     accentHue: profile.accentHue ?? profile.avatarHue,

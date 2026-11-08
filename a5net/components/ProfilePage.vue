@@ -8,12 +8,7 @@
           <img v-if="profile.coverUrl" :src="profile.coverUrl" alt="" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${profile.coverPosition}%` }" />
           <div v-else class="h-full w-full" :style="{ background: coverBackground(profile.avatarHue) }"></div>
           <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-transparent"></div>
-          <span
-            v-for="(sticker, index) in profile.stickers"
-            :key="sticker + index"
-            class="absolute select-none text-2xl drop-shadow-lg sm:text-3xl"
-            :style="{ left: `${8 + index * 12}%`, top: `${12 + (index % 3) * 18}%`, transform: `rotate(${(index % 2 ? 1 : -1) * (6 + index * 2)}deg)` }"
-          >{{ sticker }}</span>
+          <StickerLayer :stickers="profile.stickers" :layout="profile.stickerLayout" />
           <span class="absolute right-4 top-4 a5-mono text-[8px] text-white/50">{{ profile.profileTheme }} · A5NET</span>
         </div>
 
@@ -152,6 +147,7 @@ import { computed, ref } from 'vue'
 import type { ProfilePageData } from '../shared/types'
 import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
+import StickerLayer from './StickerLayer.vue'
 import PostCard from './PostCard.vue'
 import CollabCard from './CollabCard.vue'
 import { coverBackground, formatCount, plural } from '../shared/format'

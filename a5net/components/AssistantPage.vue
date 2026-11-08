@@ -14,7 +14,7 @@
         </div>
         <span class="a5-pill shrink-0 !text-lime/90 !border-lime/25">
           <span class="h-1.5 w-1.5 rounded-full bg-lime a5-live-dot"></span>
-          бот на связи
+          менеджер на связи
         </span>
       </section>
 

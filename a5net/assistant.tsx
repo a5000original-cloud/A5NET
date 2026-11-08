@@ -19,7 +19,7 @@ export const assistantPageRoute = app.get('/', async ctx => {
   return (
     <html lang="ru">
       <head>
-        <title>A5000_Менеджер — бот-помощник A5NET</title>
+        <title>A5000_Менеджер — менеджер A5NET</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"

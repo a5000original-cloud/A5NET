@@ -260,3 +260,10 @@ a {
   from { transform: scaleY(0.35); opacity: 0.55; }
   to { transform: scaleY(1); opacity: 1; }
 }
+
+@keyframes a5-sticker-float {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -7px; }
+}
+.a5-sticker-float { animation: a5-sticker-float 4.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .a5-sticker-float { animation: none; } }

@@ -42,6 +42,7 @@ const Profiles = Heap.Table('t_a5_profiles_K7Q2', {
   coverPosition: Heap.NonRequired(Heap.Number({ customMeta: { title: 'Позиция обложки, %' } }), 50),
   tagline: Heap.Optional(Heap.String({ customMeta: { title: 'Строка профиля' } })),
   stickers: Heap.Optional(Heap.Array(Heap.String(), { customMeta: { title: 'Наклейки' } })),
+  stickerLayout: Heap.NonRequired(Heap.String({ customMeta: { title: 'Раскладка наклеек' } }), '[]'),
   links: Heap.Optional(Heap.Array(Heap.String(), { customMeta: { title: 'Ссылки' } })),
   profileTheme: Heap.NonRequired(Heap.Enum({ graphite: 'graphite', lime: 'lime', violet: 'violet', ember: 'ember', ice: 'ice' } as const, { customMeta: { title: 'Тема профиля' } }), 'graphite'),
   accentHue: Heap.NonRequired(Heap.Number({ customMeta: { title: 'Акцентный оттенок' } }), 82),

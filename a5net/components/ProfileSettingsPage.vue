@@ -113,7 +113,10 @@
                 type="button"
                 class="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel2 text-lg hover:border-ember/50"
                 @click="removeSticker(index)"
-              >{{ sticker }}</button>
+              >
+                <img v-if="isStickerImage(sticker)" :src="sticker" alt="" class="h-7 w-7 object-contain" />
+                <span v-else>{{ sticker }}</span>
+              </button>
               <span v-if="!stickers.length" class="self-center text-[11px] text-moss/50">Пока пусто. Выбери до шести.</span>
             </div>
             <div class="mt-4 flex flex-wrap gap-1.5">
@@ -124,6 +127,31 @@
                 class="flex h-9 w-9 items-center justify-center rounded-full border border-line text-lg transition hover:border-lime/50 hover:bg-panel2"
                 @click="addSticker(sticker)"
               >{{ sticker }}</button>
+            </div>
+
+            <div class="mt-5 border-t border-line/60 pt-4">
+              <div class="flex items-center justify-between">
+                <p class="a5-label !mb-0">Своя наклейка</p>
+                <span class="a5-mono text-[8px] text-moss/40">тихая модерация</span>
+              </div>
+              <div class="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input v-model="stickerTitle" class="a5-input !py-2" maxlength="60" placeholder="Название, например «моя луна»" />
+                <label class="a5-btn cursor-pointer !px-3 !py-2 text-[10px]">
+                  {{ stickerBusy ? 'Загружаю…' : 'Картинка' }}
+                  <input type="file" class="hidden" accept="image/*" :disabled="stickerBusy" @change="uploadSticker" />
+                </label>
+              </div>
+              <p v-if="stickerError" class="mt-1 text-[10px] text-ember">{{ stickerError }}</p>
+              <div v-if="stickerSubmissions.length" class="mt-3 space-y-1.5">
+                <div v-for="item in stickerSubmissions" :key="item.id" class="flex items-center gap-2 rounded-lg border border-line/60 px-2 py-1.5">
+                  <img :src="item.imageUrl" alt="" class="h-7 w-7 object-contain" />
+                  <span class="min-w-0 flex-1 truncate text-[10px] text-bone">{{ item.title }}</span>
+                  <span class="text-[9px]" :class="item.status === 'approved' ? 'text-lime' : item.status === 'rejected' ? 'text-ember' : 'text-moss/50'">
+                    {{ item.status === 'approved' ? 'одобрена' : item.status === 'rejected' ? 'отклонена' : 'на проверке' }}
+                  </span>
+                  <button v-if="item.status === 'approved'" type="button" class="text-[9px] text-lime underline" @click="addCustomSticker(item.imageUrl)">на профиль</button>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -150,7 +178,7 @@
               <p class="a5-mono text-[9px] text-moss">05 · аудитория</p>
               <span class="a5-mono text-[9px] text-moss/50">перенос с другой площадки</span>
             </div>
-            <p class="mt-2 text-[11px] leading-relaxed text-moss/70">Пришли скриншот канала и статистики. A5000 проверит и вручную подтвердит число — боты начнут следить за профилем.</p>
+            <p class="mt-2 text-[11px] leading-relaxed text-moss/70">Пришли скриншот канала и статистики. A5000 проверит и вручную подтвердит число — читатели начнут появляться.</p>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <label class="a5-label" for="t-platform">Площадка</label>
@@ -219,6 +247,7 @@
               <img v-if="coverPreview" :src="coverPreview" alt="" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${coverPosition}%` }" />
               <div v-else class="h-full w-full" :style="{ background: coverBackground(data.profile.avatarHue) }"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent"></div>
+              <StickerLayer :stickers="stickers" :layout="stickerLayout" editable @update:layout="stickerLayout = $event" />
               <div class="absolute inset-x-0 top-0 flex justify-between p-3">
                 <span class="a5-mono text-[8px] text-white/60">{{ theme }}</span>
                 <span class="a5-mono text-[8px] text-white/60">A5NET</span>
@@ -234,9 +263,6 @@
               </div>
               <p v-if="tagline" class="mt-3 text-[12px] text-bone/80">{{ tagline }}</p>
               <p class="mt-2 line-clamp-3 text-[11px] leading-relaxed text-moss">{{ bio }}</p>
-              <div class="mt-3 flex flex-wrap gap-1">
-                <span v-for="(sticker, index) in stickers" :key="index" class="text-base">{{ sticker }}</span>
-              </div>
               <div class="mt-4 flex items-center gap-3 border-t border-line/60 pt-3 text-[9px] text-moss/60">
                 <span>{{ data.profile.postsCount }} {{ plural(data.profile.postsCount, 'пост', 'поста', 'постов') }}</span>
                 <span>{{ data.profile.friendsCount }} друзей</span>
@@ -253,14 +279,16 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { ProfileSettingsData } from '../shared/types'
+import type { ProfileSettingsData, StickerPlacement, StickerRow } from '../shared/types'
 import SiteHeader from './SiteHeader.vue'
 import Avatar from './Avatar.vue'
+import StickerLayer from './StickerLayer.vue'
 import { coverBackground, formatCount, plural } from '../shared/format'
 import { uploadBlob } from '../shared/upload'
 import { profileUpdateRoute } from '../api/profile/update'
 import { profileCheckHandleRoute } from '../api/profile/check-handle'
 import { subscriberSubmitRoute } from '../api/subscriber/submit'
+import { stickerUploadRoute } from '../api/sticker/upload'
 import { profilePageRoute } from '../profile'
 
 const props = defineProps<{ data: ProfileSettingsData }>()
@@ -272,6 +300,11 @@ const bio = ref(props.data.profile.bio)
 const tagline = ref(props.data.profile.tagline)
 const linksText = ref(props.data.profile.links.join('\n'))
 const stickers = ref<string[]>([...props.data.profile.stickers])
+const stickerLayout = ref<StickerPlacement[]>([...props.data.profile.stickerLayout])
+const stickerSubmissions = ref<StickerRow[]>([...props.data.stickerSubmissions])
+const stickerTitle = ref('')
+const stickerBusy = ref(false)
+const stickerError = ref('')
 const theme = ref(props.data.profile.profileTheme)
 const accentHue = ref(props.data.profile.accentHue)
 const coverPosition = ref(props.data.profile.coverPosition)
@@ -315,13 +348,51 @@ const palette = ['✦', '◐', '☾', '✶', '⟡', '⌁', '♒', '⚑', '▣', 
 
 const currentThemeColor = computed(() => themes.find(option => option.id === theme.value)?.color ?? '#252b21')
 
+function isStickerImage(value: string): boolean {
+  return /^https?:\/\//i.test(value)
+}
+
 function addSticker(sticker: string) {
   if (stickers.value.length >= 6) return
   stickers.value = [...stickers.value, sticker]
+  stickerLayout.value = [...stickerLayout.value, { x: 10 + (stickers.value.length - 1) * 13, y: 20, scale: 1, float: true }]
 }
 
 function removeSticker(index: number) {
   stickers.value = stickers.value.filter((_, position) => position !== index)
+  stickerLayout.value = stickerLayout.value.filter((_, position) => position !== index)
+}
+
+function addCustomSticker(url: string) {
+  addSticker(url)
+}
+
+async function uploadSticker(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  stickerBusy.value = true
+  stickerError.value = ''
+  try {
+    const uploaded = await uploadBlob(ctx, file, file.name)
+    const result = await stickerUploadRoute.run(ctx, { imageHash: uploaded.hash, title: stickerTitle.value.trim() || file.name })
+    if (!result.ok) {
+      stickerError.value = result.error
+      return
+    }
+    stickerSubmissions.value = [{
+      id: result.id,
+      title: stickerTitle.value.trim() || file.name,
+      imageUrl: uploaded.url,
+      status: 'pending',
+      authorName: props.data.profile.name,
+      ago: 'только что',
+    }, ...stickerSubmissions.value]
+    stickerTitle.value = ''
+  } catch {
+    stickerError.value = 'Наклейка не загрузилась.'
+  } finally {
+    stickerBusy.value = false
+  }
 }
 
 async function uploadAvatar(event: Event) {
@@ -453,6 +524,7 @@ async function save() {
       tagline: tagline.value,
       links: linksText.value.split('\n').map(line => line.trim()).filter(Boolean),
       stickers: stickers.value,
+      stickerLayout: JSON.stringify(stickerLayout.value),
       profileTheme: theme.value,
       accentHue: accentHue.value,
       coverPosition: coverPosition.value,

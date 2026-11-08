@@ -5,6 +5,7 @@ import { buildProfileCard } from './feed'
 import { getViewerSocial } from './social'
 import { listPosts } from './post-data'
 import { listSubscriberTransfers } from './subscribers'
+import { listStickers } from './stickers'
 
 const CONFUSABLES: Record<string, string> = {
   '0': 'o',
@@ -57,6 +58,7 @@ export interface ProfileSettingsInput {
   tagline?: string
   links?: string[]
   stickers?: string[]
+  stickerLayout?: string
   profileTheme?: ProfileTheme
   accentHue?: number
   coverPosition?: number
@@ -75,11 +77,13 @@ export async function getProfileSettingsData(
   const profile = buildProfileCard(viewer, viewer, social, social)
   const posts = await listPosts(ctx, { viewerId: viewer.id, authorId: viewer.id, limit: 50 })
   const transfers = await listSubscriberTransfers(ctx, viewer.id)
+  const stickerSubmissions = await listStickers(ctx, viewer.id)
   return {
     viewer: profile,
     viewerRole: ctx.user?.is('Owner') ? 'owner' : 'member',
     profile,
     transfers,
+    stickerSubmissions,
     posts: posts.items.map(post => ({
       id: post.id,
       title: post.title,
@@ -136,6 +140,22 @@ function cleanLinks(links: string[] | undefined): string[] {
     .slice(0, 4)
 }
 
+function cleanStickerLayout(raw: string | undefined, count: number): string | undefined {
+  if (raw === undefined) return undefined
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return '[]'
+    return JSON.stringify(parsed.slice(0, count).map(item => ({
+      x: Math.max(0, Math.min(100, Number(item?.x) || 0)),
+      y: Math.max(0, Math.min(100, Number(item?.y) || 0)),
+      scale: Math.max(0.5, Math.min(2.5, Number(item?.scale) || 1)),
+      float: Boolean(item?.float),
+    })))
+  } catch {
+    return '[]'
+  }
+}
+
 function cleanStickers(stickers: string[] | undefined): string[] {
   if (!stickers) return []
   return stickers.map(sticker => sticker.trim()).filter(Boolean).slice(0, 8)
@@ -159,6 +179,7 @@ export async function updateProfileSettings(
   if (input.tagline !== undefined) patch.tagline = input.tagline.trim().slice(0, 60)
   if (input.links !== undefined) patch.links = cleanLinks(input.links)
   if (input.stickers !== undefined) patch.stickers = cleanStickers(input.stickers)
+  if (input.stickerLayout !== undefined) patch.stickerLayout = cleanStickerLayout(input.stickerLayout, cleanStickers(input.stickers).length)
   if (input.profileTheme !== undefined && THEMES.includes(input.profileTheme)) patch.profileTheme = input.profileTheme
   if (input.accentHue !== undefined) patch.accentHue = Math.max(0, Math.min(360, Math.round(input.accentHue)))
   if (input.coverPosition !== undefined) patch.coverPosition = Math.max(0, Math.min(100, Math.round(input.coverPosition)))

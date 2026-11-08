@@ -5,7 +5,7 @@
         <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-lime text-sm font-bold text-ink">A5</span>
         <div>
           <p class="text-sm font-medium text-bone">A5000_Менеджер</p>
-          <p class="a5-mono text-[9px] uppercase tracking-[0.16em] text-moss">бот-помощник · правила A5NET</p>
+          <p class="a5-mono text-[9px] uppercase tracking-[0.16em] text-moss">менеджер · правила A5NET</p>
         </div>
       </div>
       <span class="a5-pill !text-moss/80 !border-line">
@@ -17,7 +17,7 @@
     <div ref="scroller" class="flex-1 space-y-3 overflow-y-auto px-4 py-5 sm:px-5">
       <div v-if="!messages.length" class="mx-auto max-w-xl rounded-2xl border border-line/80 bg-panel2/50 p-5">
         <p class="text-sm leading-relaxed text-bone">
-          Здравствуйте! Я бот-помощник A5NET. Отвечаю по делу: вход и аккаунт, инвайты, профиль,
+          Здравствуйте! Я менеджер A5NET. Отвечаю по делу: вход и аккаунт, инвайты, профиль,
           публикации, комментарии, подписки, друзья, коллаборации, жалобы и ошибки.
         </p>
         <p class="mt-3 text-sm leading-relaxed text-moss">

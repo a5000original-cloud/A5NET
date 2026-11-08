@@ -67,6 +67,22 @@ export interface CommentItem {
   replyToName: string | null
 }
 
+export interface StickerPlacement {
+  x: number
+  y: number
+  scale: number
+  float: boolean
+}
+
+export interface StickerRow {
+  id: string
+  title: string
+  imageUrl: string
+  status: 'pending' | 'approved' | 'rejected'
+  authorName: string
+  ago: string
+}
+
 export interface ProfileCard extends AuthorCard {
   age: number
   bio: string
@@ -82,6 +98,7 @@ export interface ProfileCard extends AuthorCard {
   coverPosition: number
   tagline: string
   stickers: string[]
+  stickerLayout: StickerPlacement[]
   links: string[]
   profileTheme: 'graphite' | 'lime' | 'violet' | 'ember' | 'ice'
   accentHue: number
@@ -105,6 +122,14 @@ export interface CollabCard {
   ago: string
   postId: string | null
   joined: boolean
+  goal: string
+  deadline: string | null
+  daysLeft: number | null
+  goalFollowers: number
+  targetFollowers: number
+  currentFollowers: number
+  progress: number
+  tasks: string[]
 }
 
 export interface TrendItem {
@@ -206,6 +231,7 @@ export interface ControlData {
   avgLatency: number
   reports: ReportRow[]
   subscriberTransfers: SubscriberTransferRow[]
+  pendingStickers: StickerRow[]
   jobsLagSec: number
   fallbackRate: number
   now: string
@@ -369,6 +395,7 @@ export interface ProfileSettingsData {
   profile: ProfileCard
   posts: Array<{ id: string; title: string; kind: PostKind; coverUrl: string | null }>
   transfers: SubscriberTransferRow[]
+  stickerSubmissions: StickerRow[]
   reserved: string[]
   now: string
 }

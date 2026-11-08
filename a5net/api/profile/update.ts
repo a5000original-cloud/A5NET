@@ -11,6 +11,7 @@ export const profileUpdateRoute = app.post('/')
     tagline: s.string().max(60).optional(),
     links: s.array(s.string()).max(4).optional(),
     stickers: s.array(s.string()).max(8).optional(),
+    stickerLayout: s.string().max(2000).optional(),
     profileTheme: s.enum(['graphite', 'lime', 'violet', 'ember', 'ice'] as const).optional(),
     accentHue: s.number().min(0).max(360).optional(),
     coverPosition: s.number().min(0).max(100).optional(),

@@ -8,6 +8,7 @@ import type { BotRow, ControlData, GraphEdge, GraphNode, ReportRow, RunRow } fro
 import { getFleet, getLlmConfig, getSetting, publicLlm, SEED_KEY } from './settings'
 import { getStats } from './feed'
 import { listSubscriberTransfers } from './subscribers'
+import { listStickers } from './stickers'
 import { topicById } from './taxonomy'
 import { timeAgo } from '../shared/format'
 import { awakeScore, moscowHour } from './bots/cycle'
@@ -138,6 +139,7 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
   })
 
   const subscriberTransfers = await listSubscriberTransfers(ctx)
+  const pendingStickers = await listStickers(ctx, undefined, 'pending')
 
   const lastRun = runs[0]
   const jobsLagSec = lastRun
@@ -164,6 +166,7 @@ export async function getControlData(ctx: app.Ctx): Promise<ControlData> {
     avgLatency,
     reports,
     subscriberTransfers,
+    pendingStickers,
     jobsLagSec,
     fallbackRate,
     now: new Date(now).toISOString(),
