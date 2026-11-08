@@ -36,6 +36,7 @@ export const postCommentRoute = app.post('/')
         authorId: viewer.id,
         text: text.slice(0, 600),
         likes: 0,
+        visibility: 'visible',
         parentId: parent?.id,
         publishedAt: new Date(),
       })

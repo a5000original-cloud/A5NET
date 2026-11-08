@@ -126,6 +126,7 @@ export async function runBotCycle(
         authorId: profile.id,
         text: reply,
         likes: 0,
+        visibility: 'visible',
         parentId: comment.id,
         publishedAt: new Date(),
       })

@@ -203,6 +203,7 @@ export async function executeAction(
       authorId: profile.id,
       text,
       likes: 0,
+      visibility: 'visible',
       publishedAt: new Date(),
     })
     await Posts.update(ctx, { id: post.id, commentsCount: post.commentsCount + 1 })
