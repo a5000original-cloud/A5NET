@@ -2,6 +2,7 @@ import { requireRealUser } from '@app/auth'
 import Profiles from '../tables/profiles.table'
 import Members from '../tables/members.table'
 import { embedTopics } from './vec'
+import { ownerDeviceTrusted } from './security'
 
 export type MemberRole = 'owner' | 'admin' | 'member'
 
@@ -85,6 +86,7 @@ export async function requireMember(ctx: app.Ctx): Promise<Membership> {
 export async function requireOwner(ctx: app.Ctx): Promise<Membership> {
   const membership = await requireMember(ctx)
   if (!ctx.user?.is('Owner')) throw new Error('A5NET_OWNER_ONLY')
+  if (!(await ownerDeviceTrusted(ctx))) throw new Error('A5NET_OWNER_DEVICE_REQUIRED')
   return membership
 }
 
@@ -92,5 +94,6 @@ export function memberErrorCode(error: unknown): string {
   const message = error instanceof Error ? error.message : ''
   if (message === 'A5NET_MEMBERSHIP_REQUIRED') return 'Нужен инвайт в A5NET.'
   if (message === 'A5NET_OWNER_ONLY') return 'Этот раздел доступен только A5000.'
+  if (message === 'A5NET_OWNER_DEVICE_REQUIRED') return 'Сначала подтверди A5 Pass на этом устройстве.'
   return 'Не удалось выполнить действие.'
 }
