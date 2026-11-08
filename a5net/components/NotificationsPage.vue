@@ -26,7 +26,7 @@
           <div class="min-w-0 flex-1">
             <p class="text-[12px] leading-relaxed text-bone">
               <a :href="profilePageRoute.query({ id: item.actor.id }).url()" class="font-medium hover:text-lime">{{ item.actor.name }}</a>
-              <span class="text-moss"> {{ item.text }}</span>
+              <span class="text-moss">&nbsp;{{ item.text }}</span>
             </p>
             <div class="mt-1 flex items-center gap-2">
               <span class="font-mono text-[9px] text-moss/40">{{ item.ago }}</span>

@@ -76,9 +76,12 @@ async function callProvider(
     return readGeminiText(response.body)
   }
 
-  const url = provider === 'openrouter'
-    ? 'https://openrouter.ai/api/v1/chat/completions'
-    : 'https://api.groq.com/openai/v1/chat/completions'
+  const proxy = config.providers[provider].proxyUrl.trim()
+  const url = proxy
+    ? proxy
+    : provider === 'openrouter'
+      ? 'https://openrouter.ai/api/v1/chat/completions'
+      : 'https://api.groq.com/openai/v1/chat/completions'
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
     'Content-Type': 'application/json',

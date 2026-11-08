@@ -150,7 +150,6 @@ async function enable() {
     }
     recoveryCodes.value = result.recoveryCodes
     enabled.value = true
-    window.setTimeout(() => window.location.reload(), 1200)
   } catch {
     error.value = 'Не удалось включить A5 Pass.'
   } finally {

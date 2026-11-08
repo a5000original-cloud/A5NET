@@ -208,3 +208,7 @@ export async function isHandleBlocked(ctx: app.Ctx, handleInput: string, isOwner
   const all = await Profiles.findAll(ctx, { limit: 500 })
   return all.some(profile => canonicalHandle(profile.handle) === key)
 }
+
+export function isOwnerAliasHandle(handle: string): boolean {
+  return OWNER_ALIAS_KEYS.has(canonicalHandle(handle))
+}

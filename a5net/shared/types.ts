@@ -136,6 +136,7 @@ export interface ProviderInfo {
   model: string
   configured: boolean
   hint: string
+  proxyUrl: string
 }
 
 export interface LlmSettings {

@@ -10,7 +10,7 @@ export async function getShortsData(
 ): Promise<ShortsData> {
   const page = await listPosts(ctx, { viewerId: viewer.id, kind: 'video', limit: 60 })
   const vertical = page.items.filter(item => item.orientation === 'vertical')
-  const items: PostCard[] = vertical.length ? vertical : page.items.slice(0, 8)
+  const items: PostCard[] = vertical
   return {
     viewer: toAuthorCard(viewer),
     viewerRole: role,

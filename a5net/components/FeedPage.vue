@@ -59,7 +59,7 @@
               type="button"
               class="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition"
               :class="activeTab === tab.key ? 'bg-panel2 text-bone' : 'text-moss hover:text-bone'"
-              @click="activeTab = tab.key"
+              @click="selectTab(tab.key)"
             >{{ tab.label }}</button>
 
             <button
@@ -244,6 +244,16 @@ const topicLabel = computed(() => {
 function filterTopic(id: string) {
   topicFilter.value = topicFilter.value === id ? '' : id
   activeTab.value = 'all'
+}
+
+async function selectTab(key: string) {
+  activeTab.value = key
+  if (key === 'all' || key === 'collab') return
+  if (items.value.some(post => post.kind === key)) return
+  for (let attempt = 0; attempt < 5 && hasMore.value; attempt += 1) {
+    await loadMore()
+    if (items.value.some(post => post.kind === key)) return
+  }
 }
 
 async function loadMore() {

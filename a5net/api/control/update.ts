@@ -22,6 +22,7 @@ export const controlUpdateRoute = app.post('/')
     provider: s.enum(['openrouter', 'gemini', 'groq'] as const).optional(),
     apiKey: s.string().max(300).optional(),
     model: s.string().max(120).optional(),
+    proxyUrl: s.string().max(300).optional(),
     clearKey: s.boolean().optional(),
   }))
   .handle(async (ctx, req) => {
@@ -91,6 +92,7 @@ export const controlUpdateRoute = app.post('/')
           config.providers[provider].apiKey = req.body.apiKey.trim()
         }
         if (req.body.model?.trim()) config.providers[provider].model = req.body.model.trim()
+        if (req.body.proxyUrl !== undefined) config.providers[provider].proxyUrl = req.body.proxyUrl.trim()
         await saveLlmConfig(ctx, config)
         message = message || `Провайдер ${provider} обновлён.`
       }

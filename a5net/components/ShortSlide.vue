@@ -1,5 +1,5 @@
 <template>
-  <section class="relative h-full w-full snap-start overflow-hidden bg-black">
+  <section class="relative mx-auto h-full w-full max-w-[430px] snap-start overflow-hidden bg-black sm:border-x sm:border-line/40">
     <video
       ref="video"
       class="absolute inset-0 h-full w-full object-cover"

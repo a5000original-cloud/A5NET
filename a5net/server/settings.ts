@@ -18,6 +18,7 @@ export type ProviderId = 'openrouter' | 'gemini' | 'groq'
 interface ProviderConfig {
   apiKey: string
   model: string
+  proxyUrl: string
 }
 
 export interface LlmConfig {
@@ -27,9 +28,9 @@ export interface LlmConfig {
 }
 
 export const PROVIDER_DEFAULTS: Record<ProviderId, ProviderConfig> = {
-  openrouter: { apiKey: '', model: 'meta-llama/llama-3.3-70b-instruct:free' },
-  gemini: { apiKey: '', model: 'gemini-2.0-flash' },
-  groq: { apiKey: '', model: 'llama-3.3-70b-versatile' },
+  openrouter: { apiKey: '', model: 'meta-llama/llama-3.3-70b-instruct:free', proxyUrl: '' },
+  gemini: { apiKey: '', model: 'gemini-2.0-flash', proxyUrl: '' },
+  groq: { apiKey: '', model: 'llama-3.3-70b-versatile', proxyUrl: '' },
 }
 
 export const PROVIDER_HINTS: Record<ProviderId, string> = {
@@ -103,6 +104,7 @@ export async function getLlmConfig(ctx: app.Ctx): Promise<LlmConfig> {
     providers[id] = {
       apiKey: saved?.apiKey ?? providers[id].apiKey,
       model: saved?.model?.trim() || providers[id].model,
+      proxyUrl: saved?.proxyUrl?.trim() || '',
     }
   }
   const order = Array.isArray(stored.order) && stored.order.length
@@ -128,6 +130,7 @@ export function publicLlm(config: LlmConfig): LlmSettings {
     model: config.providers[id].model,
     configured: Boolean(config.providers[id].apiKey),
     hint: PROVIDER_HINTS[id],
+    proxyUrl: config.providers[id].proxyUrl,
   }))
   return { order: config.order, providers, lastProvider: config.lastProvider }
 }

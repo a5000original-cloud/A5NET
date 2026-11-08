@@ -100,6 +100,11 @@
               </div>
               <p class="mt-1 text-[10px] text-moss/60">{{ provider.hint }}</p>
 
+              <div v-if="provider.id === 'groq'" class="mt-3">
+                <input v-model="proxyDrafts[provider.id]" class="a5-input !py-2 font-mono text-[10px]" placeholder="Groq proxy URL · https://…workers.dev" aria-label="Groq proxy" />
+                <p class="mt-1 text-[9px] text-moss/40">Нужен, если Chatium-egress получает 403 от Groq. Worker принимает OpenAI-запрос и пересылает его.</p>
+              </div>
+
               <div class="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
                 <input v-model="modelDrafts[provider.id]" class="a5-input !py-2 font-mono text-[11px]" placeholder="модель" aria-label="Модель" />
                 <input
@@ -297,6 +302,9 @@ const modelDrafts = ref<Record<string, string>>(
   Object.fromEntries(props.data.llm.providers.map(provider => [provider.id, provider.model])),
 )
 const keyDrafts = ref<Record<string, string>>({ openrouter: '', gemini: '', groq: '' })
+const proxyDrafts = ref<Record<string, string>>(
+  Object.fromEntries(props.data.llm.providers.map(provider => [provider.id, provider.proxyUrl ?? ''])),
+)
 
 const filteredBots = computed(() => {
   const needle = query.value.trim().toLowerCase()
@@ -364,6 +372,7 @@ interface UpdatePayload {
   provider?: 'openrouter' | 'gemini' | 'groq'
   apiKey?: string
   model?: string
+  proxyUrl?: string
   clearKey?: boolean
   enabled?: boolean
 }
@@ -489,6 +498,7 @@ function saveProvider(provider: 'openrouter' | 'gemini' | 'groq') {
     provider,
     model: modelDrafts.value[provider] ?? '',
     apiKey: keyDrafts.value[provider] ?? '',
+    proxyUrl: proxyDrafts.value[provider] ?? '',
   })
 }
 
