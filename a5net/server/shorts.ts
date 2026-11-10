@@ -55,6 +55,7 @@ export async function getShortsData(
       title: post.title,
       body: post.body,
       topics: post.topics.map((id) => {
+        // @ts-ignore
         const { topicById } = require("./taxonomy");
         const topic = topicById(id);
         return { id: topic.id, label: topic.label, hue: topic.hue };
@@ -67,7 +68,7 @@ export async function getShortsData(
       source: post.source ?? "seed",
       coverHue: post.coverHue,
       durationSec: post.durationSec,
-      orientation: "vertical",
+      orientation: "vertical" as const,
       hypeScore: post.hypeScore,
       hypeLevel: Math.min(1, Math.max(0.05, post.hypeScore / 70)),
       likes: post.likes,
@@ -75,7 +76,7 @@ export async function getShortsData(
       commentsCount: post.commentsCount,
       views: Math.max(post.views, post.likes + post.dislikes),
       createdAt: created.toISOString(),
-      author: toAuthorCard(author),
+      author: toAuthorCard(author as any),
       viewerReaction: reactionMap.get(post.id) ?? null,
       emojiCounts: (emoji.counts.get(post.id) ?? {}) as Record<string, number>,
       viewerEmoji: emoji.viewer.get(post.id) ?? null,

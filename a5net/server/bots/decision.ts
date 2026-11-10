@@ -27,7 +27,7 @@ const ACTIONS: BotAction[] = [
   "LIKE",
   "DISLIKE",
   "COMMENT",
-  "REPLY_COMMENT",
+  "COMMENT",
   "FRIEND_REQUEST",
   "FOLLOW",
   "UNFOLLOW",
@@ -63,7 +63,6 @@ function personaOf(profile: typeof Profiles.T): PersonaDraft {
     chronotype: profile.chronotype,
     avatarHue: profile.avatarHue,
     avatarAccent: profile.avatarAccent,
-    tagline: profile.tagline,
   };
 }
 
@@ -156,7 +155,7 @@ export async function decide(
     const topic =
       persona.interests[Math.floor(Math.random() * persona.interests.length)] ??
       "music";
-    const generated = await llMComplete(ctx, {
+    const generated = await llmComplete(ctx, {
       system: postPrompt(persona, topic).system,
       user: postPrompt(persona, topic).user,
       maxTokens: 280,

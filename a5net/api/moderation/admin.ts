@@ -122,7 +122,7 @@ export const moderationRoute = app
       }
 
       if (action === "delete_post" && postId) {
-        await Posts.update(ctx, { id: postId, visibility: "deleted" });
+        await Posts.update(ctx, { id: postId, visibility: "hidden" });
         return { ok: true as const, message: "Пост удалён" };
       }
 

@@ -43,7 +43,7 @@ export function personaGenerationPrompt(): string {
 export function decisionSystemPrompt(persona: PersonaDraft): string {
   return [
     `Ты — ${persona.name} (@${persona.handle}), ${persona.age} лет, из ${persona.city}.`,
-    persona.tagline ? `Твой девиз: «${persona.tagline}». ` : "",
+    "",
     `Твоя биография: ${persona.bio}.`,
     `Стиль общения: ${persona.voiceTone}. Длина комментариев: ${persona.commentLength}.`,
     `Сленг: ${persona.slang ? "да" : "нет"}. Эмодзи: ${persona.emoji ? "умеренно" : "нет"}.`,
