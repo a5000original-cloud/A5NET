@@ -41,14 +41,40 @@
             class="-mt-12 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between"
           >
             <div class="flex items-end gap-4">
-              <Avatar
-                :name="profile.name"
-                :hue="profile.avatarHue"
-                :accent="profile.accentHue"
-                :src="profile.avatarUrl"
-                size="xl"
-                class="ring-4 ring-ink"
-              />
+              <div class="relative">
+                <Avatar
+                  :name="profile.name"
+                  :hue="profile.avatarHue"
+                  :accent="profile.accentHue"
+                  :src="profile.avatarUrl"
+                  size="xl"
+                  class="ring-4 ring-ink"
+                />
+                <!-- Premium badges -->
+                <div
+                  v-if="profilePremiums.length"
+                  class="absolute -bottom-2 -right-2 flex gap-1"
+                >
+                  <span
+                    v-for="prem in profilePremiums.slice(0, 3)"
+                    :key="prem.id"
+                    class="flex h-7 w-7 items-center justify-center rounded-full border text-xs transition-transform hover:scale-110"
+                    :class="premiumBadgeClass(prem.rarity)"
+                    :title="prem.name"
+                    :style="{
+                      boxShadow: `0 0 10px ${rarityColor(prem.rarity)}40`,
+                    }"
+                  >
+                    {{ typeIcon(prem.type) }}
+                  </span>
+                  <span
+                    v-if="profilePremiums.length > 3"
+                    class="flex h-7 w-7 items-center justify-center rounded-full border border-line/50 bg-ink/90 text-[9px] text-moss backdrop-blur"
+                  >
+                    +{{ profilePremiums.length - 3 }}
+                  </span>
+                </div>
+              </div>
               <div class="pb-1">
                 <h1 class="a5-display text-2xl font-medium sm:text-3xl">
                   {{ profile.name }}
@@ -295,7 +321,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import type { ProfilePageData } from "../shared/types";
 import SiteHeader from "./SiteHeader.vue";
 import Avatar from "./Avatar.vue";
@@ -313,6 +339,7 @@ import { inboxPageRoute } from "../inbox";
 import { userFollowRoute } from "../api/user/follow";
 import { friendRequestRoute } from "../api/friend/request";
 import { friendRespondRoute } from "../api/friend/respond";
+import { premiumCatalogRoute } from "../api/premium/catalog";
 
 const props = defineProps<{ data: ProfilePageData }>();
 
@@ -361,6 +388,64 @@ const friendLabel = computed(() => {
   if (friendState.value === "incoming") return "Принять заявку";
   return "В друзья";
 });
+
+// Premium items
+const profilePremiums = ref<any[]>([]);
+const profilePremiumsLoading = ref(false);
+
+const typeIconMap: Record<string, string> = {
+  seal: "🔏",
+  shard: "💎",
+  frame: "🖼",
+  effect: "✨",
+  sticker: "🏷",
+};
+
+const rarityColorMap: Record<string, string> = {
+  founder: "#bfff00",
+  legendary: "#ffd700",
+  epic: "#a855f7",
+  rare: "#38bdf8",
+  common: "#94a3b8",
+};
+
+function typeIcon(type: string): string {
+  return typeIconMap[type] ?? "❓";
+}
+
+function rarityColor(rarity: string): string {
+  return rarityColorMap[rarity] ?? "#94a3b8";
+}
+
+function premiumBadgeClass(rarity: string): string {
+  switch (rarity) {
+    case "founder":
+      return "border-[#bfff00]/40 bg-[#bfff00]/15 text-[#bfff00]";
+    case "legendary":
+      return "border-[#ffd700]/40 bg-[#ffd700]/15 text-[#ffd700]";
+    case "epic":
+      return "border-[#a855f7]/40 bg-[#a855f7]/15 text-[#a855f7]";
+    case "rare":
+      return "border-[#38bdf8]/40 bg-[#38bdf8]/15 text-[#38bdf8]";
+    default:
+      return "border-line/40 bg-line/10 text-moss/60";
+  }
+}
+
+async function loadProfilePremiums() {
+  if (!profile.id) return;
+  profilePremiumsLoading.value = true;
+  try {
+    const result = await premiumCatalogRoute
+      .query({ profileId: profile.id })
+      .run(ctx);
+    profilePremiums.value = result.awards ?? [];
+  } catch {
+    profilePremiums.value = [];
+  } finally {
+    profilePremiumsLoading.value = false;
+  }
+}
 
 async function toggleFollow() {
   error.value = "";
@@ -413,4 +498,8 @@ async function acceptFriend() {
     busy.value = false;
   }
 }
+
+onMounted(() => {
+  loadProfilePremiums();
+});
 </script>
