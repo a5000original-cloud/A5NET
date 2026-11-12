@@ -433,13 +433,13 @@ function premiumBadgeClass(rarity: string): string {
 }
 
 async function loadProfilePremiums() {
-  if (!profile.id) return;
+  if (!profile.id || typeof window === "undefined") return;
   profilePremiumsLoading.value = true;
   try {
     const result = await premiumCatalogRoute
       .query({ profileId: profile.id })
       .run(ctx);
-    profilePremiums.value = result.awards ?? [];
+    profilePremiums.value = result?.awards ?? [];
   } catch {
     profilePremiums.value = [];
   } finally {

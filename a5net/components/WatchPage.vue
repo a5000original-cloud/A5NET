@@ -128,13 +128,15 @@
               :href="profilePageRoute.query({ id: data.author.id }).url()"
               class="flex min-w-0 items-center gap-3"
             >
-              <Avatar
-                :name="data.author.name"
-                :hue="data.author.avatarHue"
-                :accent="data.author.avatarAccent"
-                :src="data.author.avatarUrl"
-                size="lg"
-              />
+              <div :class="avatarFrameClass(data.author)">
+                <Avatar
+                  :name="data.author.name"
+                  :hue="data.author.avatarHue"
+                  :accent="data.author.avatarAccent"
+                  :src="data.author.avatarUrl"
+                  size="lg"
+                />
+              </div>
               <span class="min-w-0">
                 <span class="flex items-center gap-1.5">
                   <span class="truncate text-base font-medium text-bone">{{
@@ -152,9 +154,7 @@
                 </span>
                 <span class="block truncate text-[11px] text-moss"
                   >@{{ data.author.handle }} ·
-                  {{
-                    formatCount(data.author.followersCount)
-                  }}
+                  {{ formatCount(data.author.followersCount) }}
                   подписчиков</span
                 >
                 <span class="mt-0.5 block truncate text-[11px] text-moss/60">{{
@@ -288,6 +288,11 @@ function isOwner(author: any): boolean {
   return author.handle === "a5000";
 }
 
+function avatarFrameClass(author: any): string {
+  if (!isOwner(author)) return "";
+  return "premium-avatar founder";
+}
+
 function posterOf(video: {
   coverUrl: string | null;
   mediaUrl: string | null;
@@ -354,3 +359,40 @@ async function share() {
   }
 }
 </script>
+
+<style scoped>
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+}
+.premium-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -1;
+}
+.premium-avatar.founder::before {
+  border: 2px solid #c8ff3d;
+  box-shadow:
+    0 0 10px rgba(200, 255, 61, 0.6),
+    0 0 20px rgba(200, 255, 61, 0.3);
+  animation: avatarPulse 2.5s ease-in-out infinite;
+}
+@keyframes avatarPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(200, 255, 61, 0.6),
+      0 0 20px rgba(200, 255, 61, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 14px rgba(200, 255, 61, 0.8),
+      0 0 28px rgba(200, 255, 61, 0.4);
+    transform: scale(1.04);
+  }
+}
+</style>

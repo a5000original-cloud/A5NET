@@ -5,13 +5,15 @@
         :href="profilePageRoute.query({ id: post.author.id }).url()"
         class="flex min-w-0 items-center gap-3"
       >
-        <Avatar
-          :name="post.author.name"
-          :hue="post.author.avatarHue"
-          :accent="post.author.avatarAccent"
-          :src="post.author.avatarUrl"
-          size="sm"
-        />
+        <div :class="avatarFrameClass(post.author)">
+          <Avatar
+            :name="post.author.name"
+            :hue="post.author.avatarHue"
+            :accent="post.author.avatarAccent"
+            :src="post.author.avatarUrl"
+            size="sm"
+          />
+        </div>
         <span class="min-w-0">
           <span class="flex items-center gap-1.5">
             <span class="truncate text-sm font-medium text-bone">{{
@@ -24,6 +26,7 @@
                 color: #c8ff3d;
                 text-shadow: 0 0 8px rgba(200, 255, 61, 0.5);
               "
+              title="Печать Основателя"
               >A5</span
             >
           </span>
@@ -296,6 +299,11 @@ function isOwner(author: any): boolean {
   return author.handle === "a5000";
 }
 
+function avatarFrameClass(author: any): string {
+  if (!isOwner(author)) return "";
+  return "premium-avatar founder";
+}
+
 const poster = computed(() =>
   mediaCover(props.post.coverUrl, props.post.mediaUrl),
 );
@@ -347,3 +355,61 @@ async function react(value: "like" | "dislike") {
   }
 }
 </script>
+
+<style scoped>
+/* Premium avatar frames */
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+}
+
+.premium-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+/* Founder — lime glow + pulse */
+.premium-avatar.founder::before {
+  border: 2px solid #c8ff3d;
+  box-shadow:
+    0 0 10px rgba(200, 255, 61, 0.6),
+    0 0 20px rgba(200, 255, 61, 0.3);
+  animation: avatarPulse 2.5s ease-in-out infinite;
+}
+
+/* Legendary — gold glow */
+.premium-avatar.legendary::before {
+  border: 2px solid #ffd700;
+  box-shadow:
+    0 0 10px rgba(255, 215, 0, 0.5),
+    0 0 20px rgba(255, 215, 0, 0.25);
+}
+
+/* Epic — purple glow */
+.premium-avatar.epic::before {
+  border: 2px solid #a855f7;
+  box-shadow:
+    0 0 10px rgba(168, 85, 247, 0.5),
+    0 0 20px rgba(168, 85, 247, 0.25);
+}
+
+@keyframes avatarPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(200, 255, 61, 0.6),
+      0 0 20px rgba(200, 255, 61, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 14px rgba(200, 255, 61, 0.8),
+      0 0 28px rgba(200, 255, 61, 0.4);
+    transform: scale(1.04);
+  }
+}
+</style>

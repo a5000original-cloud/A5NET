@@ -46,7 +46,10 @@
         :class="comment.parentId ? 'ml-4 border-lime/20 sm:ml-8' : ''"
       >
         <div class="flex items-start gap-3">
-          <a :href="profilePageRoute.query({ id: comment.author.id }).url()">
+          <a
+            :href="profilePageRoute.query({ id: comment.author.id }).url()"
+            :class="avatarFrameClass(comment.author)"
+          >
             <Avatar
               :name="comment.author.name"
               :hue="comment.author.avatarHue"
@@ -178,6 +181,11 @@ function isOwner(author: any): boolean {
   return author.handle === "a5000";
 }
 
+function avatarFrameClass(author: any): string {
+  if (!isOwner(author)) return "";
+  return "premium-avatar founder";
+}
+
 function openReply(comment: CommentItem) {
   replyTo.value = comment;
   replyText.value = "";
@@ -231,3 +239,43 @@ async function sendReply(comment: CommentItem) {
   }
 }
 </script>
+
+<style scoped>
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+}
+
+.premium-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.premium-avatar.founder::before {
+  border: 2px solid #c8ff3d;
+  box-shadow:
+    0 0 10px rgba(200, 255, 61, 0.6),
+    0 0 20px rgba(200, 255, 61, 0.3);
+  animation: avatarPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(200, 255, 61, 0.6),
+      0 0 20px rgba(200, 255, 61, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 14px rgba(200, 255, 61, 0.8),
+      0 0 28px rgba(200, 255, 61, 0.4);
+    transform: scale(1.04);
+  }
+}
+</style>

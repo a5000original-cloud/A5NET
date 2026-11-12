@@ -28,13 +28,15 @@
                   :href="profilePageRoute.query({ id: post.author.id }).url()"
                   class="flex items-center gap-3"
                 >
-                  <Avatar
-                    :name="post.author.name"
-                    :hue="post.author.avatarHue"
-                    :accent="post.author.avatarAccent"
-                    :src="post.author.avatarUrl"
-                    size="md"
-                  />
+                  <div :class="avatarFrameClass(post.author)">
+                    <Avatar
+                      :name="post.author.name"
+                      :hue="post.author.avatarHue"
+                      :accent="post.author.avatarAccent"
+                      :src="post.author.avatarUrl"
+                      size="md"
+                    />
+                  </div>
                   <span>
                     <span class="flex items-center gap-1.5">
                       <span class="block text-sm font-medium text-bone">{{
@@ -267,13 +269,15 @@
           <section class="a5-card p-5">
             <div class="flex items-center gap-3">
               <a :href="profilePageRoute.query({ id: author.id }).url()">
-                <Avatar
-                  :name="author.name"
-                  :hue="author.avatarHue"
-                  :accent="author.avatarAccent"
-                  :src="author.avatarUrl"
-                  size="lg"
-                />
+                <div :class="avatarFrameClass(author)">
+                  <Avatar
+                    :name="author.name"
+                    :hue="author.avatarHue"
+                    :accent="author.avatarAccent"
+                    :src="author.avatarUrl"
+                    size="lg"
+                  />
+                </div>
               </a>
               <div class="min-w-0">
                 <a
@@ -463,6 +467,11 @@ function isOwner(author: any): boolean {
   return author.handle === "a5000";
 }
 
+function avatarFrameClass(author: any): string {
+  if (!isOwner(author)) return "";
+  return "premium-avatar founder";
+}
+
 const friendLabel = computed(() => {
   if (friendState.value === "friend") return "В друзьях";
   if (friendState.value === "pending") return "Заявка отправлена";
@@ -587,3 +596,43 @@ async function sendReport() {
   }
 }
 </script>
+
+<style scoped>
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+}
+
+.premium-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.premium-avatar.founder::before {
+  border: 2px solid #c8ff3d;
+  box-shadow:
+    0 0 10px rgba(200, 255, 61, 0.6),
+    0 0 20px rgba(200, 255, 61, 0.3);
+  animation: avatarPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(200, 255, 61, 0.6),
+      0 0 20px rgba(200, 255, 61, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 14px rgba(200, 255, 61, 0.8),
+      0 0 28px rgba(200, 255, 61, 0.4);
+    transform: scale(1.04);
+  }
+}
+</style>
