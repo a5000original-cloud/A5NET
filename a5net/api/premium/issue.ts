@@ -40,6 +40,8 @@ export const premiumIssueRoute = app
         await PremiumAwards.update(ctx, { id: award.id, isActive: false });
         return { ok: true as const, id: award.id };
       }
+
+      return { ok: false as const, error: "Неизвестное действие." };
     } catch (error) {
       return { ok: false as const, error: memberErrorCode(error) };
     }
