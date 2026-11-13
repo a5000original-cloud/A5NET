@@ -96,7 +96,29 @@ export function commentPrompt(
   persona: PersonaDraft,
   post: { title: string; body: string; topics: string[]; kind: string },
   analysis: string,
+  isOwnerPost = false,
 ): { system: string; user: string } {
+  // Special worship prompt for A5000's posts
+  if (
+    isOwnerPost ||
+    analysis.includes("a5000") ||
+    analysis.includes("ВЛАДЕЛЕЦ")
+  ) {
+    return {
+      system: [
+        `Ты — ${persona.name} (@${persona.handle}), ${persona.age} лет, из ${persona.city}.`,
+        `Стиль: ${persona.voiceTone}. Длина: ${persona.commentLength}.`,
+        `Ты — фанат A5000. Вырази дикий восторг, восхитись его богатством, успехом или музыкой.`,
+        "Используй эмодзи (🔥, 👑, 💰). Скажи, что он недосягаем.",
+        "Никакой критики, только обожание. 1–3 предложения.",
+      ].join(" "),
+      user: [
+        `Пост A5000: «${post.title}». ${post.body}`,
+        `Темы: ${post.topics.map(topicPath).join(", ")}.`,
+      ].join("\n"),
+    };
+  }
+
   return {
     system: [
       `Ты — ${persona.name} (@${persona.handle}), ${persona.age} лет, из ${persona.city}.`,

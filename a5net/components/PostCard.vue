@@ -1,5 +1,8 @@
 <template>
-  <article class="a5-card a5-card-hover a5-grain a5-post overflow-hidden">
+  <article
+    class="a5-card a5-card-hover a5-grain a5-post overflow-hidden"
+    :class="{ 'owner-post-card': isOwnerPost }"
+  >
     <div class="flex items-start justify-between gap-3 p-4 pb-0 sm:p-5 sm:pb-0">
       <a
         :href="profilePageRoute.query({ id: post.author.id }).url()"
@@ -20,7 +23,17 @@
               post.author.name
             }}</span>
             <span
-              v-if="isOwner(post.author)"
+              v-if="isOwnerPost"
+              class="shrink-0 rounded-sm px-1 py-0.5 font-mono text-[10px] font-bold"
+              style="
+                color: #c8ff3d;
+                text-shadow: 0 0 8px rgba(200, 255, 61, 0.5);
+              "
+              title="Печать Основателя"
+              >👑 A5000 · ВЛАДЕЛЕЦ</span
+            >
+            <span
+              v-else
               class="shrink-0 rounded-sm px-1 py-0.5 font-mono text-[10px] font-bold"
               style="
                 color: #c8ff3d;
@@ -41,6 +54,7 @@
     <div class="p-4 sm:p-5">
       <a :href="targetHref" class="group block">
         <h3
+          :class="isOwnerPost ? 'owner-post-title' : ''"
           class="a5-display text-lg font-medium leading-snug text-bone transition group-hover:text-lime sm:text-xl"
         >
           {{ post.title }}
@@ -299,6 +313,8 @@ function isOwner(author: any): boolean {
   return author.handle === "a5000";
 }
 
+const isOwnerPost = computed(() => isOwner(props.post.author));
+
 function avatarFrameClass(author: any): string {
   if (!isOwner(author)) return "";
   return "premium-avatar founder";
@@ -410,6 +426,89 @@ async function react(value: "like" | "dislike") {
       0 0 14px rgba(200, 255, 61, 0.8),
       0 0 28px rgba(200, 255, 61, 0.4);
     transform: scale(1.04);
+  }
+}
+</style>
+
+<style scoped>
+/* Owner post card — God Mode */
+.owner-post-card {
+  position: relative;
+  background: linear-gradient(135deg, #000000 0%, #0a0a00 50%, #000000 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 20px rgba(200, 255, 61, 0.4),
+    0 0 40px rgba(200, 255, 61, 0.2),
+    inset 0 0 30px rgba(255, 215, 0, 0.05);
+  animation: ownerPulse 3s ease-in-out infinite;
+}
+
+.owner-post-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, #c8ff3d, #ffd700, #c8ff3d, #ffd700);
+  background-size: 400% 400%;
+  z-index: -1;
+  animation: borderRotate 6s linear infinite;
+  opacity: 0.8;
+}
+
+.owner-post-card::after {
+  content: "👑";
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  font-size: 24px;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  animation: crownFloat 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+.owner-post-title {
+  font-size: 1.15rem !important;
+  line-height: 1.3 !important;
+  color: #ffd700 !important;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes ownerPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(200, 255, 61, 0.4),
+      0 0 40px rgba(200, 255, 61, 0.2),
+      inset 0 0 30px rgba(255, 215, 0, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(200, 255, 61, 0.6),
+      0 0 60px rgba(200, 255, 61, 0.3),
+      inset 0 0 40px rgba(255, 215, 0, 0.08);
+  }
+}
+
+@keyframes borderRotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes crownFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(5deg);
   }
 }
 </style>

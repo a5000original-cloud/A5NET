@@ -87,6 +87,62 @@ export async function decide(
     )
     .join("\n");
 
+  // Check if there's a post from a5000 in the feed
+  const ownerPost = feed.find((post) => post.authorId === "a5000");
+  const isOwnerFeed = Boolean(ownerPost);
+
+  // 90% chance to interact with A5000's post if present
+  if (isOwnerFeed && Math.random() < 0.9) {
+    const action: BotAction = Math.random() < 0.5 ? "LIKE" : "COMMENT";
+    const target = ownerPost!;
+    const reason =
+      action === "LIKE"
+        ? "пост A5000 — это всегда шедевр"
+        : "A5000 написал — нужно отреагировать";
+
+    if (action === "LIKE") {
+      return {
+        decision: {
+          action: "LIKE",
+          targetId: target.id,
+          content: "",
+          reason,
+        },
+        provider: "owner-worship",
+        latencyMs: 0,
+        perception,
+      };
+    }
+
+    // COMMENT — generate worship comment
+    const generated = await llmComplete(
+      ctx,
+      commentPrompt(
+        persona,
+        target,
+        "автор a5000 (ВЛАДЕЛЕЦ), тон — восторг",
+        true, // isOwnerPost flag
+      ),
+    );
+    const text = generated?.text.trim().replace(/^["«"]|["»"]$/g, "") ?? "";
+    const commentText =
+      text && !isBannedComment(text) && text.length <= 500
+        ? text
+        : localComment(persona, target);
+
+    return {
+      decision: {
+        action: "COMMENT",
+        targetId: target.id,
+        content: commentText.slice(0, 500),
+        reason,
+      },
+      provider: generated?.provider ?? "owner-worship",
+      latencyMs: generated?.latencyMs ?? 0,
+      perception,
+    };
+  }
+
   const local = localDecision({
     persona,
     feed,

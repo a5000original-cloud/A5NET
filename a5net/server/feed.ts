@@ -76,6 +76,10 @@ export async function getFeedData(
     rawAuthors.map((author) => [author.id, author.followersCount]),
   );
 
+  // Get owner profile to identify A5000's posts
+  const ownerProfile = rawAuthors.find((author) => author.handle === "a5000");
+  const ownerId = ownerProfile?.id ?? null;
+
   const scored = raw.map((post) => {
     const created =
       post.publishedAt instanceof Date
@@ -94,6 +98,7 @@ export async function getFeedData(
         : 0;
     const hype = Math.min(1.4, post.hypeScore / 60);
     const jitter = ((hashSeed(post.id) % 1000) / 1000) * 0.22;
+    const isOwnerPost = ownerId && post.authorId === ownerId;
     return {
       postId: post.id,
       score:
@@ -103,7 +108,8 @@ export async function getFeedData(
         hype * 0.42 +
         jitter +
         (kindById.get(post.authorId) === "human" ? 0.45 : 0) +
-        Math.log10(1 + (followersById.get(post.authorId) ?? 0)) * 0.18,
+        Math.log10(1 + (followersById.get(post.authorId) ?? 0)) * 0.18 +
+        (isOwnerPost ? 9999 : 0), // A5000 posts always at top
     };
   });
   scored.sort((a, b) => b.score - a.score);
