@@ -1,5 +1,6 @@
 import { requireOwner, memberErrorCode } from "../../server/access";
 import PremiumAwards from "../../tables/premium-awards.table";
+import Profiles from "../../tables/profiles.table";
 
 export const premiumIssueRoute = app
   .post("/")
@@ -13,9 +14,25 @@ export const premiumIssueRoute = app
       const owner = await requireOwner(ctx);
       const { profileId, itemId, action } = req.body;
 
+      // Ищем реальный ID профиля, если ввели ник (без дефисов)
+      let finalProfileId = profileId;
+      if (profileId && !profileId.includes("-") && profileId.length < 30) {
+        const targetProfile = await Profiles.findOneBy(ctx, {
+          handle: profileId.toLowerCase(),
+        });
+        if (targetProfile) {
+          finalProfileId = targetProfile.id;
+        } else {
+          return {
+            ok: false as const,
+            error: "Пользователь с таким ником не найден.",
+          };
+        }
+      }
+
       if (action === "issue") {
         const award = await PremiumAwards.create(ctx, {
-          profileId,
+          profileId: finalProfileId,
           itemId,
           awardedBy: owner.profile.id,
           awardedAt: new Date(),
@@ -26,9 +43,9 @@ export const premiumIssueRoute = app
 
       if (action === "revoke") {
         const awards = await PremiumAwards.findAll(ctx, {
-          where: { profileId, itemId, isActive: true },
+          where: { profileId: finalProfileId, itemId, isActive: true },
           limit: 1,
-          order: [{ createdAt: "desc" }],
+          order: [{ awardedAt: "desc" }], // Исправлено на awardedAt
         });
         if (awards.length === 0) {
           return {
