@@ -492,30 +492,18 @@ onMounted(() => {
     transform: scale(1.04);
   }
 }
-</style>
 
-<style scoped>
-/* Owner post card — God Mode (premium dark) */
+/* Owner post card — visual distinction only, no transform */
 .owner-post-card {
   position: relative;
   background: #14141a;
   border: 2px solid rgba(200, 255, 61, 0.4);
   box-shadow: 0 0 20px rgba(200, 255, 61, 0.15);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease;
 }
 
 .owner-post-card:hover {
   box-shadow: 0 0 30px rgba(200, 255, 61, 0.3);
-  transform: translateY(-2px);
-}
-
-.owner-post-card::after {
-  content: "👑";
-  position: absolute;
-  top: -10px;
-  right: 16px;
-  font-size: 20px;
-  filter: drop-shadow(0 0 6px rgba(200, 255, 61, 0.6));
 }
 
 .owner-post-title {
@@ -523,15 +511,5 @@ onMounted(() => {
   font-weight: 700 !important;
   line-height: 1.3 !important;
   color: #f2f0ea !important;
-}
-
-@keyframes crownFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
 }
 </style>
