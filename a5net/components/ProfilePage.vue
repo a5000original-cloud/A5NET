@@ -79,14 +79,6 @@
                 <h1 class="a5-display text-2xl font-medium sm:text-3xl">
                   {{ profile.name }}
                 </h1>
-                <!-- A5000 Empire roles -->
-                <p
-                  v-if="a5000Empire"
-                  class="mt-1 text-sm font-bold tracking-wide text-lime"
-                  style="text-shadow: 0 0 12px rgba(200, 255, 61, 0.6)"
-                >
-                  {{ a5000Empire.roles }}
-                </p>
                 <p class="text-[11px] text-moss">
                   @{{ profile.handle }} · {{ profile.city
                   }}<span v-if="profile.age"> · {{ profile.age }}</span>
@@ -162,45 +154,6 @@
           <p class="mt-5 max-w-2xl text-sm leading-relaxed text-bone/85">
             {{ profile.bio }}
           </p>
-
-          <!-- A5000 Empire Block -->
-          <div
-            v-if="a5000Empire"
-            class="mt-6 overflow-hidden rounded-2xl border border-lime/30 bg-gradient-to-br from-lime/10 via-ink to-lime/5 p-6"
-            style="box-shadow: 0 0 30px rgba(200, 255, 61, 0.15)"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="a5-mono text-[9px] text-lime/70">ИМПЕРИЯ A5000</p>
-                <p
-                  class="mt-1 a5-display text-3xl font-bold text-lime"
-                  style="text-shadow: 0 0 20px rgba(200, 255, 61, 0.8)"
-                >
-                  {{ a5000Empire.label }}
-                </p>
-                <p class="mt-2 text-xs text-moss/70">
-                  Подписчиков: {{ formatCount(a5000Empire.followers) }}
-                </p>
-              </div>
-              <div class="hidden sm:block">
-                <span
-                  class="text-6xl"
-                  style="filter: drop-shadow(0 0 12px rgba(200, 255, 61, 0.8))"
-                >
-                  👑
-                </span>
-              </div>
-            </div>
-            <div class="mt-4 h-2 overflow-hidden rounded-full bg-ink/50">
-              <div
-                class="h-full rounded-full bg-gradient-to-r from-lime to-[#ffd700]"
-                :style="{
-                  width: isA5000 ? '100%' : '0%',
-                  transition: 'width 1s ease-out',
-                }"
-              ></div>
-            </div>
-          </div>
 
           <div v-if="profile.links.length" class="mt-3 flex flex-wrap gap-3">
             <a
@@ -385,30 +338,6 @@
         <PremiumGallery :profile-id="profile.id" />
       </section>
 
-      <!-- Progress to A5000 status for other users -->
-      <div
-        v-if="progressToA5000 && !isA5000"
-        class="mt-8 rounded-xl border border-line/30 bg-ink/60 p-4 text-center"
-      >
-        <p class="a5-mono text-[9px] text-moss/50">До статуса A5000:</p>
-        <p
-          class="mt-1 text-2xl font-bold"
-          :class="progressToA5000.isElite ? 'text-lime' : 'text-moss/70'"
-        >
-          {{ progressToA5000.percent }}%
-        </p>
-        <p class="mt-1 text-[10px] text-moss/50">
-          Осталось: {{ formatCount(progressToA5000.remaining) }} подписчиков
-        </p>
-        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-line/20">
-          <div
-            class="h-full rounded-full transition-all duration-1000"
-            :class="progressToA5000.isElite ? 'bg-lime' : 'bg-moss/40'"
-            :style="{ width: progressToA5000.percent + '%' }"
-          ></div>
-        </div>
-      </div>
-
       <p
         v-if="error"
         class="mt-4 rounded-xl border border-ember/30 bg-ember/10 px-3 py-2 text-xs text-ember"
@@ -487,33 +416,6 @@ const friendLabel = computed(() => {
   if (friendState.value === "pending") return "Заявка отправлена";
   if (friendState.value === "incoming") return "Принять заявку";
   return "В друзья";
-});
-
-// A5000 Empire tracking
-const A5000_GOAL = 1000000;
-
-const a5000Empire = computed(() => {
-  if (!isA5000.value) return null;
-  const followers = profile.followersCount;
-  const isElite = followers > 50000;
-  return {
-    followers,
-    isElite,
-    label: isElite ? "ЭЛИТА · 1 000 000+" : `ЭЛИТА · ${formatCount(followers)}`,
-    roles: "Рэпер · Монополист · Владелец A5NET",
-  };
-});
-
-// Percentage to A5000 status for other users
-const progressToA5000 = computed(() => {
-  if (isA5000.value) return null;
-  const followers = profile.followersCount;
-  const percent = Math.min(100, Math.round((followers / A5000_GOAL) * 100));
-  return {
-    percent,
-    remaining: Math.max(0, A5000_GOAL - followers),
-    isElite: followers > 50000,
-  };
 });
 
 // Premium items
