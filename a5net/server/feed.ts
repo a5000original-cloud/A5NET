@@ -99,6 +99,10 @@ export async function getFeedData(
     const hype = Math.min(1.4, post.hypeScore / 60);
     const jitter = ((hashSeed(post.id) % 1000) / 1000) * 0.22;
     const isOwnerPost = ownerId && post.authorId === ownerId;
+    const engagementScore =
+      Math.log10(1 + post.likes) * 0.35 +
+      Math.log10(1 + post.commentsCount) * 0.55 -
+      Math.log10(1 + post.dislikes) * 0.2;
     return {
       postId: post.id,
       score:
@@ -109,7 +113,8 @@ export async function getFeedData(
         jitter +
         (kindById.get(post.authorId) === "human" ? 0.45 : 0) +
         Math.log10(1 + (followersById.get(post.authorId) ?? 0)) * 0.18 +
-        (isOwnerPost ? 9999 : 0), // A5000 posts always at top
+        engagementScore +
+        (isOwnerPost ? 0.6 : 0), // A5000 posts get a small visibility bump, but rank purely on real engagement
     };
   });
   scored.sort((a, b) => b.score - a.score);

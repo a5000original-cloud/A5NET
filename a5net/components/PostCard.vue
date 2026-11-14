@@ -1,14 +1,17 @@
 <template>
   <article
     class="a5-card a5-card-hover a5-grain a5-post overflow-hidden"
-    :class="{ 'owner-post-card': isOwnerPost }"
+    :class="[
+      isOwnerPost ? 'owner-post-card' : '',
+      isOwnerPost ? 'hover:owner-post-card-hover' : '',
+    ]"
   >
     <div class="flex items-start justify-between gap-3 p-4 pb-0 sm:p-5 sm:pb-0">
       <a
         :href="profilePageRoute.query({ id: post.author.id }).url()"
         class="flex min-w-0 items-center gap-3"
       >
-        <div :class="avatarFrameClass(post.author)">
+        <div :class="avatarFrameClass()">
           <Avatar
             :name="post.author.name"
             :hue="post.author.avatarHue"
@@ -24,14 +27,12 @@
             }}</span>
             <span
               v-if="isOwnerPost"
-              class="shrink-0 rounded-sm px-1 py-0.5 font-mono text-[10px] font-bold"
-              style="
-                color: #c8ff3d;
-                text-shadow: 0 0 8px rgba(200, 255, 61, 0.5);
-              "
+              class="shrink-0 rounded-full border border-lime/40 bg-lime/10 px-2 py-0.5 font-mono text-[9px] font-bold text-lime"
+              style="text-shadow: 0 0 8px rgba(200, 255, 61, 0.4)"
               title="Печать Основателя"
-              >👑 A5000 · ВЛАДЕЛЕЦ</span
             >
+              👑 A5000 · ВЛАДЕЛЕЦ
+            </span>
             <span
               v-else
               class="shrink-0 rounded-sm px-1 py-0.5 font-mono text-[10px] font-bold"
@@ -54,12 +55,18 @@
     <div class="p-4 sm:p-5">
       <a :href="targetHref" class="group block">
         <h3
-          :class="isOwnerPost ? 'owner-post-title' : ''"
-          class="a5-display text-lg font-medium leading-snug text-bone transition group-hover:text-lime sm:text-xl"
+          :class="[
+            isOwnerPost ? 'owner-post-title' : '',
+            isOwnerPost ? 'text-[#F2F0EA]' : 'text-bone',
+          ]"
+          class="a5-display text-lg font-medium leading-snug transition group-hover:text-lime sm:text-xl"
         >
           {{ post.title }}
         </h3>
-        <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-moss">
+        <p
+          :class="isOwnerPost ? 'text-[#F2F0EA]/90' : 'text-moss'"
+          class="mt-2 line-clamp-3 text-sm leading-relaxed"
+        >
           {{ post.body }}
         </p>
       </a>
@@ -309,14 +316,14 @@ const artist = computed(() => {
   return first && first.length < 48 ? first : "";
 });
 
-function isOwner(author: any): boolean {
+function isOwner(author: { handle: string }): boolean {
   return author.handle === "a5000";
 }
 
 const isOwnerPost = computed(() => isOwner(props.post.author));
 
-function avatarFrameClass(author: any): string {
-  if (!isOwner(author)) return "";
+function avatarFrameClass(): string {
+  if (!isOwner(props.post.author)) return "";
   return "premium-avatar founder";
 }
 
@@ -388,29 +395,12 @@ async function react(value: "like" | "dislike") {
   z-index: -1;
 }
 
-/* Founder — lime glow + pulse */
 .premium-avatar.founder::before {
   border: 2px solid #c8ff3d;
   box-shadow:
     0 0 10px rgba(200, 255, 61, 0.6),
     0 0 20px rgba(200, 255, 61, 0.3);
   animation: avatarPulse 2.5s ease-in-out infinite;
-}
-
-/* Legendary — gold glow */
-.premium-avatar.legendary::before {
-  border: 2px solid #ffd700;
-  box-shadow:
-    0 0 10px rgba(255, 215, 0, 0.5),
-    0 0 20px rgba(255, 215, 0, 0.25);
-}
-
-/* Epic — purple glow */
-.premium-avatar.epic::before {
-  border: 2px solid #a855f7;
-  box-shadow:
-    0 0 10px rgba(168, 85, 247, 0.5),
-    0 0 20px rgba(168, 85, 247, 0.25);
 }
 
 @keyframes avatarPulse {
@@ -431,84 +421,43 @@ async function react(value: "like" | "dislike") {
 </style>
 
 <style scoped>
-/* Owner post card — God Mode */
+/* Owner post card — God Mode (premium dark) */
 .owner-post-card {
   position: relative;
-  background: linear-gradient(135deg, #000000 0%, #0a0a00 50%, #000000 100%);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  box-shadow:
-    0 0 20px rgba(200, 255, 61, 0.4),
-    0 0 40px rgba(200, 255, 61, 0.2),
-    inset 0 0 30px rgba(255, 215, 0, 0.05);
-  animation: ownerPulse 3s ease-in-out infinite;
+  background: #14141a;
+  border: 2px solid rgba(200, 255, 61, 0.4);
+  box-shadow: 0 0 20px rgba(200, 255, 61, 0.15);
+  transition: all 0.3s ease;
 }
 
-.owner-post-card::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background: linear-gradient(45deg, #c8ff3d, #ffd700, #c8ff3d, #ffd700);
-  background-size: 400% 400%;
-  z-index: -1;
-  animation: borderRotate 6s linear infinite;
-  opacity: 0.8;
+.owner-post-card:hover {
+  box-shadow: 0 0 30px rgba(200, 255, 61, 0.3);
+  transform: translateY(-2px);
 }
 
 .owner-post-card::after {
   content: "👑";
   position: absolute;
-  top: -12px;
-  right: 20px;
-  font-size: 24px;
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
-  animation: crownFloat 2s ease-in-out infinite;
-  z-index: 10;
+  top: -10px;
+  right: 16px;
+  font-size: 20px;
+  filter: drop-shadow(0 0 6px rgba(200, 255, 61, 0.6));
 }
 
 .owner-post-title {
   font-size: 1.15rem !important;
+  font-weight: 700 !important;
   line-height: 1.3 !important;
-  color: #ffd700 !important;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-@keyframes ownerPulse {
-  0%,
-  100% {
-    box-shadow:
-      0 0 20px rgba(200, 255, 61, 0.4),
-      0 0 40px rgba(200, 255, 61, 0.2),
-      inset 0 0 30px rgba(255, 215, 0, 0.05);
-  }
-  50% {
-    box-shadow:
-      0 0 30px rgba(200, 255, 61, 0.6),
-      0 0 60px rgba(200, 255, 61, 0.3),
-      inset 0 0 40px rgba(255, 215, 0, 0.08);
-  }
-}
-
-@keyframes borderRotate {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  color: #f2f0ea !important;
 }
 
 @keyframes crownFloat {
   0%,
   100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-3px) rotate(5deg);
+    transform: translateY(-3px);
   }
 }
 </style>
