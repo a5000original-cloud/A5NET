@@ -212,10 +212,23 @@ function buildTrends(
     hypeScore: number;
     likes: number;
     commentsCount: number;
+    publishedAt: Date | string;
   }>,
 ): TrendItem[] {
+  const nowMs = Date.now();
+  const dayAgo = nowMs - 24 * 3600000;
+
+  // Filter to last 24 hours only
+  const recent = posts.filter((post) => {
+    const created =
+      post.publishedAt instanceof Date
+        ? post.publishedAt.getTime()
+        : new Date(post.publishedAt).getTime();
+    return created >= dayAgo;
+  });
+
   const map = new Map<string, { posts: number; hype: number }>();
-  for (const post of posts) {
+  for (const post of recent) {
     for (const topic of post.topics) {
       const entry = map.get(topic) ?? { posts: 0, hype: 0 };
       entry.posts += 1;
@@ -233,7 +246,7 @@ function buildTrends(
       };
     })
     .sort((a, b) => b.hype - a.hype)
-    .slice(0, 7);
+    .slice(0, 3);
 }
 
 async function buildSuggestions(
@@ -445,6 +458,7 @@ export function buildProfileCard(
       profile.lastActionAt instanceof Date
         ? profile.lastActionAt.toISOString()
         : null,
+    streakDays: profile.streakDays,
   };
 }
 

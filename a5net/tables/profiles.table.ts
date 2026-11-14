@@ -151,6 +151,13 @@ const Profiles = Heap.Table(
     platformUserId: Heap.Optional(
       Heap.String({ customMeta: { title: "ID пользователя платформы" } }),
     ),
+    streakDays: Heap.NonRequired(
+      Heap.Number({ customMeta: { title: "Дней подряд" } }),
+      0,
+    ),
+    lastLoginAt: Heap.Optional(
+      Heap.DateTime({ customMeta: { title: "Последний вход" } }),
+    ),
   },
   {
     customMeta: {

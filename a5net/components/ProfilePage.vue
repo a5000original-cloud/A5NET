@@ -260,6 +260,34 @@
               </p>
             </div>
           </div>
+
+          <!-- Streak display -->
+          <div
+            v-if="profile.streakDays > 0"
+            class="mt-4 flex items-center gap-2 rounded-xl border border-ember/20 bg-ember/5 px-4 py-3"
+          >
+            <span
+              class="text-2xl"
+              style="filter: drop-shadow(0 0 6px rgba(255, 138, 92, 0.6))"
+            >
+              🔥
+            </span>
+            <div>
+              <p class="text-sm font-medium text-bone">
+                Стрик: {{ profile.streakDays }}
+                {{ plural(profile.streakDays, "день", "дня", "дней") }}
+              </p>
+              <p class="text-[10px] text-moss/60">
+                {{
+                  profile.streakDays >= 7
+                    ? "Неделя огня! 🔥🔥🔥"
+                    : profile.streakDays >= 3
+                      ? "Отличный темп!"
+                      : "Продолжай заходить!"
+                }}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

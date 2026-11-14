@@ -245,12 +245,15 @@
           </section>
 
           <section class="a5-card p-5">
-            <p class="a5-mono text-[9px] text-moss">сейчас обсуждают</p>
+            <div class="flex items-center gap-2">
+              <span class="text-base">🔥</span>
+              <p class="a5-mono text-[9px] text-moss">сейчас обсуждают (24ч)</p>
+            </div>
             <ul class="mt-4 space-y-2.5">
               <li v-for="trend in data.trends" :key="trend.topic.id">
                 <button
                   type="button"
-                  class="group flex w-full items-center justify-between gap-2 text-left"
+                  class="group flex w-full items-center justify-between gap-2 text-left rounded-lg px-2 py-1 transition hover:bg-panel2/50"
                   @click="filterTopic(trend.topic.id)"
                 >
                   <span class="flex min-w-0 items-center gap-2">
@@ -260,7 +263,7 @@
                     ></span>
                     <span
                       class="truncate text-sm text-bone/90 group-hover:text-lime"
-                      >{{ trend.topic.label }}</span
+                      >#{{ trend.topic.label }}</span
                     >
                   </span>
                   <span class="font-mono text-[10px] text-moss/60">{{
@@ -269,6 +272,9 @@
                 </button>
               </li>
             </ul>
+            <p v-if="!data.trends.length" class="mt-2 text-[11px] text-moss/50">
+              пока тихо — напиши что-нибудь
+            </p>
           </section>
 
           <section class="a5-card p-5">

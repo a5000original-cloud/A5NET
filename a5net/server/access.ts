@@ -1,59 +1,103 @@
-import { requireRealUser } from '@app/auth'
-import Profiles from '../tables/profiles.table'
-import Members from '../tables/members.table'
-import { embedTopics } from './vec'
-import { ownerDeviceTrusted } from './security'
+import { requireRealUser } from "@app/auth";
+import Profiles from "../tables/profiles.table";
+import Members from "../tables/members.table";
+import { embedTopics } from "./vec";
+import { ownerDeviceTrusted } from "./security";
 
-export type MemberRole = 'owner' | 'admin' | 'member'
+export type MemberRole = "owner" | "admin" | "member";
 
 export interface Membership {
-  memberId: string
-  role: MemberRole
-  profile: typeof Profiles.T
+  memberId: string;
+  role: MemberRole;
+  profile: typeof Profiles.T;
 }
 
 export function isRealUser(ctx: app.Ctx): boolean {
-  return ctx.user?.type === 'Real'
+  return ctx.user?.type === "Real";
 }
 
 export function isOwner(ctx: app.Ctx): boolean {
-  return Boolean(ctx.user?.is('Owner'))
+  return Boolean(ctx.user?.is("Owner"));
 }
 
 export async function findMembership(ctx: app.Ctx): Promise<Membership | null> {
-  if (!ctx.user || ctx.user.type !== 'Real') return null
-  const members = await Members.findAll(ctx, { where: { platformUserId: ctx.user.id }, limit: 1 })
-  const member = members[0]
-  if (!member) return null
-  const profile = await Profiles.findById(ctx, member.profileId)
-  if (!profile) return null
-  return { memberId: member.id, role: member.role, profile }
+  if (!ctx.user || ctx.user.type !== "Real") return null;
+  const members = await Members.findAll(ctx, {
+    where: { platformUserId: ctx.user.id },
+    limit: 1,
+  });
+  const member = members[0];
+  if (!member) return null;
+  const profile = await Profiles.findById(ctx, member.profileId);
+  if (!profile) return null;
+
+  // Streak logic: track daily login
+  const now = new Date();
+  const lastLogin =
+    profile.lastLoginAt instanceof Date
+      ? profile.lastLoginAt
+      : profile.lastLoginAt
+        ? new Date(profile.lastLoginAt)
+        : null;
+  const lastLoginDay = lastLogin ? lastLogin.toDateString() : null;
+  const today = now.toDateString();
+
+  if (lastLoginDay !== today) {
+    let newStreak = 1;
+    if (lastLogin) {
+      const diffDays = Math.floor(
+        (now.getTime() - lastLogin.getTime()) / 86400000,
+      );
+      if (diffDays === 1) {
+        // Consecutive day — increment
+        newStreak = profile.streakDays + 1;
+      } else if (diffDays > 1) {
+        // Missed a day — reset
+        newStreak = 1;
+      }
+    }
+    await Profiles.update(ctx, {
+      id: profile.id,
+      streakDays: newStreak,
+      lastLoginAt: now,
+    });
+  }
+
+  return { memberId: member.id, role: member.role, profile };
 }
 
-export async function ensureOwnerProfile(ctx: app.Ctx): Promise<Membership | null> {
-  if (!ctx.user || ctx.user.type !== 'Real') return null
-  const existing = await findMembership(ctx)
-  if (existing) return existing
-  if (!ctx.user.is('Owner')) return null
+export async function ensureOwnerProfile(
+  ctx: app.Ctx,
+): Promise<Membership | null> {
+  if (!ctx.user || ctx.user.type !== "Real") return null;
+  const existing = await findMembership(ctx);
+  if (existing) return existing;
+  if (!ctx.user.is("Owner")) return null;
 
   const profile = await Profiles.create(ctx, {
-    handle: 'a5000',
-    name: 'A5000',
+    handle: "a5000",
+    name: "A5000",
     age: 34,
-    city: 'Москва',
-    bio: 'Владелец A5NET. Собирает людей и странные идеи. Иногда молчит.',
-    kind: 'human',
-    voiceTone: 'deadpan',
-    commentLength: 'short',
+    city: "Москва",
+    bio: "Владелец A5NET. Собирает людей и странные идеи. Иногда молчит.",
+    kind: "human",
+    voiceTone: "deadpan",
+    commentLength: "short",
     slang: false,
     emoji: false,
     argumentative: 0.3,
-    politicalLeaning: 'neutral',
-      gender: 'm',
-      typoRate: 0,
-    interests: ['tech', 'ai-agents', 'interfaces', 'cinema', 'city'],
-    interestVector: embedTopics(['tech', 'ai-agents', 'interfaces', 'cinema', 'city']),
-    chronotype: 'nightowl',
+    politicalLeaning: "neutral",
+    gender: "m",
+    typoRate: 0,
+    interests: ["tech", "ai-agents", "interfaces", "cinema", "city"],
+    interestVector: embedTopics([
+      "tech",
+      "ai-agents",
+      "interfaces",
+      "cinema",
+      "city",
+    ]),
+    chronotype: "nightowl",
     avatarHue: 82,
     avatarAccent: 148,
     enabled: true,
@@ -61,39 +105,44 @@ export async function ensureOwnerProfile(ctx: app.Ctx): Promise<Membership | nul
     followingCount: 0,
     friendsCount: 0,
     postsCount: 0,
+    streakDays: 0,
     platformUserId: ctx.user.id,
-  })
+  });
 
   const member = await Members.create(ctx, {
     platformUserId: ctx.user.id,
     profileId: profile.id,
-    role: 'owner',
-    inviteCode: 'owner',
-  })
+    role: "owner",
+    inviteCode: "owner",
+  });
 
-  return { memberId: member.id, role: 'owner', profile }
+  return { memberId: member.id, role: "owner", profile };
 }
 
 export async function requireMember(ctx: app.Ctx): Promise<Membership> {
-  requireRealUser(ctx)
-  const membership = (await ensureOwnerProfile(ctx)) ?? (await findMembership(ctx))
+  requireRealUser(ctx);
+  const membership =
+    (await ensureOwnerProfile(ctx)) ?? (await findMembership(ctx));
   if (!membership) {
-    throw new Error('A5NET_MEMBERSHIP_REQUIRED')
+    throw new Error("A5NET_MEMBERSHIP_REQUIRED");
   }
-  return membership
+  return membership;
 }
 
 export async function requireOwner(ctx: app.Ctx): Promise<Membership> {
-  const membership = await requireMember(ctx)
-  if (!ctx.user?.is('Owner')) throw new Error('A5NET_OWNER_ONLY')
-  if (!(await ownerDeviceTrusted(ctx))) throw new Error('A5NET_OWNER_DEVICE_REQUIRED')
-  return membership
+  const membership = await requireMember(ctx);
+  if (!ctx.user?.is("Owner")) throw new Error("A5NET_OWNER_ONLY");
+  if (!(await ownerDeviceTrusted(ctx)))
+    throw new Error("A5NET_OWNER_DEVICE_REQUIRED");
+  return membership;
 }
 
 export function memberErrorCode(error: unknown): string {
-  const message = error instanceof Error ? error.message : ''
-  if (message === 'A5NET_MEMBERSHIP_REQUIRED') return 'Нужен инвайт в A5NET.'
-  if (message === 'A5NET_OWNER_ONLY') return 'Этот раздел доступен только A5000.'
-  if (message === 'A5NET_OWNER_DEVICE_REQUIRED') return 'Сначала подтверди A5 Pass на этом устройстве.'
-  return 'Не удалось выполнить действие.'
+  const message = error instanceof Error ? error.message : "";
+  if (message === "A5NET_MEMBERSHIP_REQUIRED") return "Нужен инвайт в A5NET.";
+  if (message === "A5NET_OWNER_ONLY")
+    return "Этот раздел доступен только A5000.";
+  if (message === "A5NET_OWNER_DEVICE_REQUIRED")
+    return "Сначала подтверди A5 Pass на этом устройстве.";
+  return "Не удалось выполнить действие.";
 }

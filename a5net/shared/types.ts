@@ -55,6 +55,7 @@ export interface AuthorCard {
   avatarUrl: string | null;
   initials: string;
   voiceTone: VoiceTone;
+  streakDays: number;
 }
 
 export interface PostCard {
@@ -150,6 +151,7 @@ export interface ProfileCard extends AuthorCard {
   requestPending: boolean;
   isSelf: boolean;
   lastActionAt: string | null;
+  streakDays: number;
 }
 
 export interface CollabCard {
@@ -221,6 +223,7 @@ export interface BotRow extends AuthorCard {
   lastActionAt: string | null;
   nextActionAt: string | null;
   statusLabel: string;
+  streakDays: number;
 }
 
 export interface RunRow {
