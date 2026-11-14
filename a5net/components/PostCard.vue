@@ -25,6 +25,19 @@
             <span class="truncate text-sm font-medium text-bone">{{
               post.author.name
             }}</span>
+            <!-- Premium badges inline with tooltip -->
+            <span
+              v-for="prem in authorPremiums"
+              :key="prem.id"
+              class="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-transform hover:scale-125"
+              :class="premiumBadgeClass(prem.rarity)"
+              :title="prem.name + ' · ' + prem.description"
+              :style="{
+                boxShadow: '0 0 8px ' + rarityColor(prem.rarity) + '30',
+              }"
+            >
+              {{ typeIcon(prem.type) }}
+            </span>
             <span
               v-if="isOwnerPost"
               class="shrink-0 rounded-full border border-lime/40 bg-lime/10 px-2 py-0.5 font-mono text-[9px] font-bold text-lime"
@@ -278,7 +291,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import type { PostCard as PostCardData, ReactionValue } from "../shared/types";
 import Avatar from "./Avatar.vue";
 import HypeMeter from "./HypeMeter.vue";
@@ -295,6 +308,7 @@ import { postPageRoute } from "../post";
 import { watchPageRoute } from "../watch";
 import { profilePageRoute } from "../profile";
 import { postReactRoute } from "../api/post/react";
+import { premiumCatalogRoute } from "../api/premium/catalog";
 
 const props = defineProps<{ post: PostCardData }>();
 
@@ -302,6 +316,62 @@ const likes = ref(props.post.likes);
 const dislikes = ref(props.post.dislikes);
 const reaction = ref<ReactionValue | null>(props.post.viewerReaction);
 const error = ref("");
+
+// Premium badges for author
+const authorPremiums = ref<any[]>([]);
+const authorPremiumsLoaded = ref(false);
+
+const typeIconMap: Record<string, string> = {
+  seal: "🔏",
+  shard: "💎",
+  frame: "🖼",
+  effect: "✨",
+  sticker: "🏷",
+};
+
+const rarityColorMap: Record<string, string> = {
+  founder: "#bfff00",
+  legendary: "#ffd700",
+  epic: "#a855f7",
+  rare: "#38bdf8",
+  common: "#94a3b8",
+};
+
+function typeIcon(type: string): string {
+  return typeIconMap[type] ?? "❓";
+}
+
+function rarityColor(rarity: string): string {
+  return rarityColorMap[rarity] ?? "#94a3b8";
+}
+
+function premiumBadgeClass(rarity: string): string {
+  switch (rarity) {
+    case "founder":
+      return "border-[#bfff00]/40 bg-[#bfff00]/15 text-[#bfff00]";
+    case "legendary":
+      return "border-[#ffd700]/40 bg-[#ffd700]/15 text-[#ffd700]";
+    case "epic":
+      return "border-[#a855f7]/40 bg-[#a855f7]/15 text-[#a855f7]";
+    case "rare":
+      return "border-[#38bdf8]/40 bg-[#38bdf8]/15 text-[#38bdf8]";
+    default:
+      return "border-line/40 bg-line/10 text-moss/60";
+  }
+}
+
+async function loadAuthorPremiums() {
+  if (authorPremiumsLoaded.value || !props.post.author.id) return;
+  authorPremiumsLoaded.value = true;
+  try {
+    const result = await premiumCatalogRoute
+      .query({ profileId: props.post.author.id })
+      .run(ctx);
+    authorPremiums.value = result?.awards ?? [];
+  } catch {
+    authorPremiums.value = [];
+  }
+}
 
 const kindLabel = computed(() => {
   if (props.post.kind === "video") return "видео";
@@ -377,6 +447,10 @@ async function react(value: "like" | "dislike") {
     error.value = "Не удалось поставить реакцию.";
   }
 }
+
+onMounted(() => {
+  loadAuthorPremiums();
+});
 </script>
 
 <style scoped>

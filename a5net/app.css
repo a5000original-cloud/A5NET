@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Unbounded:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @config "./tailwind.config.json";
 @tailwind base;
 @tailwind components;
@@ -17,8 +17,16 @@ html {
 body {
   @apply bg-ink text-bone font-sans antialiased;
   background-image:
-    radial-gradient(900px 500px at 12% -8%, rgba(201, 247, 90, 0.09), transparent 62%),
-    radial-gradient(800px 600px at 92% 6%, rgba(183, 166, 255, 0.07), transparent 60%);
+    radial-gradient(
+      900px 500px at 12% -8%,
+      rgba(201, 247, 90, 0.09),
+      transparent 62%
+    ),
+    radial-gradient(
+      800px 600px at 92% 6%,
+      rgba(183, 166, 255, 0.07),
+      transparent 60%
+    );
   background-attachment: fixed;
 }
 
@@ -93,12 +101,18 @@ a {
   }
 
   .a5-grain::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     opacity: 0.18;
-    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 3px);
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.035) 0,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    );
     mix-blend-mode: soft-light;
     border-radius: inherit;
   }
@@ -119,8 +133,16 @@ a {
 
   .a5-cover {
     background:
-      radial-gradient(120% 120% at 15% 10%, rgba(201, 247, 90, 0.18), transparent 45%),
-      radial-gradient(90% 110% at 85% 90%, rgba(183, 166, 255, 0.16), transparent 50%),
+      radial-gradient(
+        120% 120% at 15% 10%,
+        rgba(201, 247, 90, 0.18),
+        transparent 45%
+      ),
+      radial-gradient(
+        90% 110% at 85% 90%,
+        rgba(183, 166, 255, 0.16),
+        transparent 50%
+      ),
       #0d100c;
   }
 
@@ -140,18 +162,35 @@ a {
 }
 
 @keyframes a5-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes a5-rise {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes a5-pulse {
-  0%, 100% { opacity: 0.35; transform: scale(0.92); }
-  50% { opacity: 1; transform: scale(1); }
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .a5-live-dot {
@@ -159,8 +198,12 @@ a {
 }
 
 @keyframes a5-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .a5-marquee-track {
@@ -197,24 +240,46 @@ a {
 }
 
 @keyframes a5-post-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes a5-like {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes a5-stamp {
-  from { opacity: 0; transform: scale(0.9) rotate(-6deg); }
-  to { opacity: 1; transform: scale(1) rotate(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.9) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
 }
 
 @keyframes a5-shimmer {
-  from { background-position: 120% 0; }
-  to { background-position: -120% 0; }
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -227,8 +292,16 @@ a {
 /* Platforms */
 .a5-video-theme {
   background:
-    radial-gradient(1100px 600px at 85% -10%, rgba(255, 138, 92, 0.14), transparent 62%),
-    radial-gradient(900px 600px at 0% 30%, rgba(143, 216, 210, 0.06), transparent 60%);
+    radial-gradient(
+      1100px 600px at 85% -10%,
+      rgba(255, 138, 92, 0.14),
+      transparent 62%
+    ),
+    radial-gradient(
+      900px 600px at 0% 30%,
+      rgba(143, 216, 210, 0.06),
+      transparent 60%
+    );
 }
 .a5-video-theme .a5-btn-primary {
   background: #ff8a5c;
@@ -240,8 +313,16 @@ a {
 
 .a5-music-theme {
   background:
-    radial-gradient(1000px 700px at 15% -10%, rgba(183, 166, 255, 0.16), transparent 60%),
-    radial-gradient(900px 600px at 95% 20%, rgba(143, 216, 210, 0.10), transparent 62%);
+    radial-gradient(
+      1000px 700px at 15% -10%,
+      rgba(183, 166, 255, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 95% 20%,
+      rgba(143, 216, 210, 0.1),
+      transparent 62%
+    );
 }
 .a5-music-theme .a5-btn-primary {
   background: #b7a6ff;
@@ -257,13 +338,96 @@ a {
 }
 
 @keyframes a5-eq {
-  from { transform: scaleY(0.35); opacity: 0.55; }
-  to { transform: scaleY(1); opacity: 1; }
+  from {
+    transform: scaleY(0.35);
+    opacity: 0.55;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 @keyframes a5-sticker-float {
-  0%, 100% { margin-top: 0; }
-  50% { margin-top: -7px; }
+  0%,
+  100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -7px;
+  }
 }
-.a5-sticker-float { animation: a5-sticker-float 4.8s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .a5-sticker-float { animation: none; } }
+.a5-sticker-float {
+  animation: a5-sticker-float 4.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .a5-sticker-float {
+    animation: none;
+  }
+}
+
+/* Premium artifact animations */
+@keyframes founder-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(191, 255, 0, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(191, 255, 0, 0.7);
+    transform: scale(1.06);
+  }
+}
+
+@keyframes legendary-rotate {
+  0% {
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+  }
+  25% {
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+  }
+  75% {
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+  }
+}
+
+@keyframes epic-fog {
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.2);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer-blink {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.artifact-founder {
+  animation: founder-pulse 2.5s ease-in-out infinite;
+}
+.artifact-legendary {
+  animation: legendary-rotate 2s ease-in-out infinite;
+}
+.artifact-epic {
+  animation: epic-fog 3s ease-in-out infinite;
+}
+.artifact-rare {
+  animation: shimmer-blink 2.5s ease-in-out infinite;
+}

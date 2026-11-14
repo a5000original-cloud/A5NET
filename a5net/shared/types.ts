@@ -11,6 +11,33 @@ export type VoiceTone =
 export type ReactionValue = "like" | "dislike";
 export type EmojiReaction =
   "fire" | "heart" | "lol" | "wow" | "sad" | "respect";
+export type PremiumType = "seal" | "shard" | "frame" | "effect" | "sticker";
+export type PremiumRarity =
+  "common" | "rare" | "epic" | "legendary" | "founder";
+export type PremiumAnimation = "pulse" | "rotate" | "fog" | "shimmer" | "none";
+
+export interface PremiumItem {
+  id: string;
+  name: string;
+  description: string;
+  type: PremiumType;
+  rarity: PremiumRarity;
+  imageUrl: string;
+  animationType: PremiumAnimation;
+}
+
+export interface PremiumAward {
+  id: string;
+  itemId: string;
+  itemName: string;
+  itemDescription: string;
+  itemType: PremiumType;
+  itemRarity: PremiumRarity;
+  itemImageUrl: string;
+  itemAnimation: PremiumAnimation;
+  awardedBy: string;
+  awardedAt: string;
+}
 
 export interface TopicRef {
   id: string;

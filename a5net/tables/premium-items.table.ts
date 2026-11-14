@@ -26,6 +26,19 @@ const PremiumItems = Heap.Table(
       { customMeta: { title: "Редкость" } },
     ),
     imageUrl: Heap.String({ customMeta: { title: "Картинка" } }),
+    animationType: Heap.NonRequired(
+      Heap.Enum(
+        {
+          pulse: "pulse",
+          rotate: "rotate",
+          fog: "fog",
+          shimmer: "shimmer",
+          none: "none",
+        } as const,
+        { customMeta: { title: "Тип анимации" } },
+      ),
+      "none",
+    ),
   },
   {
     customMeta: {
