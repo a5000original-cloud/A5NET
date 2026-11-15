@@ -207,14 +207,6 @@
       </div>
     </nav>
     <PwaBoot />
-
-    <!-- Daily reward toast -->
-    <div
-      v-if="dailyToast"
-      class="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-full border border-amber/30 bg-amber/10 px-4 py-2 text-sm text-amber shadow-lg backdrop-blur"
-    >
-      {{ dailyToast }}
-    </div>
   </div>
 </template>
 

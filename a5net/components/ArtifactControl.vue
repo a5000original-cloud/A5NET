@@ -154,40 +154,113 @@
           </div>
         </div>
 
-        <!-- Avatar preview with animation -->
+        <!-- Avatar preview with animation — FULL POST MOCKUP -->
         <div
-          class="rounded-xl border border-line/50 bg-panel2/30 p-5 text-center"
+          class="rounded-2xl border border-line/90 bg-panel/80 shadow-lift backdrop-blur-sm overflow-hidden"
+          :class="previewCardClass"
+          :style="previewCardStyle"
         >
-          <p
-            class="text-[10px] font-medium uppercase tracking-wider text-moss/50 mb-3"
-          >
-            Как будет выглядеть
-          </p>
-
-          <div
-            class="relative mx-auto flex h-20 w-20 items-center justify-center"
-          >
-            <!-- Avatar circle -->
-            <div
-              class="flex h-20 w-20 items-center justify-center rounded-full border-2 bg-panel2 text-lg font-medium text-bone"
-              :class="previewAvatarClass"
-              :style="previewStyle"
-            >
-              {{ profileInitial }}
+          <!-- Post header with avatar -->
+          <div class="flex items-start gap-3 p-4 pb-0">
+            <div class="relative">
+              <div
+                class="h-10 w-10 rounded-full flex items-center justify-center bg-panel2 text-sm font-medium text-bone ring-2 ring-ink"
+                :class="avatarRingClass"
+                :style="avatarGlowStyle"
+              >
+                {{ profileInitial }}
+              </div>
+              <!-- Artifact animation ring -->
+              <div
+                v-if="selectedItem && selectedItem.animationType !== 'none'"
+                class="absolute inset-0 rounded-full"
+                :class="avatarRingClass"
+              ></div>
             </div>
-
-            <!-- Animation ring -->
-            <div
-              v-if="selectedItem && selectedItem.animationType !== 'none'"
-              class="absolute inset-0 rounded-full"
-              :class="previewRingClass"
-            ></div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="truncate text-sm font-medium text-bone">{{
+                  profileInput || "Никнейм"
+                }}</span>
+                <span
+                  class="shrink-0 rounded-full px-2 py-0.5 font-mono text-[9px] font-bold text-lime border border-lime/40 bg-lime/10"
+                >
+                  👑 A5000
+                </span>
+              </div>
+              <span class="block truncate text-[11px] text-moss"
+                >@{{ profileInput || "ник" }} · только что</span
+              >
+            </div>
           </div>
 
-          <p v-if="profileInput" class="mt-3 text-sm text-bone">
-            @{{ profileInput }}
-          </p>
-          <p v-else class="mt-3 text-sm text-moss/40">Введите никнейм</p>
+          <!-- Post body -->
+          <div class="p-4">
+            <h3 class="a5-display text-base font-medium leading-snug text-bone">
+              Так выглядит мой новый статус в A5NET!
+            </h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-moss">
+              Каждый артефакт — это не просто значок. Это часть истории сети.
+              Получи свой.
+            </p>
+
+            <!-- Topics -->
+            <div class="mt-3 flex flex-wrap gap-1.5">
+              <span
+                class="a5-chip"
+                style="border-color: hsla(120, 60%, 60%, 0.35)"
+                >технологии</span
+              >
+              <span
+                class="a5-chip"
+                style="border-color: hsla(270, 60%, 60%, 0.35)"
+                >сообщество</span
+              >
+            </div>
+          </div>
+
+          <!-- Post footer -->
+          <div
+            class="flex items-center justify-between gap-2 border-t border-line/70 px-4 py-3 text-moss"
+          >
+            <div class="flex items-center gap-1">
+              <span
+                class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs hover:bg-panel2 text-lime"
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                >
+                  <path
+                    d="M8 13.5s-5.5-3.2-5.5-7A3.2 3.2 0 018 4.2a3.2 3.2 0 015.5 2.3c0 3.8-5.5 7-5.5 7z"
+                  />
+                </svg>
+                42
+              </span>
+              <span
+                class="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs hover:bg-panel2 hover:text-bone"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                >
+                  <path d="M3 3.5h10v7H8l-3 2.5v-2.5H3v-7z" />
+                </svg>
+                12
+              </span>
+            </div>
+            <span class="hidden font-mono text-[10px] text-moss/60 sm:inline"
+              >128 просм.</span
+            >
+          </div>
         </div>
 
         <!-- Awards list -->
@@ -313,30 +386,51 @@ const previewAvatarClass = computed(() => {
   return map[selectedItem.value.rarity] ?? "border-line/50";
 });
 
-const previewStyle = computed(() => {
+const avatarRingClass = computed(() => {
+  if (!selectedItem.value) return "border-line/50";
+  const map: Record<string, string> = {
+    founder: "border-[#bfff00]/50",
+    legendary: "border-[#ffd700]/50",
+    epic: "border-[#a855f7]/50",
+    rare: "border-[#38bdf8]/50",
+    common: "border-line/50",
+  };
+  return map[selectedItem.value.rarity] ?? "border-line/50";
+});
+
+const avatarGlowStyle = computed(() => {
   if (!selectedItem.value || selectedItem.value.animationType === "none")
     return {};
   const colors: Record<string, string> = {
-    founder: "rgba(191,255,0,0.15)",
-    legendary: "rgba(255,215,0,0.15)",
-    epic: "rgba(168,85,247,0.15)",
-    rare: "rgba(56,189,248,0.15)",
+    founder: "0 0 12px rgba(191,255,0,0.5)",
+    legendary: "0 0 12px rgba(255,215,0,0.5)",
+    epic: "0 0 12px rgba(168,85,247,0.5)",
+    rare: "0 0 12px rgba(56,189,248,0.5)",
   };
-  return {
-    background: colors[selectedItem.value.animationType] ?? "transparent",
-  };
+  return { boxShadow: colors[selectedItem.value.animationType] ?? "none" };
 });
 
-const previewRingClass = computed(() => {
+const previewCardClass = computed(() => {
   if (!selectedItem.value) return "";
-  const anim = selectedItem.value.animationType;
-  const colors: Record<string, string> = {
-    founder: "animate-pulse border-2 border-[#bfff00]/30",
-    legendary: "animate-spin border-2 border-[#ffd700]/30",
-    epic: "animate-pulse border-2 border-[#a855f7]/30",
-    rare: "animate-pulse border-2 border-[#38bdf8]/30",
+  const map: Record<string, string> = {
+    founder: "border-lime/30",
+    legendary: "border-amber/30",
+    epic: "border-violet/30",
+    rare: "border-sky/30",
+    common: "border-line/90",
   };
-  return colors[anim] ?? "";
+  return map[selectedItem.value.rarity] ?? "border-line/90";
+});
+
+const previewCardStyle = computed(() => {
+  if (!selectedItem.value) return {};
+  const colors: Record<string, string> = {
+    founder: "0 0 20px rgba(191,255,0,0.1)",
+    legendary: "0 0 20px rgba(255,215,0,0.1)",
+    epic: "0 0 20px rgba(168,85,247,0.1)",
+    rare: "0 0 20px rgba(56,189,248,0.1)",
+  };
+  return { boxShadow: colors[selectedItem.value.animationType] ?? "none" };
 });
 
 function selectItem(item: PremiumItem | null) {
