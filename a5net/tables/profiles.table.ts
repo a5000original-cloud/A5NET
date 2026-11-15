@@ -158,6 +158,14 @@ const Profiles = Heap.Table(
     lastLoginAt: Heap.Optional(
       Heap.DateTime({ customMeta: { title: "Последний вход" } }),
     ),
+    isPremium: Heap.NonRequired(
+      Heap.Boolean({ customMeta: { title: "Премиум подписка" } }),
+      false,
+    ),
+    a5coins: Heap.NonRequired(
+      Heap.Number({ customMeta: { title: "Монеты A5" } }),
+      0,
+    ),
   },
   {
     customMeta: {

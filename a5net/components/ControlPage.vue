@@ -65,6 +65,129 @@
         "
       />
 
+      <!-- Economy Tab -->
+      <section v-else-if="activeTab === 'economy'" class="space-y-6">
+        <div
+          class="rounded-2xl border border-line/70 bg-panel/80 backdrop-blur-xl p-5"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber/15"
+            >
+              <span class="text-xl">🪙</span>
+            </div>
+            <div>
+              <h2 class="text-base font-medium text-bone">
+                Управление монетами
+              </h2>
+              <p class="text-[11px] text-moss/60">
+                начисление и списание A5 Coins
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+          <!-- Coins -->
+          <div
+            class="rounded-2xl border border-line/70 bg-panel/80 backdrop-blur-xl p-5"
+          >
+            <h3 class="text-sm font-medium text-bone mb-4">A5 Coins</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="a5-label" for="eco-profile">Профиль</label>
+                <input
+                  id="eco-profile"
+                  v-model="ecoProfile"
+                  class="a5-input !py-3 font-mono text-[12px]"
+                  placeholder="@handle или ID"
+                />
+              </div>
+              <div>
+                <label class="a5-label" for="eco-coins">Количество</label>
+                <input
+                  id="eco-coins"
+                  v-model.number="ecoCoins"
+                  type="number"
+                  class="a5-input !py-3 font-mono text-[12px]"
+                  placeholder="1000"
+                  min="0"
+                />
+              </div>
+              <div class="flex gap-3">
+                <button
+                  type="button"
+                  class="flex-1 rounded-xl bg-lime px-6 py-3.5 text-sm font-semibold text-ink shadow-lg shadow-lime/20 transition-all hover:bg-[#d8ff7c] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-30"
+                  :disabled="!ecoCanAction || ecoLoading"
+                  @click="ecoAdjustCoins(1)"
+                >
+                  {{ ecoLoading ? "..." : "+ Начислить" }}
+                </button>
+                <button
+                  type="button"
+                  class="flex-1 rounded-xl border border-line/60 bg-panel2/60 px-6 py-3.5 text-sm font-semibold text-bone transition-all hover:border-ember/40 hover:bg-ember/10 hover:text-ember disabled:cursor-not-allowed disabled:opacity-30"
+                  :disabled="!ecoCanAction || ecoLoading"
+                  @click="ecoAdjustCoins(-1)"
+                >
+                  {{ ecoLoading ? "..." : "− Списать" }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Premium -->
+          <div
+            class="rounded-2xl border border-line/70 bg-panel/80 backdrop-blur-xl p-5"
+          >
+            <h3 class="text-sm font-medium text-bone mb-4">Premium</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="a5-label" for="prem-profile">Профиль</label>
+                <input
+                  id="prem-profile"
+                  v-model="premProfile"
+                  class="a5-input !py-3 font-mono text-[12px]"
+                  placeholder="@handle или ID"
+                />
+              </div>
+              <div>
+                <label class="a5-label" for="prem-days">Дней</label>
+                <input
+                  id="prem-days"
+                  v-model.number="premDays"
+                  type="number"
+                  class="a5-input !py-3 font-mono text-[12px]"
+                  placeholder="30"
+                  min="1"
+                />
+              </div>
+              <button
+                type="button"
+                class="w-full rounded-xl bg-amber px-6 py-3.5 text-sm font-semibold text-ink shadow-lg shadow-amber/20 transition-all hover:bg-[#ffe44d] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-30"
+                :disabled="!premCanAction || premLoading"
+                @click="premIssue"
+              >
+                {{ premLoading ? "Выдаю..." : "✦ Выдать Premium" }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Economy Error/Success -->
+        <div
+          v-if="ecoError"
+          class="rounded-xl border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-ember"
+        >
+          {{ ecoError }}
+        </div>
+        <div
+          v-if="ecoSuccess"
+          class="rounded-xl border border-lime/30 bg-lime/10 px-4 py-3 text-sm text-lime"
+        >
+          {{ ecoSuccess }}
+        </div>
+      </section>
+
       <!-- Events Tab -->
       <EventControl v-else-if="activeTab === 'events'" />
     </main>
@@ -81,6 +204,7 @@ import EventControl from "./EventControl.vue";
 import { controlUpdateRoute } from "../api/control/update";
 import { premiumCatalogRoute } from "../api/premium/catalog";
 import { premiumIssueRoute } from "../api/premium/issue";
+import { storePurchaseRoute } from "../api/store/purchase";
 
 const props = defineProps<{
   data: ControlData;
@@ -91,6 +215,7 @@ const props = defineProps<{
 const tabs = [
   { key: "fleet" as const, label: "Флот ботов" },
   { key: "artifacts" as const, label: "Артефакты" },
+  { key: "economy" as const, label: "Экономика" },
   { key: "events" as const, label: "Ивенты" },
 ];
 const activeTab = ref("fleet");
@@ -131,6 +256,73 @@ const awards = ref<
 const artifactForm = ref({ profileId: "", itemId: "" });
 const artifactLoading = ref(false);
 const artifactError = ref("");
+
+// Economy
+const ecoProfile = ref("");
+const ecoCoins = ref(0);
+const ecoLoading = ref(false);
+const ecoError = ref("");
+const ecoSuccess = ref("");
+
+const premProfile = ref("");
+const premDays = ref(30);
+const premLoading = ref(false);
+
+const ecoCanAction = computed(
+  () => ecoProfile.value.trim() && ecoCoins.value > 0 && !ecoLoading.value,
+);
+const premCanAction = computed(
+  () => premProfile.value.trim() && premDays.value > 0 && !premLoading.value,
+);
+
+async function ecoAdjustCoins(direction: 1 | -1) {
+  ecoError.value = "";
+  ecoSuccess.value = "";
+  ecoLoading.value = true;
+  try {
+    const result = await storePurchaseRoute.run(ctx, {
+      action: "buy_coins",
+      profileId: ecoProfile.value.trim(),
+      plan: String(Math.abs(ecoCoins.value) * direction),
+    });
+    if (!result.ok) {
+      ecoError.value = result.error;
+    } else {
+      ecoSuccess.value =
+        direction > 0
+          ? `+${ecoCoins.value} монет начислено.`
+          : `-${ecoCoins.value} монет списано.`;
+      ecoCoins.value = 0;
+    }
+  } catch {
+    ecoError.value = "Не удалось выполнить.";
+  } finally {
+    ecoLoading.value = false;
+  }
+}
+
+async function premIssue() {
+  ecoError.value = "";
+  ecoSuccess.value = "";
+  premLoading.value = true;
+  try {
+    const result = await storePurchaseRoute.run(ctx, {
+      action: "buy_premium_stripe",
+      profileId: premProfile.value.trim(),
+      plan: premDays.value >= 365 ? "year" : "month",
+    });
+    if (!result.ok) {
+      ecoError.value = result.error;
+    } else {
+      ecoSuccess.value = result.message || "Premium выдан!";
+      premDays.value = 30;
+    }
+  } catch {
+    ecoError.value = "Не удалось выдать.";
+  } finally {
+    premLoading.value = false;
+  }
+}
 
 async function loadPremiumData() {
   try {

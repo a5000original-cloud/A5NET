@@ -157,6 +157,12 @@
                 >A5000_Менеджер</a
               >
               <a
+                :href="storePageRoute.url()"
+                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+              >
+                <span class="mr-2">🛒</span>Магазин
+              </a>
+              <a
                 v-if="showInvites"
                 :href="invitesPageRoute.url()"
                 class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
@@ -176,6 +182,33 @@
                 >Пульт A5000</a
               >
               <div class="a5-divider"></div>
+              <button
+                v-if="trustedForMulti"
+                type="button"
+                class="block w-full px-4 py-3 text-left text-sm text-bone hover:bg-panel2 hover:text-lime"
+                @click="showMultiAccount = !showMultiAccount"
+              >
+                <span class="mr-2">🔄</span>Переключить аккаунт
+              </button>
+              <div v-if="showMultiAccount" class="px-4 py-2">
+                <p class="text-[9px] text-moss/50 mb-2">Доверенные аккаунты:</p>
+                <div class="space-y-1">
+                  <a
+                    v-for="acc in multiAccounts"
+                    :key="acc.id"
+                    :href="profilePageRoute.query({ id: acc.id }).url()"
+                    class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-bone/70 hover:bg-panel2 hover:text-bone"
+                  >
+                    <Avatar :name="acc.name" :hue="acc.avatarHue" size="xs" />
+                    <span class="truncate">{{ acc.name }}</span>
+                    <span
+                      v-if="acc.id === viewer.id"
+                      class="ml-auto text-[8px] text-lime"
+                      >ты</span
+                    >
+                  </a>
+                </div>
+              </div>
               <button
                 type="button"
                 class="block w-full px-4 py-3 text-left text-sm text-moss hover:bg-panel2 hover:text-bone"
@@ -232,6 +265,7 @@ import { notificationsPageRoute } from "../notifications";
 import { friendsPageRoute } from "../friends";
 import { shortsPageRoute } from "../shorts";
 import { communitiesPageRoute } from "../communities";
+import { storePageRoute } from "../store";
 import { dailyRewardRoute } from "../api/rewards/daily";
 
 const props = defineProps<{
@@ -256,6 +290,11 @@ const props = defineProps<{
 }>();
 
 const menuOpen = ref(false);
+const showMultiAccount = ref(false);
+const trustedForMulti = ref(false);
+const multiAccounts = ref<
+  Array<{ id: string; name: string; avatarHue: number }>
+>([]);
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
 );
@@ -267,6 +306,7 @@ const items = computed(() => [
   { key: "shorts", label: "Shorts", href: shortsPageRoute.url() },
   { key: "manager", label: "Менеджер", href: assistantPageRoute.url() },
   { key: "inbox", label: "Письма", href: inboxPageRoute.url() },
+  { key: "store", label: "Магазин", href: storePageRoute.url() },
 ]);
 
 const dockItems = computed(() => [
@@ -290,6 +330,13 @@ const dockItems = computed(() => [
     href: musicHubRoute.url(),
     activeClass: "text-violet",
     icon: '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 14V5l7-1v9" stroke-linecap="round"/><circle cx="6" cy="14" r="2"/><circle cx="13" cy="13" r="2"/></svg>',
+  },
+  {
+    key: "store",
+    label: "Магазин",
+    href: storePageRoute.url(),
+    activeClass: "text-amber",
+    icon: '<svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="16" height="11" rx="2"/><path d="M6 6V5a4 4 0 018 0v1" stroke-linecap="round"/></svg>',
   },
   {
     key: "profile",
@@ -364,6 +411,27 @@ async function claimDailyReward() {
 
 // Check on mount
 checkDailyReward();
+
+// Multi-account: check if trusted device
+async function checkMultiAccount() {
+  try {
+    const result = await dailyRewardRoute.run(ctx);
+    if (result.ok) {
+      trustedForMulti.value = true;
+      multiAccounts.value = [
+        {
+          id: viewer.value.id,
+          name: viewer.value.name,
+          avatarHue: viewer.value.avatarHue,
+        },
+      ];
+    }
+  } catch {
+    trustedForMulti.value = false;
+  }
+}
+
+checkMultiAccount();
 
 async function signOut() {
   try {
