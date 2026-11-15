@@ -46,15 +46,27 @@
 
       <!-- Artifacts Tab -->
       <ArtifactControl
-        v-else
+        v-else-if="activeTab === 'artifacts'"
         :items="premiumItems"
         :awards="awards"
         :error="artifactError"
         :loading="artifactLoading"
         @issue="issueArtifact"
         @revoke="revokeArtifact"
-        @select-item="artifactForm.itemId = $event?.id ?? ''"
+        @select-item="
+          (item) => {
+            artifactForm.itemId = item?.id ?? '';
+          }
+        "
+        @profile-input="
+          (val) => {
+            artifactForm.profileId = val;
+          }
+        "
       />
+
+      <!-- Events Tab -->
+      <EventControl v-else-if="activeTab === 'events'" />
     </main>
   </div>
 </template>
@@ -65,6 +77,7 @@ import type { ControlData, AuthorCard, PremiumItem } from "../shared/types";
 import SiteHeader from "./SiteHeader.vue";
 import FleetControl from "./FleetControl.vue";
 import ArtifactControl from "./ArtifactControl.vue";
+import EventControl from "./EventControl.vue";
 import { controlUpdateRoute } from "../api/control/update";
 import { premiumCatalogRoute } from "../api/premium/catalog";
 import { premiumIssueRoute } from "../api/premium/issue";
@@ -78,6 +91,7 @@ const props = defineProps<{
 const tabs = [
   { key: "fleet" as const, label: "Флот ботов" },
   { key: "artifacts" as const, label: "Артефакты" },
+  { key: "events" as const, label: "Ивенты" },
 ];
 const activeTab = ref("fleet");
 

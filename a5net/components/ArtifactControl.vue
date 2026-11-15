@@ -42,6 +42,7 @@
             v-model="profileInput"
             class="a5-input !py-3 font-mono text-[12px]"
             placeholder="@handle или ID профиля"
+            @input="emit('profile-input', profileInput)"
           />
         </div>
 
@@ -61,7 +62,10 @@
                   ? 'border-violet/60 bg-violet/10 shadow-lg shadow-violet/10 scale-[1.02]'
                   : 'border-line/50 bg-panel2/40 hover:border-violet/30 hover:scale-[1.03] hover:shadow-lg'
               "
-              @click="selectedItem = item"
+              @click="
+                selectedItem = item;
+                emit('selectItem', item);
+              "
             >
               <!-- Rarity glow -->
               <div
@@ -164,8 +168,8 @@
           <div class="flex items-start gap-3 p-4 pb-0">
             <div class="relative">
               <div
-                class="h-10 w-10 rounded-full flex items-center justify-center bg-panel2 text-sm font-medium text-bone ring-2 ring-ink"
-                :class="avatarRingClass"
+                class="h-10 w-10 rounded-full flex items-center justify-center bg-panel2 text-sm font-medium text-bone ring-2 ring-ink transition-all duration-300"
+                :class="[avatarRingClass, previewAnimationClass]"
                 :style="avatarGlowStyle"
               >
                 {{ profileInitial }}
@@ -309,6 +313,7 @@ const emit = defineEmits<{
   issue: [];
   revoke: [];
   selectItem: [item: PremiumItem | null];
+  "profile-input": [value: string];
 }>();
 
 const profileInput = ref("");
@@ -374,49 +379,38 @@ function rarityGlow(rarity: string): string {
   return map[rarity] ?? "";
 }
 
-const previewAvatarClass = computed(() => {
-  if (!selectedItem.value) return "border-line/50";
-  const map: Record<string, string> = {
-    founder: "border-[#bfff00]/50",
-    legendary: "border-[#ffd700]/50",
-    epic: "border-[#a855f7]/50",
-    rare: "border-[#38bdf8]/50",
-    common: "border-line/50",
+const avatarGlowStyle = computed(() => {
+  if (!selectedItem.value) return {};
+  const effects: Record<string, string> = {
+    founder:
+      "0 0 20px #c9f75a, 0 0 40px #c9f75a, 0 0 60px rgba(201,247,90,0.5), inset 0 0 15px rgba(201,247,90,0.3)",
+    legendary:
+      "0 0 20px #ffd700, 0 0 40px #ffd700, 0 0 60px rgba(255,215,0,0.5), inset 0 0 15px rgba(255,215,0,0.3)",
+    epic: "0 0 20px #a855f7, 0 0 40px #a855f7, 0 0 60px rgba(168,85,247,0.5), inset 0 0 15px rgba(168,85,247,0.3)",
+    rare: "0 0 20px #38bdf8, 0 0 40px #38bdf8, 0 0 60px rgba(56,189,248,0.5), inset 0 0 15px rgba(56,189,248,0.3)",
   };
-  return map[selectedItem.value.rarity] ?? "border-line/50";
+  return { boxShadow: effects[selectedItem.value.rarity] ?? "none" };
 });
 
 const avatarRingClass = computed(() => {
   if (!selectedItem.value) return "border-line/50";
   const map: Record<string, string> = {
-    founder: "border-[#bfff00]/50",
-    legendary: "border-[#ffd700]/50",
-    epic: "border-[#a855f7]/50",
-    rare: "border-[#38bdf8]/50",
+    founder: "border-[#c9f75a] border-2",
+    legendary: "border-[#ffd700] border-2",
+    epic: "border-[#a855f7] border-2",
+    rare: "border-[#38bdf8] border-2",
     common: "border-line/50",
   };
   return map[selectedItem.value.rarity] ?? "border-line/50";
 });
 
-const avatarGlowStyle = computed(() => {
-  if (!selectedItem.value || selectedItem.value.animationType === "none")
-    return {};
-  const colors: Record<string, string> = {
-    founder: "0 0 12px rgba(191,255,0,0.5)",
-    legendary: "0 0 12px rgba(255,215,0,0.5)",
-    epic: "0 0 12px rgba(168,85,247,0.5)",
-    rare: "0 0 12px rgba(56,189,248,0.5)",
-  };
-  return { boxShadow: colors[selectedItem.value.animationType] ?? "none" };
-});
-
 const previewCardClass = computed(() => {
   if (!selectedItem.value) return "";
   const map: Record<string, string> = {
-    founder: "border-lime/30",
-    legendary: "border-amber/30",
-    epic: "border-violet/30",
-    rare: "border-sky/30",
+    founder: "border-[#c9f75a]/40",
+    legendary: "border-[#ffd700]/40",
+    epic: "border-[#a855f7]/40",
+    rare: "border-[#38bdf8]/40",
     common: "border-line/90",
   };
   return map[selectedItem.value.rarity] ?? "border-line/90";
@@ -424,13 +418,20 @@ const previewCardClass = computed(() => {
 
 const previewCardStyle = computed(() => {
   if (!selectedItem.value) return {};
-  const colors: Record<string, string> = {
-    founder: "0 0 20px rgba(191,255,0,0.1)",
-    legendary: "0 0 20px rgba(255,215,0,0.1)",
-    epic: "0 0 20px rgba(168,85,247,0.1)",
-    rare: "0 0 20px rgba(56,189,248,0.1)",
+  const effects: Record<string, string> = {
+    founder:
+      "0 0 30px rgba(201,247,90,0.2), inset 0 0 30px rgba(201,247,90,0.05)",
+    legendary:
+      "0 0 30px rgba(255,215,0,0.2), inset 0 0 30px rgba(255,215,0,0.05)",
+    epic: "0 0 30px rgba(168,85,247,0.2), inset 0 0 30px rgba(168,85,247,0.05)",
+    rare: "0 0 30px rgba(56,189,248,0.2), inset 0 0 30px rgba(56,189,248,0.05)",
   };
-  return { boxShadow: colors[selectedItem.value.animationType] ?? "none" };
+  return { boxShadow: effects[selectedItem.value.rarity] ?? "none" };
+});
+
+const previewAnimationClass = computed(() => {
+  if (!selectedItem.value) return "";
+  return `artifact-anim-${selectedItem.value.rarity}`;
 });
 
 function selectItem(item: PremiumItem | null) {
@@ -451,15 +452,194 @@ function selectItem(item: PremiumItem | null) {
   background: transparent;
 }
 
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
+/* === MAXIMUM VISUAL ARTIFACT ANIMATIONS === */
+
+/* Founder: мощная пульсирующая неоновая лаймовая аура */
+@keyframes founder-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 8px #c9f75a,
+      0 0 20px #c9f75a,
+      0 0 40px #c9f75a,
+      0 0 70px rgba(201, 247, 90, 0.7),
+      0 0 110px rgba(201, 247, 90, 0.4),
+      0 0 160px rgba(201, 247, 90, 0.2),
+      inset 0 0 20px rgba(201, 247, 90, 0.4);
+    transform: scale(1);
+    filter: brightness(1);
   }
-  to {
-    transform: rotate(360deg);
+  50% {
+    box-shadow:
+      0 0 15px #c9f75a,
+      0 0 35px #c9f75a,
+      0 0 65px #c9f75a,
+      0 0 100px rgba(201, 247, 90, 0.9),
+      0 0 150px rgba(201, 247, 90, 0.6),
+      0 0 220px rgba(201, 247, 90, 0.35),
+      inset 0 0 35px rgba(201, 247, 90, 0.6);
+    transform: scale(1.12);
+    filter: brightness(1.3);
   }
 }
-.animate-spin {
-  animation: spin-slow 3s linear infinite;
+
+.artifact-anim-founder {
+  animation: founder-pulse 1.8s ease-in-out infinite;
+}
+
+/* Legendary: вращающееся золотое переливающееся сияние */
+@keyframes legendary-rotate {
+  0% {
+    box-shadow:
+      0 0 10px #ffd700,
+      0 0 25px #ffd700,
+      0 0 50px rgba(255, 215, 0, 0.6),
+      0 0 80px rgba(255, 215, 0, 0.3),
+      inset 0 0 15px rgba(255, 215, 0, 0.3);
+    filter: hue-rotate(0deg) brightness(1);
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    box-shadow:
+      0 0 20px #ffed4a,
+      0 0 45px #ffd700,
+      0 0 75px rgba(255, 237, 74, 0.7),
+      0 0 120px rgba(255, 215, 0, 0.4),
+      inset 0 0 25px rgba(255, 237, 74, 0.5);
+    filter: hue-rotate(15deg) brightness(1.3);
+    transform: rotate(90deg) scale(1.06);
+  }
+  50% {
+    box-shadow:
+      0 0 10px #ffd700,
+      0 0 25px #ffd700,
+      0 0 50px rgba(255, 215, 0, 0.6),
+      0 0 80px rgba(255, 215, 0, 0.3),
+      inset 0 0 15px rgba(255, 215, 0, 0.3);
+    filter: hue-rotate(0deg) brightness(1);
+    transform: rotate(180deg) scale(1);
+  }
+  75% {
+    box-shadow:
+      0 0 20px #e6c200,
+      0 0 45px #ffd700,
+      0 0 75px rgba(230, 194, 0, 0.7),
+      0 0 120px rgba(255, 215, 0, 0.4),
+      inset 0 0 25px rgba(230, 194, 0, 0.5);
+    filter: hue-rotate(-15deg) brightness(1.3);
+    transform: rotate(270deg) scale(1.06);
+  }
+  100% {
+    box-shadow:
+      0 0 10px #ffd700,
+      0 0 25px #ffd700,
+      0 0 50px rgba(255, 215, 0, 0.6),
+      0 0 80px rgba(255, 215, 0, 0.3),
+      inset 0 0 15px rgba(255, 215, 0, 0.3);
+    filter: hue-rotate(0deg) brightness(1);
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.artifact-anim-legendary {
+  animation: legendary-rotate 3s linear infinite;
+}
+
+/* Epic: клубящийся фиолетовый туман с радиальным градиентом */
+@keyframes epic-fog {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px #a855f7,
+      0 0 30px #a855f7,
+      0 0 60px rgba(168, 85, 247, 0.7),
+      0 0 100px rgba(168, 85, 247, 0.4),
+      0 0 150px rgba(126, 34, 206, 0.2),
+      inset 0 0 25px rgba(168, 85, 247, 0.5);
+    opacity: 0.8;
+    filter: brightness(0.9);
+  }
+  33% {
+    box-shadow:
+      0 0 20px #c084fc,
+      0 0 50px #a855f7,
+      0 0 85px rgba(192, 132, 252, 0.8),
+      0 0 130px rgba(168, 85, 247, 0.5),
+      0 0 180px rgba(126, 34, 206, 0.3),
+      inset 0 0 40px rgba(192, 132, 252, 0.6);
+    opacity: 1;
+    filter: brightness(1.2);
+  }
+  66% {
+    box-shadow:
+      0 0 15px #7c3aed,
+      0 0 40px #7c3aed,
+      0 0 70px rgba(124, 58, 237, 0.8),
+      0 0 110px rgba(126, 34, 206, 0.5),
+      0 0 160px rgba(107, 33, 168, 0.3),
+      inset 0 0 30px rgba(124, 58, 237, 0.5);
+    opacity: 0.9;
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 0 25px #a855f7,
+      0 0 55px #a855f7,
+      0 0 90px rgba(168, 85, 247, 0.9),
+      0 0 140px rgba(168, 85, 247, 0.6),
+      0 0 200px rgba(126, 34, 206, 0.35),
+      inset 0 0 45px rgba(168, 85, 247, 0.7);
+    opacity: 1;
+    filter: brightness(1.4);
+  }
+}
+
+.artifact-anim-epic {
+  animation: epic-fog 2.2s ease-in-out infinite;
+}
+
+/* Rare: мощное плавное голубое свечение */
+@keyframes rare-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 8px #38bdf8,
+      0 0 20px #38bdf8,
+      0 0 40px rgba(56, 189, 248, 0.6),
+      0 0 70px rgba(56, 189, 248, 0.3),
+      inset 0 0 12px rgba(56, 189, 248, 0.3);
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 0 18px #38bdf8,
+      0 0 40px #38bdf8,
+      0 0 70px rgba(56, 189, 248, 0.8),
+      0 0 110px rgba(56, 189, 248, 0.5),
+      0 0 150px rgba(14, 165, 233, 0.25),
+      inset 0 0 25px rgba(56, 189, 248, 0.5);
+    transform: scale(1.08);
+    filter: brightness(1.25);
+  }
+}
+
+.artifact-anim-rare {
+  animation: rare-glow 2s ease-in-out infinite;
+}
+
+/* Common: тихое нейтральное свечение */
+@keyframes common-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(148, 163, 184, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(148, 163, 184, 0.5);
+  }
+}
+
+.artifact-anim-common {
+  animation: common-glow 3s ease-in-out infinite;
 }
 </style>

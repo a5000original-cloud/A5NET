@@ -5,6 +5,7 @@ import Watches from "../../tables/watches.table";
 import Profiles from "../../tables/profiles.table";
 import Collabs from "../../tables/collabs.table";
 import Edges from "../../tables/edges.table";
+import Events from "../../tables/events.table";
 import { addEdge, requestFriendship, type ViewerSocial } from "../social";
 import { refreshHype } from "../hype";
 import { toggleEmoji } from "../emoji";
@@ -136,6 +137,20 @@ export async function executeAction(
           ? firstSentence.slice(0, 100)
           : `${draft.title} — ${profile.city}`.slice(0, 120);
     }
+
+    // Check for active events and add hashtags (40% chance)
+    const activeEvents = await Events.findAll(ctx, {
+      where: { isActive: true },
+      limit: 10,
+    });
+    if (activeEvents.length > 0 && Math.random() < 0.4) {
+      const event =
+        activeEvents[Math.floor(Math.random() * activeEvents.length)];
+      if (event) {
+        draft.topics = [...draft.topics, event.hashtag];
+      }
+    }
+
     const post = await Posts.create(ctx, {
       authorId: profile.id,
       kind: draft.kind,

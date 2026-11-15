@@ -418,7 +418,7 @@ export function buildProfileCard(
     ...toAuthorCard(profile),
     age: profile.age,
     bio: profile.bio,
-    interests: toTopicRefs(profile.interests),
+    interests: toTopicRefs(profile.interests ?? []),
     followersCount: profile.followersCount,
     externalSubscribers: profile.externalSubscribers ?? 0,
     subscriberSource: profile.subscriberSource ?? null,
@@ -467,12 +467,40 @@ export async function getProfilePageData(
 ) {
   const profile = await Profiles.findById(ctx, profileId);
   if (!profile) return null;
-  const [targetSocial, viewerSocial, posts, allCollabs] = await Promise.all([
-    getViewerSocial(ctx, profile.id),
-    getViewerSocial(ctx, viewer.id),
-    listPosts(ctx, { viewerId: viewer.id, authorId: profile.id, limit: 24 }),
-    buildCollabs(ctx, viewer.id),
-  ]);
+  let targetSocial: ViewerSocial;
+  let viewerSocial: ViewerSocial;
+  let posts: { items: (typeof Posts.T)[] };
+  let allCollabs: (typeof Collabs.T)[];
+  try {
+    [targetSocial, viewerSocial, posts, allCollabs] = await Promise.all([
+      getViewerSocial(ctx, profile.id),
+      getViewerSocial(ctx, viewer.id),
+      listPosts(ctx, { viewerId: viewer.id, authorId: profile.id, limit: 24 }),
+      buildCollabs(ctx, viewer.id),
+    ]);
+  } catch {
+    // fallback: minimal data if any query fails
+    targetSocial = await getViewerSocial(ctx, profile.id).catch(
+      () =>
+        ({
+          friendIds: new Set(),
+          followingIds: new Set(),
+          pendingOut: new Set(),
+          pendingIn: new Set(),
+        }) as ViewerSocial,
+    );
+    viewerSocial = await getViewerSocial(ctx, viewer.id).catch(
+      () =>
+        ({
+          friendIds: new Set(),
+          followingIds: new Set(),
+          pendingOut: new Set(),
+          pendingIn: new Set(),
+        }) as ViewerSocial,
+    );
+    posts = { items: [] };
+    allCollabs = [];
+  }
   const collabs = allCollabs.filter(
     (collab) =>
       collab.initiator.id === profile.id ||
