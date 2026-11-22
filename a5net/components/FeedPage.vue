@@ -181,17 +181,38 @@
               </div>
               <PostCard :post="post" />
             </div>
-            <div class="pt-2 text-center">
-              <button
-                v-if="hasMore"
-                type="button"
-                class="a5-btn"
-                :disabled="loading"
-                @click="loadMore"
+            <div class="pt-4">
+              <!-- Скелетоны во время загрузки -->
+              <div v-if="loading" class="space-y-4">
+                <div v-for="i in 3" :key="i" class="a5-card p-5">
+                  <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-full a5-skeleton"></div>
+                    <div class="space-y-2">
+                      <div class="h-3 w-32 rounded a5-skeleton"></div>
+                      <div class="h-2 w-20 rounded a5-skeleton"></div>
+                    </div>
+                  </div>
+                  <div class="mt-4 h-4 w-3/4 rounded a5-skeleton"></div>
+                  <div class="mt-2 h-3 w-1/2 rounded a5-skeleton"></div>
+                  <div class="mt-4 flex gap-2">
+                    <div class="h-6 w-16 rounded-full a5-skeleton"></div>
+                    <div class="h-6 w-16 rounded-full a5-skeleton"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Кнопка "Показать ещё" -->
+              <div v-else-if="hasMore" class="text-center">
+                <button type="button" class="a5-btn" @click="loadMore">
+                  Показать ещё
+                </button>
+              </div>
+
+              <!-- Конец ленты -->
+              <p
+                v-else
+                class="a5-mono text-center text-[9px] text-moss/50 py-4"
               >
-                {{ loading ? "Загружаю…" : "Показать ещё" }}
-              </button>
-              <p v-else class="a5-mono text-[9px] text-moss/50">
                 конец ленты · дальше только тишина
               </p>
             </div>
@@ -347,7 +368,11 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { FeedData, PostCard as PostCardData } from "../shared/types";
+import type {
+  FeedData,
+  PostCard as PostCardData,
+  AuthorCard,
+} from "../shared/types";
 import SiteHeader from "./SiteHeader.vue";
 import PostCard from "./PostCard.vue";
 import Composer from "./Composer.vue";
@@ -365,7 +390,7 @@ import { postPageRoute } from "../post";
 
 const props = defineProps<{ data: FeedData }>();
 
-function isOwner(author: any): boolean {
+function isOwner(author: AuthorCard): boolean {
   return author.handle === "a5000";
 }
 
