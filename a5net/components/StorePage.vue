@@ -1,6 +1,10 @@
 <template>
   <div>
-    <SiteHeader :viewer="data.viewer" :role="data.viewerRole" active="none" />
+    <SiteHeader
+      :viewer="data.viewer"
+      :role="data.viewerRole as 'owner' | 'admin' | 'member'"
+      active="none"
+    />
 
     <main class="a5-shell pb-28 pt-8">
       <!-- Hero -->

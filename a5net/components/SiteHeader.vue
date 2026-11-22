@@ -199,7 +199,12 @@
                     :href="profilePageRoute.query({ id: acc.id }).url()"
                     class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-bone/70 hover:bg-panel2 hover:text-bone"
                   >
-                    <Avatar :name="acc.name" :hue="acc.avatarHue" size="xs" />
+                    <Avatar
+                      :name="acc.name"
+                      :hue="acc.avatarHue"
+                      :accent="0"
+                      size="xs"
+                    />
                     <span class="truncate">{{ acc.name }}</span>
                     <span
                       v-if="acc.id === viewer.id"
@@ -420,9 +425,9 @@ async function checkMultiAccount() {
       trustedForMulti.value = true;
       multiAccounts.value = [
         {
-          id: viewer.value.id,
-          name: viewer.value.name,
-          avatarHue: viewer.value.avatarHue,
+          id: props.viewer.id,
+          name: props.viewer.name,
+          avatarHue: props.viewer.avatarHue,
         },
       ];
     }

@@ -57,11 +57,11 @@ a {
   }
 
   .a5-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40 active:scale-95 transition-transform;
   }
 
   .a5-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40 active:scale-95;
   }
 
   .a5-btn-ghost {
@@ -366,68 +366,94 @@ a {
   }
 }
 
-/* Premium artifact animations */
-@keyframes founder-pulse {
+/* Premium artifact animations (Fixed & Enhanced) */
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+  z-index: 1;
+}
+.premium-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -1;
+}
+.premium-avatar.founder::before {
+  border: 2px solid #c9f75a;
+  box-shadow:
+    0 0 15px #c9f75a,
+    0 0 35px rgba(201, 247, 90, 0.4),
+    inset 0 0 10px rgba(201, 247, 90, 0.5);
+  animation: avatarPulseFounder 2s infinite alternate;
+}
+@keyframes avatarPulseFounder {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 0 15px #c9f75a,
+      0 0 35px rgba(201, 247, 90, 0.4);
+  }
+  100% {
+    transform: scale(1.06);
+    box-shadow:
+      0 0 25px #c9f75a,
+      0 0 60px rgba(201, 247, 90, 0.7);
+  }
+}
+.premium-avatar.legendary::before {
+  border: 2px solid #ffd700;
+  box-shadow:
+    0 0 15px #ffd700,
+    0 0 30px rgba(255, 215, 0, 0.4);
+  animation: avatarRotateLegendary 3s linear infinite;
+}
+@keyframes avatarRotateLegendary {
+  0% {
+    box-shadow:
+      0 0 15px #ffd700,
+      0 0 30px rgba(255, 215, 0, 0.4);
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    box-shadow:
+      0 0 25px #ffd700,
+      0 0 50px rgba(255, 215, 0, 0.6);
+    filter: hue-rotate(30deg);
+  }
+  100% {
+    box-shadow:
+      0 0 15px #ffd700,
+      0 0 30px rgba(255, 215, 0, 0.4);
+    filter: hue-rotate(0deg);
+  }
+}
+.premium-avatar.epic::before {
+  border: 2px solid #b7a6ff;
+  box-shadow:
+    0 0 15px #b7a6ff,
+    0 0 35px rgba(183, 166, 255, 0.4),
+    inset 0 0 10px #b7a6ff;
+  animation: avatarFogEpic 3s ease-in-out infinite;
+}
+@keyframes avatarFogEpic {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(191, 255, 0, 0.3);
+    opacity: 0.7;
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 18px rgba(191, 255, 0, 0.7);
-    transform: scale(1.06);
-  }
-}
-
-@keyframes legendary-rotate {
-  0% {
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-  }
-  25% {
-    box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-  }
-  75% {
-    box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
-  }
-  100% {
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-  }
-}
-
-@keyframes epic-fog {
-  0%,
-  100% {
-    box-shadow: 0 0 6px rgba(168, 85, 247, 0.2);
-    opacity: 0.7;
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
     opacity: 1;
+    transform: scale(1.04);
+    box-shadow:
+      0 0 25px #b7a6ff,
+      0 0 50px rgba(183, 166, 255, 0.6);
   }
 }
-
-@keyframes shimmer-blink {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.artifact-founder {
-  animation: founder-pulse 2.5s ease-in-out infinite;
-}
-.artifact-legendary {
-  animation: legendary-rotate 2s ease-in-out infinite;
-}
-.artifact-epic {
-  animation: epic-fog 3s ease-in-out infinite;
-}
-.artifact-rare {
-  animation: shimmer-blink 2.5s ease-in-out infinite;
+.premium-avatar.rare::before {
+  border: 2px solid #8fd8d2;
+  box-shadow:
+    0 0 10px #8fd8d2,
+    0 0 25px rgba(143, 216, 210, 0.3);
 }

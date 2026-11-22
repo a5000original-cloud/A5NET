@@ -8,6 +8,7 @@ import type {
   CollabCard,
   FeedData,
   PlatformStats,
+  PostCard,
   ProfileCard,
   StickerPlacement,
   TrendItem,
@@ -469,8 +470,8 @@ export async function getProfilePageData(
   if (!profile) return null;
   let targetSocial: ViewerSocial;
   let viewerSocial: ViewerSocial;
-  let posts: { items: (typeof Posts.T)[] };
-  let allCollabs: (typeof Collabs.T)[];
+  let posts: { items: PostCard[]; hasMore: boolean };
+  let allCollabs: CollabCard[];
   try {
     [targetSocial, viewerSocial, posts, allCollabs] = await Promise.all([
       getViewerSocial(ctx, profile.id),
@@ -498,7 +499,7 @@ export async function getProfilePageData(
           pendingIn: new Set(),
         }) as ViewerSocial,
     );
-    posts = { items: [] };
+    posts = { items: [], hasMore: false };
     allCollabs = [];
   }
   const collabs = allCollabs.filter(
