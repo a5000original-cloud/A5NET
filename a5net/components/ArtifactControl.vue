@@ -52,45 +52,58 @@
         >
           <h3 class="text-sm font-medium text-bone mb-3">Выберите предмет</h3>
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <button
-              v-for="item in items"
-              :key="item.id"
-              type="button"
-              class="group relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all duration-300"
-              :class="
-                selectedItem?.id === item.id
-                  ? 'border-violet/60 bg-violet/10 shadow-lg shadow-violet/10 scale-[1.02]'
-                  : 'border-line/50 bg-panel2/40 hover:border-violet/30 hover:scale-[1.03] hover:shadow-lg'
-              "
-              @click="
-                selectedItem = item;
-                emit('selectItem', item);
-              "
-            >
-              <!-- Rarity glow -->
-              <div
-                class="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
-                :style="{ background: rarityGlow(item.rarity) }"
-              ></div>
-
-              <!-- Icon -->
-              <div class="relative z-10">
-                <span class="text-3xl">{{ typeIcon(item.type) }}</span>
-              </div>
-
-              <!-- Name -->
-              <p class="relative z-10 mt-2 text-[12px] font-medium text-bone">
-                {{ item.name }}
-              </p>
-
-              <!-- Rarity badge -->
-              <span
-                class="relative z-10 mt-1 inline-block rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider"
-                :class="rarityBadge(item.rarity)"
+            <template v-if="items.length">
+              <button
+                v-for="item in items"
+                :key="item.id"
+                type="button"
+                class="group relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all duration-300 active:scale-95 touch-manipulation"
+                :class="
+                  selectedItem?.id === item.id
+                    ? 'border-violet/60 bg-violet/10 shadow-lg shadow-violet/10 scale-[1.02]'
+                    : 'border-line/50 bg-panel2/40 hover:border-violet/30 hover:scale-[1.03] hover:shadow-lg'
+                "
+                @click="
+                  selectedItem = item;
+                  emit('selectItem', item);
+                "
               >
-                {{ item.rarity }}
-              </span>
-            </button>
+                <!-- Rarity glow -->
+                <div
+                  class="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  :style="{ background: rarityGlow(item.rarity) }"
+                ></div>
+
+                <!-- Icon -->
+                <div class="relative z-10">
+                  <span class="text-3xl">{{ typeIcon(item.type) }}</span>
+                </div>
+
+                <!-- Name -->
+                <p
+                  class="relative z-10 mt-2 truncate text-[12px] font-medium text-bone"
+                >
+                  {{ item.name }}
+                </p>
+
+                <!-- Rarity badge -->
+                <span
+                  class="relative z-10 mt-1 inline-block rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider"
+                  :class="rarityBadge(item.rarity)"
+                >
+                  {{ item.rarity }}
+                </span>
+              </button>
+            </template>
+            <div
+              v-else
+              class="col-span-full rounded-xl border-2 border-dashed border-line/40 p-8 text-center"
+            >
+              <p class="text-sm text-moss/60">Предметы ещё не загружены</p>
+              <p class="mt-1 text-[11px] text-moss/40">
+                Попробуйте обновить страницу
+              </p>
+            </div>
           </div>
         </div>
 

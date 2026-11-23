@@ -2,7 +2,7 @@
   <div>
     <SiteHeader :viewer="data.viewer" :role="data.viewerRole" active="feed" />
 
-    <main class="a5-shell pb-24 pt-8">
+    <main class="a5-shell pb-[140px] sm:pb-24 pt-8">
       <section
         class="mb-8 flex flex-col justify-between gap-6 lg:flex-row lg:items-end"
       >

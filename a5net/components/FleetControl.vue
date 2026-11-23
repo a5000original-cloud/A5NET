@@ -103,13 +103,13 @@
             </p>
           </div>
 
-          <!-- Actions -->
+          <!-- Actions — always visible on mobile -->
           <div
-            class="shrink-0 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+            class="shrink-0 flex items-center gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
           >
             <button
               type="button"
-              class="rounded-lg p-1.5 text-moss/50 transition-all hover:bg-ember/10 hover:text-ember"
+              class="rounded-lg p-2 text-moss/50 transition-all hover:bg-ember/10 hover:text-ember active:scale-90"
               :title="bot.enabled ? 'Забанить' : 'Разбанить'"
               @click="toggleBotBan(bot)"
             >
@@ -144,8 +144,9 @@
             </button>
             <button
               type="button"
-              class="rounded-lg p-1.5 text-moss/50 transition-all hover:bg-panel2 hover:text-bone"
+              class="rounded-lg p-2 text-moss/50 transition-all hover:bg-panel2 hover:text-bone active:scale-90"
               title="Настройки"
+              @click="toggleBotBan(bot)"
             >
               <svg
                 class="h-4 w-4"

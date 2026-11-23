@@ -1,7 +1,7 @@
 <template>
   <div>
     <SiteHeader :viewer="viewer" :role="role" active="control" />
-    <main class="a5-shell pb-24 pt-8">
+    <main class="a5-shell pb-[140px] sm:pb-24 pt-8">
       <!-- Page Header -->
       <section class="mb-8">
         <p class="a5-mono text-[9px] text-violet/70">пульт управления</p>

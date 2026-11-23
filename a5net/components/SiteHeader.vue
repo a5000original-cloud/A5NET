@@ -3,7 +3,7 @@
     <header
       class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur-xl"
     >
-      <div class="a5-shell flex h-16 items-center justify-between gap-4">
+      <div class="a5-shell flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4">
         <div class="flex items-center gap-6">
           <a
             :href="feedPageRoute.url()"
@@ -80,10 +80,11 @@
           <div class="relative">
             <button
               type="button"
-              class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40"
+              class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40 touch-manipulation"
               aria-label="Меню профиля"
               :aria-expanded="menuOpen"
               @click="menuOpen = !menuOpen"
+              @click.outside="menuOpen = false"
             >
               <Avatar
                 :name="viewer.name"
@@ -114,8 +115,15 @@
 
             <div
               v-if="menuOpen"
-              class="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-panel shadow-lift"
+              class="fixed inset-x-0 top-0 z-50 flex flex-col justify-end sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[calc(100vh-80px)] sm:overflow-y-auto sm:w-56 sm:rounded-xl"
             >
+              <!-- Mobile backdrop -->
+              <div
+                class="absolute inset-0 -top-[100vh] bg-black/50 sm:hidden"
+                @click="menuOpen = false"
+              ></div>
+              <!-- Menu content -->
+              <div class="relative z-10 w-full sm:w-56 sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:shadow-lift">
               <a
                 :href="profilePageRoute.query({ id: viewer.id }).url()"
                 class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
@@ -221,14 +229,15 @@
               >
                 Выйти
               </button>
+              </div>
             </div>
-          </div>
         </div>
       </div>
     </header>
 
     <nav
-      class="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 bg-ink/95 backdrop-blur-xl md:hidden"
+      class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
+      :style="{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }"
       aria-label="Площадки"
     >
       <div class="grid grid-cols-4">
@@ -236,11 +245,11 @@
           v-for="item in dockItems"
           :key="item.key"
           :href="item.href"
-          class="flex flex-col items-center gap-1 py-2 text-[9px] transition"
-          :class="active === item.key ? item.activeClass : 'text-moss/60'"
+          class="flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition active:scale-90 touch-manipulation"
+          :class="active === item.key ? item.activeClass : 'text-moss/50'"
         >
-          <span v-html="item.icon"></span>
-          <span>{{ item.label }}</span>
+          <span v-html="item.icon" class="h-6 w-6"></span>
+          <span class="truncate px-1">{{ item.label }}</span>
         </a>
       </div>
     </nav>
