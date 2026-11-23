@@ -8,10 +8,36 @@
   color-scheme: dark;
   --a5-lime: #c9f75a;
   --a5-line: #252b21;
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+/* === МОБИЛЬНЫЕ СТАНДАРТЫ APPLE (safe-area, tap highlight, touch targets) === */
+@supports (padding-top: env(safe-area-inset-top)) {
+  html,
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+html,
+body {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button,
+[role="button"] {
+  touch-action: manipulation;
 }
 
 body {
@@ -56,20 +82,25 @@ a {
     @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-panel2/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-moss;
   }
 
+  /* Кнопки с идеальным мобильным откликом (минимум 44px по гайдлайнам Apple) */
   .a5-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40 active:scale-95 transition-transform;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.97] transition-transform;
+    min-height: 44px;
   }
 
   .a5-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.97];
+    min-height: 44px;
   }
 
   .a5-btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-moss transition hover:text-bone;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-moss transition hover:text-bone active:scale-[0.97];
+    min-height: 44px;
   }
 
   .a5-input {
-    @apply w-full rounded-xl border border-line bg-coal px-4 py-3 text-sm text-bone placeholder:text-moss/60 focus:border-lime/60 focus:outline-none;
+    @apply w-full rounded-xl border border-line bg-coal px-4 py-3 text-sm text-bone placeholder:text-moss/60 focus:border-lime/60 focus:outline-none focus:ring-1 focus:ring-lime/30;
+    min-height: 44px;
   }
 
   .a5-label {
@@ -367,18 +398,30 @@ a {
 }
 
 /* Premium artifact animations (Fixed & Enhanced) */
+/* Секрет: padding создает безопасную внутреннюю зону, а inset: 0 заполняет её,
+   не выходя за границы родителя с overflow: hidden — свечение больше не обрезается */
 .premium-avatar {
   position: relative;
   display: inline-block;
   border-radius: 9999px;
+  padding: 3px; /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ */
+  background: transparent;
   z-index: 1;
+}
+.premium-avatar img,
+.premium-avatar > span {
+  border-radius: 9999px;
+  display: block;
+  position: relative;
+  z-index: 2;
 }
 .premium-avatar::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: 0; /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: было -3px, стало 0 */
   border-radius: inherit;
-  z-index: -1;
+  z-index: 1;
+  pointer-events: none;
 }
 .premium-avatar.founder::before {
   border: 2px solid #c9f75a;

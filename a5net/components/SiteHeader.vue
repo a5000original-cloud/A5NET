@@ -113,87 +113,92 @@
               </svg>
             </button>
 
+            <!-- Mobile backdrop -->
             <div
               v-if="menuOpen"
-              class="fixed inset-x-0 top-0 z-50 flex flex-col justify-end sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[calc(100vh-80px)] sm:overflow-y-auto sm:w-56 sm:rounded-xl"
+              class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity sm:hidden"
+              @click="menuOpen = false"
+            ></div>
+
+            <!-- Menu content -->
+            <div
+              v-if="menuOpen"
+              class="fixed inset-x-0 bottom-0 z-50 flex flex-col justify-end sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[calc(100vh-80px)] sm:overflow-y-auto sm:w-56 sm:rounded-xl"
+              :style="{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }"
             >
-              <!-- Mobile backdrop -->
-              <div
-                class="absolute inset-0 -top-[100vh] bg-black/50 sm:hidden"
-                @click="menuOpen = false"
-              ></div>
-              <!-- Menu content -->
-              <div class="relative z-10 w-full sm:w-56 sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:shadow-lift">
+              <div class="relative z-10 w-full rounded-t-2xl border-t border-line/50 bg-panel/95 pt-2 backdrop-blur-xl sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:shadow-lift sm:pt-0">
+                <!-- iOS Drag Handle -->
+                <div class="mx-auto mb-3 h-1 w-12 rounded-full bg-line/50 sm:hidden"></div>
               <a
                 :href="profilePageRoute.query({ id: viewer.id }).url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Мой профиль</a
               >
               <a
                 :href="profileSettingsRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Настроить профиль</a
               >
               <a
                 :href="notificationsPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Уведомления</a
               >
               <a
                 :href="friendsPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Заявки в друзья</a
               >
               <a
                 :href="shortsPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >A5 Shorts</a
               >
               <a
                 :href="communitiesPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Сообщества</a
               >
               <a
                 :href="inboxPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Сообщения</a
               >
               <a
                 :href="assistantPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >A5000_Менеджер</a
               >
               <a
                 :href="storePageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
               >
                 <span class="mr-2">🛒</span>Магазин
               </a>
               <a
                 v-if="showInvites"
                 :href="invitesPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Приглашения</a
               >
               <InstallApp variant="menu" />
               <a
                 v-if="role === 'owner'"
                 :href="securityPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Безопасность</a
               >
               <a
                 v-if="role === 'owner'"
                 :href="controlPageRoute.url()"
-                class="block px-4 py-3 text-sm text-violet hover:bg-panel2"
+                class="block px-4 py-3.5 text-sm text-violet hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
                 >Пульт A5000</a
               >
-              <div class="a5-divider"></div>
+              <div class="a5-divider my-1"></div>
               <button
                 v-if="trustedForMulti"
                 type="button"
-                class="block w-full px-4 py-3 text-left text-sm text-bone hover:bg-panel2 hover:text-lime"
+                class="block w-full px-4 py-3.5 text-left text-sm text-bone hover:bg-panel2 hover:text-lime active:bg-panel2 transition-colors touch-manipulation"
                 @click="showMultiAccount = !showMultiAccount"
               >
                 <span class="mr-2">🔄</span>Переключить аккаунт
@@ -205,7 +210,7 @@
                     v-for="acc in multiAccounts"
                     :key="acc.id"
                     :href="profilePageRoute.query({ id: acc.id }).url()"
-                    class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-bone/70 hover:bg-panel2 hover:text-bone"
+                    class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-bone/70 hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
                   >
                     <Avatar
                       :name="acc.name"
@@ -224,7 +229,7 @@
               </div>
               <button
                 type="button"
-                class="block w-full px-4 py-3 text-left text-sm text-moss hover:bg-panel2 hover:text-bone"
+                class="block w-full px-4 py-3.5 text-left text-sm text-moss hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
                 @click="signOut"
               >
                 Выйти
