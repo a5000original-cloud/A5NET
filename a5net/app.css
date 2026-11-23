@@ -38,7 +38,11 @@ body {
 a {
   @apply transition-colors;
 }
-
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 @layer components {
   .a5-shell {
     @apply mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:px-8;
@@ -56,20 +60,23 @@ a {
     @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-panel2/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-moss;
   }
 
-  .a5-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40 active:scale-95 transition-transform;
-  }
-
-  .a5-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40 active:scale-95;
-  }
-
-  .a5-btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-moss transition hover:text-bone;
-  }
-
+  .a5-btn,
+  .a5-btn-primary,
+  .a5-btn-ghost,
   .a5-input {
-    @apply w-full rounded-xl border border-line bg-coal px-4 py-3 text-sm text-bone placeholder:text-moss/60 focus:border-lime/60 focus:outline-none;
+    min-height: 44px;
+  }
+  .a5-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel2 px-4 py-2.5 text-sm font-medium text-bone transition hover:border-lime/50 hover:text-lime disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.97];
+  }
+  .a5-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#d8ff7c] disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.97];
+  }
+  .a5-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-moss transition hover:text-bone active:scale-[0.97];
+  }
+  .a5-input {
+    @apply w-full rounded-xl border border-line bg-coal px-4 py-3 text-sm text-bone placeholder:text-moss/60 focus:border-lime/60 focus:outline-none focus:ring-1 focus:ring-lime/30;
   }
 
   .a5-label {
@@ -283,7 +290,9 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
   }
@@ -366,26 +375,35 @@ a {
   }
 }
 
-/* Premium artifact animations (Fixed & Enhanced) */
+/* Premium artifact animations (OVERFLOW-SAFE FIX) */
 .premium-avatar {
   position: relative;
   display: inline-block;
   border-radius: 9999px;
+  padding: 3px;
+  background: transparent;
   z-index: 1;
+}
+.premium-avatar img,
+.premium-avatar > span {
+  border-radius: 9999px;
+  display: block;
+  position: relative;
+  z-index: 2;
 }
 .premium-avatar::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: 0;
   border-radius: inherit;
-  z-index: -1;
+  z-index: 1;
+  pointer-events: none;
 }
 .premium-avatar.founder::before {
   border: 2px solid #c9f75a;
   box-shadow:
     0 0 15px #c9f75a,
-    0 0 35px rgba(201, 247, 90, 0.4),
-    inset 0 0 10px rgba(201, 247, 90, 0.5);
+    0 0 35px rgba(201, 247, 90, 0.4);
   animation: avatarPulseFounder 2s infinite alternate;
 }
 @keyframes avatarPulseFounder {
@@ -433,8 +451,7 @@ a {
   border: 2px solid #b7a6ff;
   box-shadow:
     0 0 15px #b7a6ff,
-    0 0 35px rgba(183, 166, 255, 0.4),
-    inset 0 0 10px #b7a6ff;
+    0 0 35px rgba(183, 166, 255, 0.4);
   animation: avatarFogEpic 3s ease-in-out infinite;
 }
 @keyframes avatarFogEpic {

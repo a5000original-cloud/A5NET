@@ -3,7 +3,9 @@
     <header
       class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur-xl"
     >
-      <div class="a5-shell flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4">
+      <div
+        class="a5-shell flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4"
+      >
         <div class="flex items-center gap-6">
           <a
             :href="feedPageRoute.url()"
@@ -21,7 +23,6 @@
               activeLabel
             }}</span>
           </a>
-
           <nav
             class="hidden items-center gap-1 md:flex"
             aria-label="Площадки A5NET"
@@ -38,7 +39,6 @@
             >
           </nav>
         </div>
-
         <div class="flex items-center gap-2">
           <button
             type="button"
@@ -69,14 +69,12 @@
             <span class="a5-live-dot h-1.5 w-1.5 rounded-full bg-lime"></span>
             инвайты
           </a>
-
           <a
             v-if="role === 'owner'"
             :href="controlPageRoute.url()"
             class="a5-pill hidden !border-violet/25 !text-violet/90 hover:!border-violet/60 sm:inline-flex"
             >пульт</a
           >
-
           <div class="relative">
             <button
               type="button"
@@ -112,129 +110,129 @@
                 />
               </svg>
             </button>
-
             <div
               v-if="menuOpen"
               class="fixed inset-x-0 top-0 z-50 flex flex-col justify-end sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[calc(100vh-80px)] sm:overflow-y-auto sm:w-56 sm:rounded-xl"
             >
-              <!-- Mobile backdrop -->
               <div
                 class="absolute inset-0 -top-[100vh] bg-black/50 sm:hidden"
                 @click="menuOpen = false"
               ></div>
-              <!-- Menu content -->
-              <div class="relative z-10 w-full sm:w-56 sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:shadow-lift">
-              <a
-                :href="profilePageRoute.query({ id: viewer.id }).url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Мой профиль</a
+              <div
+                class="relative z-10 w-full sm:w-56 sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:shadow-lift"
               >
-              <a
-                :href="profileSettingsRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Настроить профиль</a
-              >
-              <a
-                :href="notificationsPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Уведомления</a
-              >
-              <a
-                :href="friendsPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Заявки в друзья</a
-              >
-              <a
-                :href="shortsPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >A5 Shorts</a
-              >
-              <a
-                :href="communitiesPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Сообщества</a
-              >
-              <a
-                :href="inboxPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Сообщения</a
-              >
-              <a
-                :href="assistantPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >A5000_Менеджер</a
-              >
-              <a
-                :href="storePageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-              >
-                <span class="mr-2">🛒</span>Магазин
-              </a>
-              <a
-                v-if="showInvites"
-                :href="invitesPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Приглашения</a
-              >
-              <InstallApp variant="menu" />
-              <a
-                v-if="role === 'owner'"
-                :href="securityPageRoute.url()"
-                class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
-                >Безопасность</a
-              >
-              <a
-                v-if="role === 'owner'"
-                :href="controlPageRoute.url()"
-                class="block px-4 py-3 text-sm text-violet hover:bg-panel2"
-                >Пульт A5000</a
-              >
-              <div class="a5-divider"></div>
-              <button
-                v-if="trustedForMulti"
-                type="button"
-                class="block w-full px-4 py-3 text-left text-sm text-bone hover:bg-panel2 hover:text-lime"
-                @click="showMultiAccount = !showMultiAccount"
-              >
-                <span class="mr-2">🔄</span>Переключить аккаунт
-              </button>
-              <div v-if="showMultiAccount" class="px-4 py-2">
-                <p class="text-[9px] text-moss/50 mb-2">Доверенные аккаунты:</p>
-                <div class="space-y-1">
-                  <a
-                    v-for="acc in multiAccounts"
-                    :key="acc.id"
-                    :href="profilePageRoute.query({ id: acc.id }).url()"
-                    class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-bone/70 hover:bg-panel2 hover:text-bone"
-                  >
-                    <Avatar
-                      :name="acc.name"
-                      :hue="acc.avatarHue"
-                      :accent="0"
-                      size="xs"
-                    />
-                    <span class="truncate">{{ acc.name }}</span>
-                    <span
-                      v-if="acc.id === viewer.id"
-                      class="ml-auto text-[8px] text-lime"
-                      >ты</span
+                <a
+                  :href="profilePageRoute.query({ id: viewer.id }).url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Мой профиль</a
+                >
+                <a
+                  :href="profileSettingsRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Настроить профиль</a
+                >
+                <a
+                  :href="notificationsPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Уведомления</a
+                >
+                <a
+                  :href="friendsPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Заявки в друзья</a
+                >
+                <a
+                  :href="shortsPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >A5 Shorts</a
+                >
+                <a
+                  :href="communitiesPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Сообщества</a
+                >
+                <a
+                  :href="inboxPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Сообщения</a
+                >
+                <a
+                  :href="assistantPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >A5000_Менеджер</a
+                >
+                <a
+                  :href="storePageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  ><span class="mr-2">🛒</span>Магазин</a
+                >
+                <a
+                  v-if="showInvites"
+                  :href="invitesPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Приглашения</a
+                >
+                <InstallApp variant="menu" />
+                <a
+                  v-if="role === 'owner'"
+                  :href="securityPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  >Безопасность</a
+                >
+                <a
+                  v-if="role === 'owner'"
+                  :href="controlPageRoute.url()"
+                  class="block px-4 py-3 text-sm text-violet hover:bg-panel2"
+                  >Пульт A5000</a
+                >
+                <div class="a5-divider"></div>
+                <button
+                  v-if="trustedForMulti"
+                  type="button"
+                  class="block w-full px-4 py-3 text-left text-sm text-bone hover:bg-panel2 hover:text-lime"
+                  @click="showMultiAccount = !showMultiAccount"
+                >
+                  <span class="mr-2">🔄</span>Переключить аккаунт
+                </button>
+                <div v-if="showMultiAccount" class="px-4 py-2">
+                  <p class="text-[9px] text-moss/50 mb-2">
+                    Доверенные аккаунты:
+                  </p>
+                  <div class="space-y-1">
+                    <a
+                      v-for="acc in multiAccounts"
+                      :key="acc.id"
+                      :href="profilePageRoute.query({ id: acc.id }).url()"
+                      class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-bone/70 hover:bg-panel2 hover:text-bone"
                     >
-                  </a>
+                      <Avatar
+                        :name="acc.name"
+                        :hue="acc.avatarHue"
+                        :accent="0"
+                        size="xs"
+                      />
+                      <span class="truncate">{{ acc.name }}</span>
+                      <span
+                        v-if="acc.id === viewer.id"
+                        class="ml-auto text-[8px] text-lime"
+                        >ты</span
+                      >
+                    </a>
+                  </div>
                 </div>
-              </div>
-              <button
-                type="button"
-                class="block w-full px-4 py-3 text-left text-sm text-moss hover:bg-panel2 hover:text-bone"
-                @click="signOut"
-              >
-                Выйти
-              </button>
+                <button
+                  type="button"
+                  class="block w-full px-4 py-3 text-left text-sm text-moss hover:bg-panel2 hover:text-bone"
+                  @click="signOut"
+                >
+                  Выйти
+                </button>
               </div>
             </div>
+          </div>
         </div>
       </div>
     </header>
-
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
       :style="{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }"
@@ -309,6 +307,7 @@ const trustedForMulti = ref(false);
 const multiAccounts = ref<
   Array<{ id: string; name: string; avatarHue: number }>
 >([]);
+
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
 );
@@ -385,7 +384,6 @@ const activePill = computed(() => {
   return "bg-panel2 text-bone";
 });
 
-// Daily reward
 const dailyAvailable = ref(false);
 const dailyLoading = ref(false);
 const dailyToast = ref("");
@@ -423,10 +421,8 @@ async function claimDailyReward() {
   }
 }
 
-// Check on mount
 checkDailyReward();
 
-// Multi-account: check if trusted device
 async function checkMultiAccount() {
   try {
     const result = await dailyRewardRoute.run(ctx);

@@ -604,14 +604,6 @@ async function sendReport() {
   border-radius: 9999px;
 }
 
-.premium-avatar::before {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: inherit;
-  z-index: -1;
-}
-
 .premium-avatar.founder::before {
   border: 2px solid #c8ff3d;
   box-shadow:
