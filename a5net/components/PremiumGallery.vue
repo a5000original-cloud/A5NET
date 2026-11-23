@@ -4,12 +4,10 @@
     <div v-if="loading" class="flex min-h-[320px] items-center justify-center">
       <div class="a5-mono text-sm text-moss/50">загрузка хранилища…</div>
     </div>
-
     <!-- Empty -->
     <p v-else-if="!items.length" class="py-16 text-center text-sm text-moss/50">
       Хранилище пусто.
     </p>
-
     <!-- Grid -->
     <div v-else class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <article
@@ -30,7 +28,6 @@
           class="absolute inset-0 rounded-2xl"
           :class="isAwarded(item.id) ? rarityBorder(item.rarity) : 'bg-line/20'"
         ></div>
-
         <!-- Card body -->
         <div
           class="relative flex flex-col rounded-2xl border border-line/30 bg-ink/70 backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-1 group-hover:border-line/50"
@@ -52,7 +49,6 @@
                 animation: shimmer 3s ease-in-out infinite;
               "
             ></div>
-
             <!-- Pulsing overlay for founder -->
             <div
               v-if="isAwarded(item.id) && item.rarity === 'founder'"
@@ -66,7 +62,6 @@
                 animation: pulseGlow 2.5s ease-in-out infinite;
               "
             ></div>
-
             <!-- Image or icon -->
             <img
               v-if="item.imageUrl"
@@ -86,14 +81,11 @@
             >
               {{ typeIcon(item.type) }}
             </span>
-
             <!-- Awarded badge -->
             <span
               v-if="isAwarded(item.id)"
               class="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-lime/40 bg-ink/80 px-2.5 py-1 text-[9px] font-medium text-lime backdrop-blur-md transition-all duration-300"
-              :style="{
-                boxShadow: '0 0 12px rgba(191,255,0,0.2)',
-              }"
+              :style="{ boxShadow: '0 0 12px rgba(191,255,0,0.2)' }"
             >
               <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                 <path
@@ -104,7 +96,6 @@
               </svg>
               в коллекции
             </span>
-
             <!-- Rarity indicator top-right -->
             <span
               v-if="isAwarded(item.id)"
@@ -114,7 +105,6 @@
               {{ item.rarity }}
             </span>
           </div>
-
           <!-- Content -->
           <div class="p-4">
             <!-- Name -->
@@ -126,7 +116,6 @@
                 {{ item.name }}
               </h3>
             </div>
-
             <!-- Description -->
             <p
               class="mt-1.5 line-clamp-2 text-[11px] leading-relaxed transition-colors duration-300"
@@ -134,7 +123,6 @@
             >
               {{ item.description }}
             </p>
-
             <!-- Type pill -->
             <div class="mt-3 flex items-center gap-2">
               <span
@@ -153,40 +141,6 @@
         </div>
       </article>
     </div>
-
-    <!-- Custom CSS -->
-    <style scoped>
-      @keyframes shimmer {
-        0%,
-        100% {
-          background-position: -200% 0;
-        }
-        50% {
-          background-position: 200% 0;
-        }
-      }
-
-      @keyframes pulseGlow {
-        0%,
-        100% {
-          opacity: 0.4;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 1;
-          transform: scale(1.05);
-        }
-      }
-
-      @keyframes borderRotate {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
   </section>
 </template>
 
@@ -234,9 +188,8 @@ function isAwarded(itemId: string): boolean {
 
 const awardedIds = new Set<string>();
 
-// Rarity visual effects
 function rarityGlow(rarity: string): string {
-  const base = "shadow-xl";
+  const base = "shadow-xl ";
   switch (rarity) {
     case "founder":
       return base + " shadow-[#bfff00]/20";
@@ -329,3 +282,34 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+@keyframes shimmer {
+  0%,
+  100% {
+    background-position: -200% 0;
+  }
+  50% {
+    background-position: 200% 0;
+  }
+}
+@keyframes pulseGlow {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+@keyframes borderRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>

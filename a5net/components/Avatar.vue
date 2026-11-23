@@ -13,9 +13,12 @@
       decoding="async"
       class="absolute inset-0 h-full w-full object-cover"
     />
-    <span v-else class="font-medium tracking-wide" :class="textClass">{{
-      initials(name)
-    }}</span>
+    <span
+      v-else
+      class="font-medium tracking-wide flex h-full w-full items-center justify-center"
+      :class="textClass"
+      >{{ initials(name) }}</span
+    >
   </span>
 </template>
 
