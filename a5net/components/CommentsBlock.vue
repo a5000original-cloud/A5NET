@@ -245,14 +245,24 @@ async function sendReply(comment: CommentItem) {
   position: relative;
   display: inline-block;
   border-radius: 9999px;
+  padding: 3px; /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: безопасная зона для свечения */
+}
+
+.premium-avatar img,
+.premium-avatar > span {
+  border-radius: 9999px;
+  display: block;
+  position: relative;
+  z-index: 2;
 }
 
 .premium-avatar::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: 0; /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: было -3px, стало 0 — не выходит за границы */
   border-radius: inherit;
-  z-index: -1;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .premium-avatar.founder::before {
