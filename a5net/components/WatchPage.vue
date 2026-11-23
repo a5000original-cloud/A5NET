@@ -361,19 +361,6 @@ async function share() {
 </script>
 
 <style scoped>
-.premium-avatar {
-  position: relative;
-  display: inline-block;
-  border-radius: 9999px;
-}
-
-.premium-avatar.founder::before {
-  border: 2px solid #c8ff3d;
-  box-shadow:
-    0 0 10px rgba(200, 255, 61, 0.6),
-    0 0 20px rgba(200, 255, 61, 0.3);
-  animation: avatarPulse 2.5s ease-in-out infinite;
-}
 @keyframes avatarPulse {
   0%,
   100% {

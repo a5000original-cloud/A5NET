@@ -75,14 +75,13 @@
             class="a5-pill hidden !border-violet/25 !text-violet/90 hover:!border-violet/60 sm:inline-flex"
             >пульт</a
           >
-          <div class="relative">
+          <div class="relative" ref="menuContainer">
             <button
               type="button"
               class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40 touch-manipulation"
               aria-label="Меню профиля"
               :aria-expanded="menuOpen"
-              @click="menuOpen = !menuOpen"
-              @click.outside="menuOpen = false"
+              @click="toggleMenu"
             >
               <Avatar
                 :name="viewer.name"
@@ -112,84 +111,99 @@
             </button>
             <div
               v-if="menuOpen"
-              class="fixed inset-x-0 top-0 z-50 flex flex-col justify-end sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[calc(100vh-80px)] sm:overflow-y-auto sm:w-56 sm:rounded-xl"
+              class="fixed inset-0 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-56"
             >
               <div
-                class="absolute inset-0 -top-[100vh] bg-black/50 sm:hidden"
+                class="absolute inset-0 bg-black/60 sm:hidden"
                 @click="menuOpen = false"
               ></div>
               <div
-                class="relative z-10 w-full sm:w-56 sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:shadow-lift"
+                class="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-panel/95 pt-2 sm:relative sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:pt-0 sm:shadow-lift"
               >
+                <div
+                  class="mx-auto mb-3 h-1 w-12 rounded-full bg-line/50 sm:hidden"
+                ></div>
                 <a
                   :href="profilePageRoute.query({ id: viewer.id }).url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Мой профиль</a
                 >
                 <a
                   :href="profileSettingsRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Настроить профиль</a
                 >
                 <a
                   :href="notificationsPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Уведомления</a
                 >
                 <a
                   :href="friendsPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Заявки в друзья</a
                 >
                 <a
                   :href="shortsPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >A5 Shorts</a
                 >
                 <a
                   :href="communitiesPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Сообщества</a
                 >
                 <a
                   :href="inboxPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Сообщения</a
                 >
                 <a
                   :href="assistantPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >A5000_Менеджер</a
                 >
                 <a
                   :href="storePageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   ><span class="mr-2">🛒</span>Магазин</a
                 >
                 <a
                   v-if="showInvites"
                   :href="invitesPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Приглашения</a
                 >
                 <InstallApp variant="menu" />
                 <a
                   v-if="role === 'owner'"
                   :href="securityPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-bone hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Безопасность</a
                 >
                 <a
                   v-if="role === 'owner'"
                   :href="controlPageRoute.url()"
-                  class="block px-4 py-3 text-sm text-violet hover:bg-panel2"
+                  class="block px-4 py-3.5 text-sm text-violet hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
+                  @click="menuOpen = false"
                   >Пульт A5000</a
                 >
-                <div class="a5-divider"></div>
+                <div class="a5-divider my-1"></div>
                 <button
                   v-if="trustedForMulti"
                   type="button"
-                  class="block w-full px-4 py-3 text-left text-sm text-bone hover:bg-panel2 hover:text-lime"
+                  class="block w-full px-4 py-3.5 text-left text-sm text-bone hover:bg-panel2 hover:text-lime active:bg-panel2 transition-colors touch-manipulation"
                   @click="showMultiAccount = !showMultiAccount"
                 >
                   <span class="mr-2">🔄</span>Переключить аккаунт
@@ -203,7 +217,8 @@
                       v-for="acc in multiAccounts"
                       :key="acc.id"
                       :href="profilePageRoute.query({ id: acc.id }).url()"
-                      class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-bone/70 hover:bg-panel2 hover:text-bone"
+                      class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-bone/70 hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
+                      @click="menuOpen = false"
                     >
                       <Avatar
                         :name="acc.name"
@@ -222,7 +237,7 @@
                 </div>
                 <button
                   type="button"
-                  class="block w-full px-4 py-3 text-left text-sm text-moss hover:bg-panel2 hover:text-bone"
+                  class="block w-full px-4 py-3.5 text-left text-sm text-moss hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
                   @click="signOut"
                 >
                   Выйти
@@ -256,7 +271,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import type { AuthorCard } from "../shared/types";
 import Avatar from "./Avatar.vue";
 import SearchOverlay from "./SearchOverlay.vue";
@@ -307,6 +322,7 @@ const trustedForMulti = ref(false);
 const multiAccounts = ref<
   Array<{ id: string; name: string; avatarHue: number }>
 >([]);
+const menuContainer = ref<HTMLElement | null>(null);
 
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
@@ -387,6 +403,27 @@ const activePill = computed(() => {
 const dailyAvailable = ref(false);
 const dailyLoading = ref(false);
 const dailyToast = ref("");
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value;
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (
+    menuContainer.value &&
+    !menuContainer.value.contains(event.target as Node)
+  ) {
+    menuOpen.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 
 async function checkDailyReward() {
   try {
