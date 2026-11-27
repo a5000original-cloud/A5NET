@@ -80,7 +80,6 @@
               type="button"
               class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40 touch-manipulation"
               aria-label="Меню профиля"
-              :aria-expanded="menuOpen"
               @click.stop="toggleMenu"
             >
               <Avatar
@@ -109,119 +108,140 @@
                 />
               </svg>
             </button>
-            <div
-              v-if="menuOpen"
-              class="fixed inset-0 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-56"
-              @click.self="menuOpen = false"
-            >
-              <div
-                class="absolute inset-0 bg-black/60 sm:hidden"
-                @click="menuOpen = false"
-              ></div>
-              <div
-                class="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-panel/95 pt-2 sm:relative sm:rounded-xl sm:border sm:border-line sm:bg-panel sm:pt-0 sm:shadow-lift"
-              >
-                <div
-                  class="mx-auto mb-3 h-1 w-12 rounded-full bg-line/50 sm:hidden"
-                ></div>
-                <a
-                  :href="profilePageRoute.query({ id: viewer.id }).url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Мой профиль</a
-                >
-                <a
-                  :href="profileSettingsRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Настроить профиль</a
-                >
-                <a
-                  :href="notificationsPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Уведомления</a
-                >
-                <a
-                  :href="friendsPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Заявки в друзья</a
-                >
-                <a
-                  :href="shortsPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >A5 Shorts</a
-                >
-                <a
-                  :href="communitiesPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Сообщества</a
-                >
-                <a
-                  :href="inboxPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Сообщения</a
-                >
-                <a
-                  :href="assistantPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >A5000_Менеджер</a
-                >
-                <a
-                  :href="storePageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  ><span class="mr-2">🛒</span>Магазин</a
-                >
-                <a
-                  v-if="showInvites"
-                  :href="invitesPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Приглашения</a
-                >
-                <InstallApp variant="menu" />
-                <a
-                  v-if="role === 'owner'"
-                  :href="securityPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Безопасность</a
-                >
-                <a
-                  v-if="role === 'owner'"
-                  :href="controlPageRoute.url()"
-                  class="block px-4 py-3.5 text-sm text-violet hover:bg-panel2 active:bg-panel2 transition-colors touch-manipulation"
-                  @click="menuOpen = false"
-                  >Пульт A5000</a
-                >
-                <div class="a5-divider my-1"></div>
-                <button
-                  type="button"
-                  class="block w-full px-4 py-3.5 text-left text-sm text-bone hover:bg-panel2 hover:text-lime active:bg-panel2 transition-colors touch-manipulation"
-                  @click="openAccountSwitcher"
-                >
-                  <span class="mr-2">🔄</span>Переключить аккаунт
-                </button>
-                <div class="a5-divider my-1"></div>
-                <button
-                  type="button"
-                  class="block w-full px-4 py-3.5 text-left text-sm text-moss hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
-                  @click="signOut"
-                >
-                  Выйти
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </header>
+
+    <!-- iOS Bottom Sheet Menu -->
+    <div
+      v-if="menuOpen"
+      class="ios-sheet-overlay"
+      @click="menuOpen = false"
+    ></div>
+    <div v-if="menuOpen" class="ios-sheet">
+      <div class="ios-sheet-handle"></div>
+      <a
+        :href="profilePageRoute.query({ id: viewer.id }).url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">👤</span>
+        <span class="flex-1 text-sm text-bone">Мой профиль</span>
+      </a>
+      <a
+        :href="profileSettingsRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">⚙️</span>
+        <span class="flex-1 text-sm text-bone">Настроить профиль</span>
+      </a>
+      <a
+        :href="notificationsPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🔔</span>
+        <span class="flex-1 text-sm text-bone">Уведомления</span>
+      </a>
+      <a
+        :href="friendsPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">👥</span>
+        <span class="flex-1 text-sm text-bone">Заявки в друзья</span>
+      </a>
+      <a
+        :href="shortsPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🎬</span>
+        <span class="flex-1 text-sm text-bone">A5 Shorts</span>
+      </a>
+      <a
+        :href="communitiesPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🌐</span>
+        <span class="flex-1 text-sm text-bone">Сообщества</span>
+      </a>
+      <a
+        :href="inboxPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">✉️</span>
+        <span class="flex-1 text-sm text-bone">Сообщения</span>
+      </a>
+      <a
+        :href="assistantPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🤖</span>
+        <span class="flex-1 text-sm text-bone">A5000_Менеджер</span>
+      </a>
+      <a
+        :href="storePageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🛒</span>
+        <span class="flex-1 text-sm text-bone">Магазин</span>
+      </a>
+      <a
+        v-if="showInvites"
+        :href="invitesPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🎟️</span>
+        <span class="flex-1 text-sm text-bone">Приглашения</span>
+      </a>
+      <InstallApp variant="menu" />
+      <a
+        v-if="role === 'owner'"
+        :href="securityPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🔒</span>
+        <span class="flex-1 text-sm text-bone">Безопасность</span>
+      </a>
+      <a
+        v-if="role === 'owner'"
+        :href="controlPageRoute.url()"
+        class="ios-sheet-item"
+        @click="menuOpen = false"
+      >
+        <span class="text-lg">🎛️</span>
+        <span class="flex-1 text-sm text-violet">Пульт A5000</span>
+      </a>
+      <div class="a5-divider my-2"></div>
+      <button
+        type="button"
+        class="ios-sheet-item w-full text-left"
+        @click="openAccountSwitcher"
+      >
+        <span class="text-lg">🔄</span>
+        <span class="flex-1 text-sm text-bone">Переключить аккаунт</span>
+      </button>
+      <div class="a5-divider my-2"></div>
+      <button
+        type="button"
+        class="ios-sheet-item danger w-full text-left"
+        @click="signOut"
+      >
+        <span class="text-lg">🚪</span>
+        <span class="flex-1 text-sm">Выйти</span>
+      </button>
+    </div>
+
+    <!-- Tab Bar -->
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
       style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)"
@@ -241,51 +261,6 @@
       </div>
     </nav>
     <PwaBoot />
-    <!-- Account Switcher Modal -->
-    <div
-      v-if="showAccountSwitcher"
-      class="account-switcher-overlay"
-      @click="showAccountSwitcher = false"
-    >
-      <div class="account-switcher-modal" @click.stop>
-        <h3 class="text-lg font-semibold text-bone mb-4">Выберите аккаунт</h3>
-        <div class="space-y-2">
-          <div
-            v-for="acc in availableAccounts"
-            :key="acc.id"
-            class="account-option"
-            :class="{ active: acc.id === viewer.id }"
-            @click="switchAccount(acc.id)"
-          >
-            <Avatar
-              :name="acc.name"
-              :hue="acc.avatarHue"
-              :accent="acc.avatarAccent"
-              :src="acc.avatarUrl"
-              size="sm"
-            />
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium text-bone truncate">
-                {{ acc.name }}
-              </div>
-              <div class="text-[10px] text-moss/60">@{{ acc.handle }}</div>
-            </div>
-            <span
-              v-if="acc.id === viewer.id"
-              class="text-[10px] text-lime font-medium"
-              >Активен</span
-            >
-          </div>
-        </div>
-        <button
-          type="button"
-          class="mt-4 w-full rounded-xl border border-line bg-panel2 px-4 py-3 text-sm text-moss hover:text-bone transition"
-          @click="showAccountSwitcher = false"
-        >
-          Отмена
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -313,7 +288,6 @@ import { shortsPageRoute } from "../shorts";
 import { communitiesPageRoute } from "../communities";
 import { storePageRoute } from "../store";
 import { dailyRewardRoute } from "../api/rewards/daily";
-import { switchAccountRoute } from "../api/auth/switch-account";
 
 const props = defineProps<{
   viewer: AuthorCard;
@@ -337,9 +311,6 @@ const props = defineProps<{
 }>();
 
 const menuOpen = ref(false);
-const showAccountSwitcher = ref(false);
-const availableAccounts = ref<Array<AuthorCard & { handle: string }>>([]);
-
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
 );
@@ -426,26 +397,7 @@ function toggleMenu() {
 
 async function openAccountSwitcher() {
   menuOpen.value = false;
-  try {
-    const result = await switchAccountRoute.query({}).run(ctx);
-    if (result.ok) {
-      availableAccounts.value = result.accounts;
-      showAccountSwitcher.value = true;
-    }
-  } catch (error) {
-    console.error("Failed to load accounts:", error);
-  }
-}
-
-async function switchAccount(accountId: string) {
-  try {
-    const result = await switchAccountRoute.run(ctx, { accountId });
-    if (result.ok) {
-      window.location.reload();
-    }
-  } catch (error) {
-    console.error("Failed to switch account:", error);
-  }
+  // TODO: Implement account switcher
 }
 
 async function checkDailyReward() {
