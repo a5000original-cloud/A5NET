@@ -113,7 +113,6 @@
       </div>
     </header>
 
-    <!-- iOS Bottom Sheet Menu -->
     <div
       v-if="menuOpen"
       class="ios-sheet-overlay"
@@ -241,7 +240,6 @@
       </button>
     </div>
 
-    <!-- Tab Bar -->
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
       style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)"
@@ -397,7 +395,6 @@ function toggleMenu() {
 
 async function openAccountSwitcher() {
   menuOpen.value = false;
-  // TODO: Implement account switcher
 }
 
 async function checkDailyReward() {

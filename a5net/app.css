@@ -4,17 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-  --a5-lime: #c9f75a;
-  --a5-line: #252b21;
-  --motion-fast: 120ms;
-  --motion-base: 180ms;
-  --motion-slow: 240ms;
-  --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
 /* === APPLE-STYLE BASE === */
 html,
 body {
@@ -414,6 +403,23 @@ body {
 }
 
 /* === PREMIUM AVATAR (OVERFLOW-SAFE) === */
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 3px;
+  background: transparent;
+  z-index: 1;
+}
+
+.premium-avatar img,
+.premium-avatar > span {
+  border-radius: 9999px;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
 .premium-avatar {
   position: relative;
   display: inline-block;
