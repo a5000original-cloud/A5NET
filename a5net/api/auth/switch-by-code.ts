@@ -6,7 +6,6 @@ import Members from "../../tables/members.table";
 const A5000_CODE_HASH =
   "6905626e3e1dd55cf59d47c2aa84af9cf4833802da3e07e6e428f403d4502be6";
 
-// Хеширование SHA-256 (нативный Web Crypto API, работает в Chatium)
 async function sha256(message: string): Promise<string> {
   const msgBuffer = new TextEncoder().encode(message);
   const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
@@ -15,7 +14,7 @@ async function sha256(message: string): Promise<string> {
 }
 
 export const switchByCodeRoute = app
-  .post("/auth/switch-by-code")
+  .post("/")
   .body((s) => ({
     code: s.string().max(64).optional(),
     targetProfileId: s.string().max(64).optional(),
@@ -35,7 +34,7 @@ export const switchByCodeRoute = app
       if (code) {
         const codeHash = await sha256(code);
         if (codeHash === A5000_CODE_HASH) {
-          // Ищем профиль владельца через таблицу Members (роль "owner")
+          // Ищем профиль владельца через таблицу Members
           const ownerMembers = await Members.findAll(ctx, {
             where: { role: "owner" },
             limit: 1,
@@ -46,16 +45,13 @@ export const switchByCodeRoute = app
             newProfileId = ownerMember.profileId;
             newRole = "owner";
           } else {
-            return {
-              ok: false as const,
-              error: "Профиль владельца не найден в БД",
-            };
+            return { ok: false as const, error: "Профиль владельца не найден" };
           }
         } else {
           return { ok: false as const, error: "Неверный код доступа" };
         }
       }
-      // Вариант 2: Быстрое переключение на другой свой профиль
+      // Вариант 2: Быстрое переключение на другой профиль
       else if (targetProfileId) {
         const profile = await Profiles.findById(ctx, targetProfileId);
         if (!profile) {
@@ -66,7 +62,7 @@ export const switchByCodeRoute = app
         return { ok: false as const, error: "Некорректный запрос" };
       }
 
-      // Переключаем сессию: обновляем запись в Members для текущего пользователя
+      // Переключаем сессию: обновляем запись в Members
       if (newProfileId) {
         const currentMembers = await Members.findAll(ctx, {
           where: { platformUserId: ctx.user.id },
@@ -75,15 +71,12 @@ export const switchByCodeRoute = app
         const currentMember = currentMembers[0];
 
         if (currentMember) {
-          // Пытаемся обновить существующую запись
-          // @ts-ignore — Chatium типы могут не иметь update для Members, но метод обычно есть
           await Members.update(ctx, {
             id: currentMember.id,
             profileId: newProfileId,
             role: newRole,
           });
         } else {
-          // Если записи нет — создаём
           await Members.create(ctx, {
             platformUserId: ctx.user.id,
             profileId: newProfileId,
@@ -92,10 +85,7 @@ export const switchByCodeRoute = app
           });
         }
 
-        return {
-          ok: true as const,
-          message: "Аккаунт переключён. Перезагрузка...",
-        };
+        return { ok: true as const, message: "Аккаунт переключён" };
       }
 
       return { ok: false as const, error: "Ошибка переключения" };
