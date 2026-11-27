@@ -281,6 +281,7 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+</script>
 <style scoped>
 @keyframes shimmer {
   0%,
@@ -311,4 +312,3 @@ onMounted(async () => {
   }
 }
 </style>
-</script>

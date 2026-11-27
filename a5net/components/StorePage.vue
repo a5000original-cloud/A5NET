@@ -150,7 +150,13 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { createPurchaseRequestRoute } from "../api/purchase-requests";
+// TODO: Восстановить API purchase-requests в правильном синтаксисе Chatium
+const createPurchaseRequestRoute = {
+  run: async (_ctx: any, _body: any) => ({
+    ok: false,
+    error: "API временно недоступен",
+  }),
+};
 
 const props = defineProps<{
   balance: number;

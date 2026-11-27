@@ -80,7 +80,6 @@
               type="button"
               class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40 touch-manipulation"
               aria-label="Меню профиля"
-              :aria-expanded="menuOpen"
               @click.stop="toggleMenu"
             >
               <Avatar
@@ -109,8 +108,6 @@
                 />
               </svg>
             </button>
-
-            <!-- Компактное меню -->
             <div
               v-if="menuOpen"
               class="fixed inset-0 z-50 sm:static sm:z-auto"
@@ -224,7 +221,7 @@
       </div>
     </header>
 
-    <!-- Модальное окно переключения аккаунтов -->
+    <!-- Модальное окно переключения -->
     <div
       v-if="switcherOpen"
       class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center"
@@ -240,15 +237,12 @@
         <div
           class="mx-auto mb-4 h-1 w-12 rounded-full bg-line/50 sm:hidden"
         ></div>
-
         <h3 class="a5-display mb-1 text-lg font-medium text-bone">
           Связка аккаунтов
         </h3>
         <p class="mb-4 text-[11px] text-moss/60">
           Введите код доступа или выберите аккаунт
         </p>
-
-        <!-- Список доверенных аккаунтов -->
         <div v-if="trustedAccounts.length" class="mb-4 space-y-2">
           <p class="text-[9px] uppercase tracking-wider text-moss/50">
             Ваши аккаунты
@@ -278,11 +272,7 @@
             >
           </button>
         </div>
-
-        <!-- Разделитель -->
         <div class="a5-divider my-4"></div>
-
-        <!-- Ввод кода доступа -->
         <label class="a5-label" for="access-code">Код доступа A5000</label>
         <input
           id="access-code"
@@ -293,7 +283,6 @@
           placeholder="••••••••••"
           @keyup.enter="doSwitch"
         />
-
         <button
           type="button"
           class="a5-btn-primary w-full"
@@ -302,14 +291,12 @@
         >
           {{ switching ? "Проверяю…" : "Войти по коду" }}
         </button>
-
         <p
           v-if="switchError"
           class="mt-3 rounded-lg border border-ember/30 bg-ember/10 px-3 py-2 text-[11px] text-ember"
         >
           {{ switchError }}
         </p>
-
         <button
           type="button"
           class="mt-4 w-full rounded-xl border border-line bg-panel2/60 px-4 py-3 text-sm text-moss hover:text-bone transition"
@@ -320,7 +307,6 @@
       </div>
     </div>
 
-    <!-- Таб-бар -->
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
       style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)"
@@ -485,8 +471,6 @@ async function openSwitcher() {
   switcherOpen.value = true;
   switchError.value = "";
   accessCode.value = "";
-
-  // Загрузить список доверенных аккаунтов
   try {
     const res = await fetch("/s/auth/trusted-accounts", {
       credentials: "include",
@@ -500,29 +484,23 @@ async function openSwitcher() {
 
 async function doSwitch() {
   if (switching.value) return;
-
   if (!accessCode.value.trim() && !selectedAccountId.value) {
     switchError.value = "Введите код или выберите аккаунт";
     return;
   }
-
   switching.value = true;
   switchError.value = "";
-
   try {
     const body: any = {};
     if (accessCode.value.trim()) body.accessCode = accessCode.value;
     if (selectedAccountId.value) body.targetProfileId = selectedAccountId.value;
-
-    const res = await fetch("/s/auth/switch-account", {
+    const res = await fetch("/s/auth/switch-by-code", {
       method: "POST",
       headers: { "content-type": "application/json" },
       credentials: "include",
       body: JSON.stringify(body),
     });
-
     const data = await res.json().catch(() => ({}));
-
     if (res.ok && data.ok) {
       window.location.reload();
     } else {
@@ -543,17 +521,12 @@ function quickSwitch(accountId: string) {
 
 async function checkDailyReward() {
   try {
-    const result = await dailyRewardRoute.run(ctx);
-    if (result.ok) {
-      dailyAvailable.value = true;
-    } else {
-      dailyAvailable.value = false;
-    }
+    const r = await dailyRewardRoute.run(ctx);
+    dailyAvailable.value = !!r.ok;
   } catch {
     dailyAvailable.value = false;
   }
 }
-
 async function claimDailyReward() {
   if (dailyLoading.value || !dailyAvailable.value) return;
   dailyLoading.value = true;
@@ -561,12 +534,10 @@ async function claimDailyReward() {
     await dailyRewardRoute.run(ctx);
     dailyAvailable.value = false;
   } catch {
-    // silent
   } finally {
     dailyLoading.value = false;
   }
 }
-
 checkDailyReward();
 
 async function signOut() {

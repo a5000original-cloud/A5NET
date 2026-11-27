@@ -294,6 +294,37 @@
 </template>
 
 <script setup lang="ts">
+// Если переменная requests не объявлена — добавь:
+const requests = ref<any[]>([]);
+
+// Если функции не объявлены — добавь:
+function statusClass(status: string): string {
+  const map: Record<string, string> = {
+    pending: "bg-amber/15 text-amber",
+    approved: "bg-lime/15 text-lime",
+    rejected: "bg-ember/15 text-ember",
+  };
+  return map[status] ?? "bg-line/20 text-moss";
+}
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    pending: "Ожидает",
+    approved: "Одобрено",
+    rejected: "Отклонено",
+  };
+  return map[status] ?? status;
+}
+
+async function approveRequest(id: string) {
+  // TODO: вызвать API для одобрения
+  console.log("approve", id);
+}
+
+async function rejectRequest(id: string) {
+  // TODO: вызвать API для отклонения
+  console.log("reject", id);
+}
 import { ref, computed, onMounted } from "vue";
 import type { ControlData, AuthorCard, PremiumItem } from "../shared/types";
 import SiteHeader from "./SiteHeader.vue";
@@ -486,55 +517,3 @@ onMounted(() => {
   loadPremiumData();
 });
 </script>
-import { getPurchaseRequestsRoute, approvePurchaseRequestRoute, rejectPurchaseRequestRoute } from "../api/purchase-requests";
-
-const requests = ref<any[]>([]);
-
-async function loadRequests() {
-  try {
-    const result = await getPurchaseRequestsRoute.run(ctx);
-    if (result.ok) {
-      requests.value = result.requests;
-    }
-  } catch (error) {
-    console.error("Load requests error:", error);
-  }
-}
-
-async function approveRequest(requestId: string) {
-  try {
-    await approvePurchaseRequestRoute.run(ctx, { requestId });
-    await loadRequests();
-  } catch (error) {
-    console.error("Approve error:", error);
-  }
-}
-
-async function rejectRequest(requestId: string) {
-  try {
-    await rejectPurchaseRequestRoute.run(ctx, { requestId });
-    await loadRequests();
-  } catch (error) {
-    console.error("Reject error:", error);
-  }
-}
-
-function statusClass(status: string): string {
-  switch (status) {
-    case "pending": return "bg-amber/15 text-amber border border-amber/30";
-    case "approved": return "bg-lime/15 text-lime border border-lime/30";
-    case "rejected": return "bg-ember/15 text-ember border border-ember/30";
-    default: return "bg-line/20 text-moss border border-line/30";
-  }
-}
-
-function statusLabel(status: string): string {
-  switch (status) {
-    case "pending": return "Ожидает";
-    case "approved": return "Одобрено";
-    case "rejected": return "Отклонено";
-    default: return status;
-  }
-}
-
-loadRequests();
