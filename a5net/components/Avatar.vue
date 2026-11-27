@@ -1,7 +1,7 @@
 <template>
   <span
     class="relative inline-flex shrink-0 items-center justify-center rounded-full border border-white/10 text-white/90"
-    :class="[sizeClass, isPremium ? 'premium-avatar founder' : '']"
+    :class="sizeClass"
     :style="src ? undefined : { background: avatarBackground(hue, accent) }"
     :aria-label="name"
   >
@@ -13,17 +13,9 @@
       decoding="async"
       class="absolute inset-0 h-full w-full rounded-full object-cover"
     />
-    <span
-      v-else
-      class="absolute inset-0 flex items-center justify-center font-medium leading-none"
-      :class="textClass"
-      >{{ initials(name) }}</span
-    >
-    <span
-      v-if="isPremium"
-      class="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-lime text-[8px] text-ink font-bold"
-      >✓</span
-    >
+    <span v-else class="font-medium leading-none" :class="textClass">{{
+      initials(name)
+    }}</span>
   </span>
 </template>
 
@@ -38,9 +30,8 @@ const props = withDefaults(
     accent: number;
     size?: "xs" | "sm" | "md" | "lg" | "xl";
     src?: string | null;
-    isPremium?: boolean;
   }>(),
-  { size: "sm", src: null, isPremium: false },
+  { size: "sm", src: null },
 );
 
 const sizeClass = computed(() => {

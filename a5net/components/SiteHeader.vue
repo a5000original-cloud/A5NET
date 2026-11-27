@@ -75,13 +75,13 @@
             class="a5-pill hidden !border-violet/25 !text-violet/90 hover:!border-violet/60 sm:inline-flex"
             >пульт</a
           >
-          <div class="relative" ref="menuContainer">
+          <div class="relative">
             <button
               type="button"
               class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40 touch-manipulation"
               aria-label="Меню профиля"
               :aria-expanded="menuOpen"
-              @click="toggleMenu"
+              @click.stop="toggleMenu"
             >
               <Avatar
                 :name="viewer.name"
@@ -112,6 +112,7 @@
             <div
               v-if="menuOpen"
               class="fixed inset-0 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-56"
+              @click.self="menuOpen = false"
             >
               <div
                 class="absolute inset-0 bg-black/60 sm:hidden"
@@ -201,40 +202,13 @@
                 >
                 <div class="a5-divider my-1"></div>
                 <button
-                  v-if="trustedForMulti"
                   type="button"
                   class="block w-full px-4 py-3.5 text-left text-sm text-bone hover:bg-panel2 hover:text-lime active:bg-panel2 transition-colors touch-manipulation"
-                  @click="showMultiAccount = !showMultiAccount"
+                  @click="openAccountSwitcher"
                 >
                   <span class="mr-2">🔄</span>Переключить аккаунт
                 </button>
-                <div v-if="showMultiAccount" class="px-4 py-2">
-                  <p class="text-[9px] text-moss/50 mb-2">
-                    Доверенные аккаунты:
-                  </p>
-                  <div class="space-y-1">
-                    <a
-                      v-for="acc in multiAccounts"
-                      :key="acc.id"
-                      :href="profilePageRoute.query({ id: acc.id }).url()"
-                      class="flex items-center gap-2 rounded-lg px-2 py-2 text-xs text-bone/70 hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
-                      @click="menuOpen = false"
-                    >
-                      <Avatar
-                        :name="acc.name"
-                        :hue="acc.avatarHue"
-                        :accent="0"
-                        size="xs"
-                      />
-                      <span class="truncate">{{ acc.name }}</span>
-                      <span
-                        v-if="acc.id === viewer.id"
-                        class="ml-auto text-[8px] text-lime"
-                        >ты</span
-                      >
-                    </a>
-                  </div>
-                </div>
+                <div class="a5-divider my-1"></div>
                 <button
                   type="button"
                   class="block w-full px-4 py-3.5 text-left text-sm text-moss hover:bg-panel2 hover:text-bone active:bg-panel2 transition-colors touch-manipulation"
@@ -250,28 +224,73 @@
     </header>
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
-      :style="{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }"
+      style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)"
       aria-label="Площадки"
     >
-      <div class="grid grid-cols-4">
+      <div class="grid grid-cols-5">
         <a
           v-for="item in dockItems"
           :key="item.key"
           :href="item.href"
-          class="flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition active:scale-90 touch-manipulation"
+          class="flex flex-col items-center gap-0.5 py-2 text-[9px] transition active:scale-90 touch-manipulation"
           :class="active === item.key ? item.activeClass : 'text-moss/50'"
         >
-          <span v-html="item.icon" class="h-6 w-6"></span>
-          <span class="truncate px-1">{{ item.label }}</span>
+          <span v-html="item.icon" class="h-5 w-5"></span>
+          <span class="truncate px-0.5">{{ item.label }}</span>
         </a>
       </div>
     </nav>
     <PwaBoot />
+    <!-- Account Switcher Modal -->
+    <div
+      v-if="showAccountSwitcher"
+      class="account-switcher-overlay"
+      @click="showAccountSwitcher = false"
+    >
+      <div class="account-switcher-modal" @click.stop>
+        <h3 class="text-lg font-semibold text-bone mb-4">Выберите аккаунт</h3>
+        <div class="space-y-2">
+          <div
+            v-for="acc in availableAccounts"
+            :key="acc.id"
+            class="account-option"
+            :class="{ active: acc.id === viewer.id }"
+            @click="switchAccount(acc.id)"
+          >
+            <Avatar
+              :name="acc.name"
+              :hue="acc.avatarHue"
+              :accent="acc.avatarAccent"
+              :src="acc.avatarUrl"
+              size="sm"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-bone truncate">
+                {{ acc.name }}
+              </div>
+              <div class="text-[10px] text-moss/60">@{{ acc.handle }}</div>
+            </div>
+            <span
+              v-if="acc.id === viewer.id"
+              class="text-[10px] text-lime font-medium"
+              >Активен</span
+            >
+          </div>
+        </div>
+        <button
+          type="button"
+          class="mt-4 w-full rounded-xl border border-line bg-panel2 px-4 py-3 text-sm text-moss hover:text-bone transition"
+          @click="showAccountSwitcher = false"
+        >
+          Отмена
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from "vue";
+import { computed, ref } from "vue";
 import type { AuthorCard } from "../shared/types";
 import Avatar from "./Avatar.vue";
 import SearchOverlay from "./SearchOverlay.vue";
@@ -294,6 +313,7 @@ import { shortsPageRoute } from "../shorts";
 import { communitiesPageRoute } from "../communities";
 import { storePageRoute } from "../store";
 import { dailyRewardRoute } from "../api/rewards/daily";
+import { switchAccountRoute } from "../api/auth/switch-account";
 
 const props = defineProps<{
   viewer: AuthorCard;
@@ -317,12 +337,8 @@ const props = defineProps<{
 }>();
 
 const menuOpen = ref(false);
-const showMultiAccount = ref(false);
-const trustedForMulti = ref(false);
-const multiAccounts = ref<
-  Array<{ id: string; name: string; avatarHue: number }>
->([]);
-const menuContainer = ref<HTMLElement | null>(null);
+const showAccountSwitcher = ref(false);
+const availableAccounts = ref<Array<AuthorCard & { handle: string }>>([]);
 
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
@@ -408,22 +424,29 @@ function toggleMenu() {
   menuOpen.value = !menuOpen.value;
 }
 
-function handleClickOutside(event: MouseEvent) {
-  if (
-    menuContainer.value &&
-    !menuContainer.value.contains(event.target as Node)
-  ) {
-    menuOpen.value = false;
+async function openAccountSwitcher() {
+  menuOpen.value = false;
+  try {
+    const result = await switchAccountRoute.query({}).run(ctx);
+    if (result.ok) {
+      availableAccounts.value = result.accounts;
+      showAccountSwitcher.value = true;
+    }
+  } catch (error) {
+    console.error("Failed to load accounts:", error);
   }
 }
 
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
+async function switchAccount(accountId: string) {
+  try {
+    const result = await switchAccountRoute.run(ctx, { accountId });
+    if (result.ok) {
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error("Failed to switch account:", error);
+  }
+}
 
 async function checkDailyReward() {
   try {
@@ -459,26 +482,6 @@ async function claimDailyReward() {
 }
 
 checkDailyReward();
-
-async function checkMultiAccount() {
-  try {
-    const result = await dailyRewardRoute.run(ctx);
-    if (result.ok) {
-      trustedForMulti.value = true;
-      multiAccounts.value = [
-        {
-          id: props.viewer.id,
-          name: props.viewer.name,
-          avatarHue: props.viewer.avatarHue,
-        },
-      ];
-    }
-  } catch {
-    trustedForMulti.value = false;
-  }
-}
-
-checkMultiAccount();
 
 async function signOut() {
   try {
