@@ -80,6 +80,7 @@
               type="button"
               class="flex items-center gap-2 rounded-full border border-line bg-panel2/70 p-1 pr-2 transition hover:border-lime/40 touch-manipulation"
               aria-label="Меню профиля"
+              :aria-expanded="menuOpen"
               @click.stop="toggleMenu"
             >
               <Avatar
@@ -108,138 +109,218 @@
                 />
               </svg>
             </button>
+
+            <!-- Компактное меню -->
+            <div
+              v-if="menuOpen"
+              class="fixed inset-0 z-50 sm:static sm:z-auto"
+              @click.self="menuOpen = false"
+            >
+              <div
+                class="absolute inset-0 bg-black/60 backdrop-blur-sm sm:hidden"
+                @click="menuOpen = false"
+              ></div>
+              <div
+                class="absolute bottom-0 left-0 right-0 max-h-[62vh] overflow-y-auto rounded-t-2xl border-t border-white/10 bg-panel/95 backdrop-blur-2xl pt-2 sm:absolute sm:bottom-auto sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[70vh] sm:w-72 sm:rounded-2xl sm:border sm:border-line sm:pt-0 sm:shadow-lift"
+              >
+                <div
+                  class="mx-auto mb-2 h-1 w-10 rounded-full bg-line/50 sm:hidden"
+                ></div>
+                <a
+                  :href="profilePageRoute.query({ id: viewer.id }).url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Мой профиль</a
+                >
+                <a
+                  :href="profileSettingsRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Настроить профиль</a
+                >
+                <a
+                  :href="notificationsPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Уведомления</a
+                >
+                <a
+                  :href="friendsPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Заявки в друзья</a
+                >
+                <a
+                  :href="shortsPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >A5 Shorts</a
+                >
+                <a
+                  :href="communitiesPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Сообщества</a
+                >
+                <a
+                  :href="inboxPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Сообщения</a
+                >
+                <a
+                  :href="assistantPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >A5000_Менеджер</a
+                >
+                <a
+                  :href="storePageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  ><span class="mr-2">🛒</span>Магазин</a
+                >
+                <a
+                  v-if="showInvites"
+                  :href="invitesPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Приглашения</a
+                >
+                <InstallApp variant="menu" />
+                <a
+                  v-if="role === 'owner'"
+                  :href="securityPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Безопасность</a
+                >
+                <a
+                  v-if="role === 'owner'"
+                  :href="controlPageRoute.url()"
+                  class="block px-4 py-2.5 text-sm text-violet hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="menuOpen = false"
+                  >Пульт A5000</a
+                >
+                <div class="a5-divider my-1"></div>
+                <button
+                  type="button"
+                  class="block w-full px-4 py-2.5 text-left text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="openSwitcher"
+                >
+                  🔄 Переключить аккаунт
+                </button>
+                <button
+                  type="button"
+                  class="block w-full px-4 py-2.5 text-left text-sm text-ember hover:bg-panel2 active:bg-panel2 touch-manipulation"
+                  @click="signOut"
+                >
+                  Выйти
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </header>
 
+    <!-- Модальное окно переключения аккаунтов -->
     <div
-      v-if="menuOpen"
-      class="ios-sheet-overlay"
-      @click="menuOpen = false"
-    ></div>
-    <div v-if="menuOpen" class="ios-sheet">
-      <div class="ios-sheet-handle"></div>
-      <a
-        :href="profilePageRoute.query({ id: viewer.id }).url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
+      v-if="switcherOpen"
+      class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center"
+      @click.self="switcherOpen = false"
+    >
+      <div
+        class="absolute inset-0 bg-black/70 backdrop-blur-md"
+        @click="switcherOpen = false"
+      ></div>
+      <div
+        class="relative w-full max-w-md rounded-t-2xl border-t border-white/10 bg-panel/95 p-6 backdrop-blur-2xl sm:rounded-2xl sm:border sm:border-line sm:shadow-lift"
       >
-        <span class="text-lg">👤</span>
-        <span class="flex-1 text-sm text-bone">Мой профиль</span>
-      </a>
-      <a
-        :href="profileSettingsRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">⚙️</span>
-        <span class="flex-1 text-sm text-bone">Настроить профиль</span>
-      </a>
-      <a
-        :href="notificationsPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🔔</span>
-        <span class="flex-1 text-sm text-bone">Уведомления</span>
-      </a>
-      <a
-        :href="friendsPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">👥</span>
-        <span class="flex-1 text-sm text-bone">Заявки в друзья</span>
-      </a>
-      <a
-        :href="shortsPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🎬</span>
-        <span class="flex-1 text-sm text-bone">A5 Shorts</span>
-      </a>
-      <a
-        :href="communitiesPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🌐</span>
-        <span class="flex-1 text-sm text-bone">Сообщества</span>
-      </a>
-      <a
-        :href="inboxPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">✉️</span>
-        <span class="flex-1 text-sm text-bone">Сообщения</span>
-      </a>
-      <a
-        :href="assistantPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🤖</span>
-        <span class="flex-1 text-sm text-bone">A5000_Менеджер</span>
-      </a>
-      <a
-        :href="storePageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🛒</span>
-        <span class="flex-1 text-sm text-bone">Магазин</span>
-      </a>
-      <a
-        v-if="showInvites"
-        :href="invitesPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🎟️</span>
-        <span class="flex-1 text-sm text-bone">Приглашения</span>
-      </a>
-      <InstallApp variant="menu" />
-      <a
-        v-if="role === 'owner'"
-        :href="securityPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🔒</span>
-        <span class="flex-1 text-sm text-bone">Безопасность</span>
-      </a>
-      <a
-        v-if="role === 'owner'"
-        :href="controlPageRoute.url()"
-        class="ios-sheet-item"
-        @click="menuOpen = false"
-      >
-        <span class="text-lg">🎛️</span>
-        <span class="flex-1 text-sm text-violet">Пульт A5000</span>
-      </a>
-      <div class="a5-divider my-2"></div>
-      <button
-        type="button"
-        class="ios-sheet-item w-full text-left"
-        @click="openAccountSwitcher"
-      >
-        <span class="text-lg">🔄</span>
-        <span class="flex-1 text-sm text-bone">Переключить аккаунт</span>
-      </button>
-      <div class="a5-divider my-2"></div>
-      <button
-        type="button"
-        class="ios-sheet-item danger w-full text-left"
-        @click="signOut"
-      >
-        <span class="text-lg">🚪</span>
-        <span class="flex-1 text-sm">Выйти</span>
-      </button>
+        <div
+          class="mx-auto mb-4 h-1 w-12 rounded-full bg-line/50 sm:hidden"
+        ></div>
+
+        <h3 class="a5-display mb-1 text-lg font-medium text-bone">
+          Связка аккаунтов
+        </h3>
+        <p class="mb-4 text-[11px] text-moss/60">
+          Введите код доступа или выберите аккаунт
+        </p>
+
+        <!-- Список доверенных аккаунтов -->
+        <div v-if="trustedAccounts.length" class="mb-4 space-y-2">
+          <p class="text-[9px] uppercase tracking-wider text-moss/50">
+            Ваши аккаунты
+          </p>
+          <button
+            v-for="acc in trustedAccounts"
+            :key="acc.id"
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl border border-line/50 bg-panel2/40 p-3 transition-all hover:border-lime/40 hover:bg-panel2/60 active:scale-[0.98]"
+            :class="{ 'border-lime/60 bg-lime/10': acc.isCurrent }"
+            @click="quickSwitch(acc.id)"
+          >
+            <Avatar
+              :name="acc.name"
+              :hue="acc.avatarHue"
+              :accent="acc.avatarAccent"
+              size="sm"
+            />
+            <div class="flex-1 text-left">
+              <div class="text-sm font-medium text-bone">{{ acc.name }}</div>
+              <div class="text-[10px] text-moss/60">@{{ acc.handle }}</div>
+            </div>
+            <span
+              v-if="acc.isCurrent"
+              class="rounded-full bg-lime/20 px-2 py-0.5 text-[9px] font-medium text-lime"
+              >Текущий</span
+            >
+          </button>
+        </div>
+
+        <!-- Разделитель -->
+        <div class="a5-divider my-4"></div>
+
+        <!-- Ввод кода доступа -->
+        <label class="a5-label" for="access-code">Код доступа A5000</label>
+        <input
+          id="access-code"
+          v-model="accessCode"
+          type="password"
+          autocomplete="off"
+          class="a5-input mb-3 font-mono text-[12px]"
+          placeholder="••••••••••"
+          @keyup.enter="doSwitch"
+        />
+
+        <button
+          type="button"
+          class="a5-btn-primary w-full"
+          :disabled="switching || (!accessCode.trim() && !selectedAccountId)"
+          @click="doSwitch"
+        >
+          {{ switching ? "Проверяю…" : "Войти по коду" }}
+        </button>
+
+        <p
+          v-if="switchError"
+          class="mt-3 rounded-lg border border-ember/30 bg-ember/10 px-3 py-2 text-[11px] text-ember"
+        >
+          {{ switchError }}
+        </p>
+
+        <button
+          type="button"
+          class="mt-4 w-full rounded-xl border border-line bg-panel2/60 px-4 py-3 text-sm text-moss hover:text-bone transition"
+          @click="switcherOpen = false"
+        >
+          Отмена
+        </button>
+      </div>
     </div>
 
+    <!-- Таб-бар -->
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
       style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)"
@@ -263,7 +344,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import type { AuthorCard } from "../shared/types";
 import Avatar from "./Avatar.vue";
 import SearchOverlay from "./SearchOverlay.vue";
@@ -309,6 +390,13 @@ const props = defineProps<{
 }>();
 
 const menuOpen = ref(false);
+const switcherOpen = ref(false);
+const accessCode = ref("");
+const switching = ref(false);
+const switchError = ref("");
+const trustedAccounts = ref<any[]>([]);
+const selectedAccountId = ref<string | null>(null);
+
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
 );
@@ -387,14 +475,70 @@ const activePill = computed(() => {
 
 const dailyAvailable = ref(false);
 const dailyLoading = ref(false);
-const dailyToast = ref("");
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
 }
 
-async function openAccountSwitcher() {
+async function openSwitcher() {
   menuOpen.value = false;
+  switcherOpen.value = true;
+  switchError.value = "";
+  accessCode.value = "";
+
+  // Загрузить список доверенных аккаунтов
+  try {
+    const res = await fetch("/s/auth/trusted-accounts", {
+      credentials: "include",
+    });
+    const data = await res.json().catch(() => ({ accounts: [] }));
+    trustedAccounts.value = data.accounts || [];
+  } catch {
+    trustedAccounts.value = [];
+  }
+}
+
+async function doSwitch() {
+  if (switching.value) return;
+
+  if (!accessCode.value.trim() && !selectedAccountId.value) {
+    switchError.value = "Введите код или выберите аккаунт";
+    return;
+  }
+
+  switching.value = true;
+  switchError.value = "";
+
+  try {
+    const body: any = {};
+    if (accessCode.value.trim()) body.accessCode = accessCode.value;
+    if (selectedAccountId.value) body.targetProfileId = selectedAccountId.value;
+
+    const res = await fetch("/s/auth/switch-account", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.ok) {
+      window.location.reload();
+    } else {
+      switchError.value = data.error || "Ошибка переключения";
+    }
+  } catch {
+    switchError.value = "Ошибка сети";
+  } finally {
+    switching.value = false;
+  }
+}
+
+function quickSwitch(accountId: string) {
+  selectedAccountId.value = accountId;
+  accessCode.value = "";
+  doSwitch();
 }
 
 async function checkDailyReward() {
@@ -402,7 +546,6 @@ async function checkDailyReward() {
     const result = await dailyRewardRoute.run(ctx);
     if (result.ok) {
       dailyAvailable.value = true;
-      dailyToast.value = result.reward;
     } else {
       dailyAvailable.value = false;
     }
@@ -415,16 +558,10 @@ async function claimDailyReward() {
   if (dailyLoading.value || !dailyAvailable.value) return;
   dailyLoading.value = true;
   try {
-    const result = await dailyRewardRoute.run(ctx);
-    if (result.ok) {
-      dailyAvailable.value = false;
-      dailyToast.value = `+${result.streak} стрик · ${result.reward}`;
-      setTimeout(() => {
-        dailyToast.value = "";
-      }, 4000);
-    }
-  } catch {
+    await dailyRewardRoute.run(ctx);
     dailyAvailable.value = false;
+  } catch {
+    // silent
   } finally {
     dailyLoading.value = false;
   }
@@ -434,7 +571,7 @@ checkDailyReward();
 
 async function signOut() {
   try {
-    await fetch("/s/auth/sign-out", { method: "POST" });
+    await fetch("/s/auth/sign-out", { method: "POST", credentials: "include" });
   } finally {
     window.location.reload();
   }
