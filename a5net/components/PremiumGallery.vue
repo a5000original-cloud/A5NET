@@ -1,14 +1,11 @@
 <template>
   <section class="relative">
-    <!-- Loading -->
     <div v-if="loading" class="flex min-h-[320px] items-center justify-center">
       <div class="a5-mono text-sm text-moss/50">загрузка хранилища…</div>
     </div>
-    <!-- Empty -->
     <p v-else-if="!items.length" class="py-16 text-center text-sm text-moss/50">
       Хранилище пусто.
     </p>
-    <!-- Grid -->
     <div v-else class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <article
         v-for="item in items"
@@ -23,24 +20,20 @@
         @mouseenter="isAwarded(item.id) && (hoveredCard = item.id)"
         @mouseleave="hoveredCard = null"
       >
-        <!-- Rarity border gradient -->
         <div
           class="absolute inset-0 rounded-2xl"
           :class="isAwarded(item.id) ? rarityBorder(item.rarity) : 'bg-line/20'"
         ></div>
-        <!-- Card body -->
         <div
           class="relative flex flex-col rounded-2xl border border-line/30 bg-ink/70 backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-1 group-hover:border-line/50"
           :class="isAwarded(item.id) ? 'shadow-lg' : ''"
         >
-          <!-- Image area -->
           <div
             class="relative flex aspect-square items-center justify-center overflow-hidden rounded-t-2xl"
             :class="
               isAwarded(item.id) ? rarityImageBg(item.rarity) : 'bg-coal/60'
             "
           >
-            <!-- Shimmer overlay for legendary -->
             <div
               v-if="isAwarded(item.id) && item.rarity === 'legendary'"
               class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
@@ -49,7 +42,6 @@
                 animation: shimmer 3s ease-in-out infinite;
               "
             ></div>
-            <!-- Pulsing overlay for founder -->
             <div
               v-if="isAwarded(item.id) && item.rarity === 'founder'"
               class="absolute inset-0 rounded-t-2xl"
@@ -62,7 +54,6 @@
                 animation: pulseGlow 2.5s ease-in-out infinite;
               "
             ></div>
-            <!-- Image or icon -->
             <img
               v-if="item.imageUrl"
               :src="item.imageUrl"
@@ -81,7 +72,6 @@
             >
               {{ typeIcon(item.type) }}
             </span>
-            <!-- Awarded badge -->
             <span
               v-if="isAwarded(item.id)"
               class="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-lime/40 bg-ink/80 px-2.5 py-1 text-[9px] font-medium text-lime backdrop-blur-md transition-all duration-300"
@@ -96,7 +86,6 @@
               </svg>
               в коллекции
             </span>
-            <!-- Rarity indicator top-right -->
             <span
               v-if="isAwarded(item.id)"
               class="absolute right-3 top-3 rounded-full px-2 py-0.5 text-[8px] font-medium uppercase tracking-wider backdrop-blur-md"
@@ -105,9 +94,7 @@
               {{ item.rarity }}
             </span>
           </div>
-          <!-- Content -->
           <div class="p-4">
-            <!-- Name -->
             <div class="flex items-start justify-between gap-2">
               <h3
                 class="flex-1 text-[13px] font-medium leading-tight text-bone transition-colors duration-300"
@@ -116,14 +103,12 @@
                 {{ item.name }}
               </h3>
             </div>
-            <!-- Description -->
             <p
               class="mt-1.5 line-clamp-2 text-[11px] leading-relaxed transition-colors duration-300"
               :class="isAwarded(item.id) ? 'text-moss/70' : 'text-moss/40'"
             >
               {{ item.description }}
             </p>
-            <!-- Type pill -->
             <div class="mt-3 flex items-center gap-2">
               <span
                 class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[9px] font-medium transition-all duration-300"
@@ -153,6 +138,7 @@ const props = defineProps<{ profileId?: string }>();
 const items = ref<any[]>([]);
 const loading = ref(true);
 const hoveredCard = ref<string | null>(null);
+const awardedIds = new Set<string>();
 
 const typeMap: Record<string, { label: string; icon: string }> = {
   seal: { label: "Печать", icon: "🔏" },
@@ -186,21 +172,19 @@ function isAwarded(itemId: string): boolean {
   return awardedIds.has(itemId);
 }
 
-const awardedIds = new Set<string>();
-
 function rarityGlow(rarity: string): string {
   const base = "shadow-xl ";
   switch (rarity) {
     case "founder":
-      return base + " shadow-[#bfff00]/20";
+      return base + "shadow-[#bfff00]/20";
     case "legendary":
-      return base + " shadow-[#ffd700]/20";
+      return base + "shadow-[#ffd700]/20";
     case "epic":
-      return base + " shadow-[#a855f7]/20";
+      return base + "shadow-[#a855f7]/20";
     case "rare":
-      return base + " shadow-[#38bdf8]/20";
+      return base + "shadow-[#38bdf8]/20";
     default:
-      return base + " shadow-line/10";
+      return base + "shadow-line/10";
   }
 }
 
@@ -282,6 +266,7 @@ onMounted(async () => {
   }
 });
 </script>
+
 <style scoped>
 @keyframes shimmer {
   0%,

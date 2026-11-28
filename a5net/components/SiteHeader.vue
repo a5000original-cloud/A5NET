@@ -202,13 +202,6 @@
                 <div class="a5-divider my-1"></div>
                 <button
                   type="button"
-                  class="block w-full px-4 py-2.5 text-left text-sm text-bone hover:bg-panel2 active:bg-panel2 touch-manipulation"
-                  @click="openSwitcher"
-                >
-                  🔄 Переключить аккаунт
-                </button>
-                <button
-                  type="button"
                   class="block w-full px-4 py-2.5 text-left text-sm text-ember hover:bg-panel2 active:bg-panel2 touch-manipulation"
                   @click="signOut"
                 >
@@ -220,92 +213,6 @@
         </div>
       </div>
     </header>
-
-    <div
-      v-if="switcherOpen"
-      class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center"
-      @click.self="switcherOpen = false"
-    >
-      <div
-        class="absolute inset-0 bg-black/70 backdrop-blur-md"
-        @click="switcherOpen = false"
-      ></div>
-      <div
-        class="relative w-full max-w-md rounded-t-2xl border-t border-white/10 bg-panel/95 p-6 backdrop-blur-2xl sm:rounded-2xl sm:border sm:border-line sm:shadow-lift"
-      >
-        <div
-          class="mx-auto mb-4 h-1 w-12 rounded-full bg-line/50 sm:hidden"
-        ></div>
-        <h3 class="a5-display mb-1 text-lg font-medium text-bone">
-          Связка аккаунтов
-        </h3>
-        <p class="mb-4 text-[11px] text-moss/60">
-          Введите код доступа или выберите аккаунт
-        </p>
-        <div v-if="trustedAccounts.length" class="mb-4 space-y-2">
-          <p class="text-[9px] uppercase tracking-wider text-moss/50">
-            Ваши аккаунты
-          </p>
-          <button
-            v-for="acc in trustedAccounts"
-            :key="acc.id"
-            type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-line/50 bg-panel2/40 p-3 transition-all hover:border-lime/40 hover:bg-panel2/60 active:scale-[0.98]"
-            :class="{ 'border-lime/60 bg-lime/10': acc.isCurrent }"
-            @click="quickSwitch(acc.id)"
-          >
-            <Avatar
-              :name="acc.name"
-              :hue="acc.avatarHue"
-              :accent="acc.avatarAccent"
-              size="sm"
-            />
-            <div class="flex-1 text-left">
-              <div class="text-sm font-medium text-bone">{{ acc.name }}</div>
-              <div class="text-[10px] text-moss/60">@{{ acc.handle }}</div>
-            </div>
-            <span
-              v-if="acc.isCurrent"
-              class="rounded-full bg-lime/20 px-2 py-0.5 text-[9px] font-medium text-lime"
-              >Текущий</span
-            >
-          </button>
-        </div>
-        <div class="a5-divider my-4"></div>
-        <label class="a5-label" for="access-code">Код доступа A5000</label>
-        <input
-          id="access-code"
-          v-model="accessCode"
-          type="password"
-          autocomplete="off"
-          class="a5-input mb-3 font-mono text-[12px]"
-          placeholder="••••••••••"
-          @keyup.enter="doSwitch"
-        />
-        <button
-          type="button"
-          class="a5-btn-primary w-full"
-          :disabled="switching || (!accessCode.trim() && !selectedAccountId)"
-          @click="doSwitch"
-        >
-          {{ switching ? "Проверяю…" : "Войти по коду" }}
-        </button>
-        <p
-          v-if="switchError"
-          class="mt-3 rounded-lg border border-ember/30 bg-ember/10 px-3 py-2 text-[11px] text-ember"
-        >
-          {{ switchError }}
-        </p>
-        <button
-          type="button"
-          class="mt-4 w-full rounded-xl border border-line bg-panel2/60 px-4 py-3 text-sm text-moss hover:text-bone transition"
-          @click="switcherOpen = false"
-        >
-          Отмена
-        </button>
-      </div>
-    </div>
-
     <nav
       class="fixed inset-x-0 bottom-0 z-40 border-t border-line/50 bg-ink/90 backdrop-blur-2xl md:hidden"
       style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)"
@@ -329,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref } from "vue";
 import type { AuthorCard } from "../shared/types";
 import Avatar from "./Avatar.vue";
 import SearchOverlay from "./SearchOverlay.vue";
@@ -375,13 +282,6 @@ const props = defineProps<{
 }>();
 
 const menuOpen = ref(false);
-const switcherOpen = ref(false);
-const accessCode = ref("");
-const switching = ref(false);
-const switchError = ref("");
-const trustedAccounts = ref<any[]>([]);
-const selectedAccountId = ref<string | null>(null);
-
 const showInvites = computed(
   () => props.role === "owner" || props.role === "admin",
 );
@@ -463,59 +363,6 @@ const dailyLoading = ref(false);
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
-}
-
-async function openSwitcher() {
-  menuOpen.value = false;
-  switcherOpen.value = true;
-  switchError.value = "";
-  accessCode.value = "";
-  try {
-    const res = await fetch("/s/auth/trusted-accounts", {
-      credentials: "include",
-    });
-    const data = await res.json().catch(() => ({ accounts: [] }));
-    trustedAccounts.value = data.accounts || [];
-  } catch {
-    trustedAccounts.value = [];
-  }
-}
-
-async function doSwitch() {
-  if (switching.value) return;
-  if (!accessCode.value.trim() && !selectedAccountId.value) {
-    switchError.value = "Введите код или выберите аккаунт";
-    return;
-  }
-  switching.value = true;
-  switchError.value = "";
-  try {
-    const body: any = {};
-    if (accessCode.value.trim()) body.accessCode = accessCode.value;
-    if (selectedAccountId.value) body.targetProfileId = selectedAccountId.value;
-    const res = await fetch("/s/auth/switch-by-code", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(body),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.ok) {
-      window.location.reload();
-    } else {
-      switchError.value = data.error || "Ошибка переключения";
-    }
-  } catch {
-    switchError.value = "Ошибка сети";
-  } finally {
-    switching.value = false;
-  }
-}
-
-function quickSwitch(accountId: string) {
-  selectedAccountId.value = accountId;
-  accessCode.value = "";
-  doSwitch();
 }
 
 async function checkDailyReward() {

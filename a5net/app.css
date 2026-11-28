@@ -437,6 +437,23 @@ body {
   z-index: 2;
 }
 
+.premium-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 3px;
+  background: transparent;
+  z-index: 1;
+}
+
+.premium-avatar img,
+.premium-avatar > span {
+  border-radius: 9999px;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
 .premium-avatar::before {
   content: "";
   position: absolute;
